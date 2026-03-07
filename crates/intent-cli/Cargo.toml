@@ -1,12 +1,13 @@
 [package]
 name = "intent-cli"
-description = "CLI toolchain for IntentLang: check, render, compile, verify, audit, query, lock"
+description = "CLI toolchain for IntentLang: check, render, compile, verify, audit, query, lock, fmt, init"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 keywords.workspace = true
 categories.workspace = true
+readme = "README.md"
 
 [[bin]]
 name = "intent"
@@ -20,4 +21,5 @@ intent-ir = { path = "../intent-ir", version = "0.4.0-alpha.1" }
 serde.workspace = true
 serde_json.workspace = true
 clap.workspace = true
+clap_complete = "4"
 miette = { workspace = true, features = ["fancy"] }

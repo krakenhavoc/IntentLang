@@ -120,6 +120,9 @@ intent query <file> <target>           Query items (for agent integration)
 intent lock <file> <item> --agent X    Claim a spec item for an agent
 intent unlock <file> <item> --agent X  Release a claimed spec item
 intent status <file>                   Show lock status for all spec items
+intent fmt <file>                      Format a spec file (--write to overwrite, --check to verify)
+intent init                            Scaffold a new .intent file (--name, -o)
+intent completions <shell>             Generate shell completions (bash, zsh, fish, etc.)
 ```
 
 ### Semantic Analysis

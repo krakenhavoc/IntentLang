@@ -23,6 +23,9 @@ intent <command> <file>
 | `lock <file> <item> --agent X` | Claim a spec item for an agent |
 | `unlock <file> <item> --agent X` | Release a claimed spec item |
 | `status <file>` | Show lock status for all spec items |
+| `fmt <file>` | Format a spec file (`--write` to overwrite, `--check` to verify) |
+| `init` | Scaffold a new `.intent` file (`--name`, `-o`) |
+| `completions <shell>` | Generate shell completions (bash, zsh, fish, etc.) |
 
 ## Global options
 

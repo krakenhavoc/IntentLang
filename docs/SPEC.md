@@ -2,13 +2,18 @@
 
 ## Vision
 
-A three-layer programming system designed for a world where humans and AI agents collaborate on software:
+A four-layer programming system designed for a world where humans and AI agents collaborate on software:
 
-1. **Intent Layer** (human-facing) — A specification language where humans express *what* they want and *what constraints must hold*, without prescribing implementation.
+0. **Natural Language** (human-facing) — A natural language interface where humans describe what they want in plain English. An AI agent translates the description into a formal intent spec. This is the lowest-barrier entry point — the language meets humans where they are.
+1. **Intent Layer** (human-facing) — A declarative specification language where humans express *what* they want and *what constraints must hold*, without prescribing implementation. Humans can author specs directly here, or refine specs generated from Layer 0.
 2. **Agent IR** (agent-facing) — A dense, formally verifiable intermediate representation that agents generate, optimize, and maintain.
 3. **Audit Bridge** — Tooling that maps between the two layers so humans can review, approve, and understand agent-produced code at the specification level.
 
-The analogy: Humans write the *contract*. Agents write the *implementation*. The system *proves* the implementation satisfies the contract.
+Layers 0 and 1 are both human-facing — they meet users at their comfort level. A PM can describe an idea in plain English (Layer 0) and get a formal spec. An engineer can write or refine that spec directly (Layer 1). Either way, the human controls the *what*; agents handle the *how*.
+
+The analogy: Humans describe the *idea*. The system formalizes it into a *contract*. Agents write the *implementation*. The toolchain *proves* the implementation satisfies the contract.
+
+> **Traceability note:** The natural language prompt used to generate a spec should be stored alongside the `.intent` file in version control (e.g., as a `--- @prompt` annotation or companion `.prompt` file). This preserves the original human intent so that other team members can understand not just *what* was specified, but *why* — the ask behind the spec.
 
 ---
 
