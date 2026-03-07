@@ -151,6 +151,15 @@ fn main() {
                     ir.invariants.len(),
                     ir.structs.len(),
                 );
+
+                // Coherence analysis: show verification obligations
+                let obligations = intent_ir::analyze_obligations(&ir);
+                if !obligations.is_empty() {
+                    println!("\nVerification obligations:");
+                    for ob in &obligations {
+                        println!("  - {ob}");
+                    }
+                }
             } else {
                 for err in &ir_errors {
                     eprintln!(

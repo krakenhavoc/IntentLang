@@ -10,4 +10,4 @@ mod verify_tests;
 
 pub use lower::lower_file;
 pub use types::*;
-pub use verify::verify_module;
+pub use verify::{analyze_obligations, verify_module, Obligation, ObligationKind};
