@@ -50,9 +50,8 @@ fn lower_invariant() {
 
 #[test]
 fn lower_edge_cases() {
-    let ast = parse(
-        "module M action A { x: Int } edge_cases { when x > 100 => reject(\"too big\") }",
-    );
+    let ast =
+        parse("module M action A { x: Int } edge_cases { when x > 100 => reject(\"too big\") }");
     let ir = lower_file(&ast);
 
     assert_eq!(ir.edge_guards.len(), 1);
@@ -64,7 +63,10 @@ fn lower_optional_type() {
     let ast = parse("module M entity X { v: Int? }");
     let ir = lower_file(&ast);
 
-    assert_eq!(ir.structs[0].fields[0].ty, IrType::Optional(Box::new(IrType::Named("Int".into()))));
+    assert_eq!(
+        ir.structs[0].fields[0].ty,
+        IrType::Optional(Box::new(IrType::Named("Int".into())))
+    );
 }
 
 #[test]
@@ -80,11 +82,18 @@ fn lower_union_type() {
 
 #[test]
 fn lower_collection_types() {
-    let ast = parse("module M entity X { items: List<Int> tags: Set<String> meta: Map<String, Int> }");
+    let ast =
+        parse("module M entity X { items: List<Int> tags: Set<String> meta: Map<String, Int> }");
     let ir = lower_file(&ast);
 
-    assert_eq!(ir.structs[0].fields[0].ty, IrType::List(Box::new(IrType::Named("Int".into()))));
-    assert_eq!(ir.structs[0].fields[1].ty, IrType::Set(Box::new(IrType::Named("String".into()))));
+    assert_eq!(
+        ir.structs[0].fields[0].ty,
+        IrType::List(Box::new(IrType::Named("Int".into())))
+    );
+    assert_eq!(
+        ir.structs[0].fields[1].ty,
+        IrType::Set(Box::new(IrType::Named("String".into())))
+    );
     assert_eq!(
         ir.structs[0].fields[2].ty,
         IrType::Map(
@@ -144,7 +153,9 @@ fn lower_zero_arg_call() {
 
     let pre = &ir.functions[0].preconditions[0].expr;
     if let IrExpr::Compare { right, .. } = pre {
-        assert!(matches!(right.as_ref(), IrExpr::Call { name, args } if name == "now" && args.is_empty()));
+        assert!(
+            matches!(right.as_ref(), IrExpr::Call { name, args } if name == "now" && args.is_empty())
+        );
     } else {
         panic!("expected Compare");
     }

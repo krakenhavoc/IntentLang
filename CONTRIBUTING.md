@@ -10,6 +10,9 @@ git clone https://github.com/krakenhavoc/IntentLang.git
 cd IntentLang
 cargo build --workspace
 
+# Enable pre-commit hooks (fmt, clippy, tests)
+git config core.hooksPath .githooks
+
 # Run the test suite
 cargo test --workspace
 

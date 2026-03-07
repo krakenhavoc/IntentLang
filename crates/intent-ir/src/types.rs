@@ -108,10 +108,7 @@ pub struct Condition {
 #[derive(Debug, Clone, Serialize)]
 pub enum Postcondition {
     /// Always holds after execution.
-    Always {
-        expr: IrExpr,
-        trace: SourceTrace,
-    },
+    Always { expr: IrExpr, trace: SourceTrace },
     /// Holds only when `guard` is true.
     When {
         guard: IrExpr,
@@ -168,10 +165,7 @@ pub enum IrExpr {
     /// Literal value.
     Literal(IrLiteral),
     /// Field access: `obj.field`
-    FieldAccess {
-        root: Box<IrExpr>,
-        field: String,
-    },
+    FieldAccess { root: Box<IrExpr>, field: String },
     /// Binary comparison.
     Compare {
         left: Box<IrExpr>,
@@ -207,10 +201,7 @@ pub enum IrExpr {
         body: Box<IrExpr>,
     },
     /// Function call.
-    Call {
-        name: String,
-        args: Vec<IrExpr>,
-    },
+    Call { name: String, args: Vec<IrExpr> },
 }
 
 /// Comparison operators (shared with AST but owned by IR).

@@ -15,7 +15,10 @@ fn snap(name: &str, src: &str) {
 
 #[test]
 fn snapshot_minimal() {
-    snap("minimal", include_str!("../../../tests/valid/minimal.intent"));
+    snap(
+        "minimal",
+        include_str!("../../../tests/valid/minimal.intent"),
+    );
 }
 
 #[test]

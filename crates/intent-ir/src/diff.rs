@@ -114,9 +114,18 @@ pub fn diff_reports(old: &AuditReport, new: &AuditReport) -> DiffReport {
         }
     }
 
-    let added = changes.iter().filter(|c| c.change == ChangeKind::Added).count();
-    let removed = changes.iter().filter(|c| c.change == ChangeKind::Removed).count();
-    let modified = changes.iter().filter(|c| c.change == ChangeKind::Modified).count();
+    let added = changes
+        .iter()
+        .filter(|c| c.change == ChangeKind::Added)
+        .count();
+    let removed = changes
+        .iter()
+        .filter(|c| c.change == ChangeKind::Removed)
+        .count();
+    let modified = changes
+        .iter()
+        .filter(|c| c.change == ChangeKind::Modified)
+        .count();
 
     let summary = DiffSummary {
         added,
@@ -210,10 +219,7 @@ impl DiffReport {
         for entry in &self.changes {
             out.push('\n');
             let symbol = entry.change;
-            out.push_str(&format!(
-                "  [{symbol}] {} {}\n",
-                entry.kind, entry.name,
-            ));
+            out.push_str(&format!("  [{symbol}] {} {}\n", entry.kind, entry.name,));
 
             for detail in &entry.details {
                 let dsym = detail.change;

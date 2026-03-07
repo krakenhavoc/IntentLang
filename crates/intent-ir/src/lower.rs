@@ -305,12 +305,8 @@ fn lower_expr(expr: &ast::Expr) -> IrExpr {
             op: lower_arith_op(*op),
             right: Box::new(lower_expr(right)),
         },
-        ast::ExprKind::And(a, b) => {
-            IrExpr::And(Box::new(lower_expr(a)), Box::new(lower_expr(b)))
-        }
-        ast::ExprKind::Or(a, b) => {
-            IrExpr::Or(Box::new(lower_expr(a)), Box::new(lower_expr(b)))
-        }
+        ast::ExprKind::And(a, b) => IrExpr::And(Box::new(lower_expr(a)), Box::new(lower_expr(b))),
+        ast::ExprKind::Or(a, b) => IrExpr::Or(Box::new(lower_expr(a)), Box::new(lower_expr(b))),
         ast::ExprKind::Not(inner) => IrExpr::Not(Box::new(lower_expr(inner))),
         ast::ExprKind::Implies(a, b) => {
             IrExpr::Implies(Box::new(lower_expr(a)), Box::new(lower_expr(b)))

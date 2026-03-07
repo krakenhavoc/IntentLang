@@ -14,9 +14,16 @@ use crate::errors::CheckError;
 
 /// Built-in primitive and domain types that don't need entity definitions.
 const BUILTIN_TYPES: &[&str] = &[
-    "UUID", "String", "Int", "Decimal", "Bool", "DateTime",
+    "UUID",
+    "String",
+    "Int",
+    "Decimal",
+    "Bool",
+    "DateTime",
     // Domain types
-    "CurrencyCode", "Email", "URL",
+    "CurrencyCode",
+    "Email",
+    "URL",
 ];
 
 /// Collected type information and definitions from a parsed file.
@@ -86,7 +93,8 @@ fn collect_definitions(file: &ast::File, env: &mut TypeEnv, errors: &mut Vec<Che
                             field_map.push((field.name.clone(), field.span));
                         }
                     }
-                    env.entities.insert(entity.name.clone(), (entity.span, field_map));
+                    env.entities
+                        .insert(entity.name.clone(), (entity.span, field_map));
                 }
             }
             TopLevelItem::Action(action) => {
@@ -114,15 +122,14 @@ fn collect_definitions(file: &ast::File, env: &mut TypeEnv, errors: &mut Vec<Che
                             param_names.push(param.name.clone());
                         }
                     }
-                    env.actions.insert(action.name.clone(), (action.span, param_names));
+                    env.actions
+                        .insert(action.name.clone(), (action.span, param_names));
                 }
             }
             TopLevelItem::Invariant(inv) => {
                 if let Some(&first_span) = env.invariants.get(&inv.name) {
                     errors.push(CheckError::duplicate_invariant(
-                        &inv.name,
-                        first_span,
-                        inv.span,
+                        &inv.name, first_span, inv.span,
                     ));
                 } else {
                     env.invariants.insert(inv.name.clone(), inv.span);
@@ -245,15 +252,9 @@ fn check_edge_case_actions(file: &ast::File, env: &TypeEnv, errors: &mut Vec<Che
         if let TopLevelItem::EdgeCases(ec) = item {
             for rule in &ec.rules {
                 let name = &rule.action.name;
-                let is_defined_action_name = name
-                    .chars()
-                    .next()
-                    .is_some_and(|c| c.is_uppercase());
+                let is_defined_action_name = name.chars().next().is_some_and(|c| c.is_uppercase());
                 if is_defined_action_name && !env.actions.contains_key(name) {
-                    errors.push(CheckError::undefined_edge_action(
-                        name,
-                        rule.action.span,
-                    ));
+                    errors.push(CheckError::undefined_edge_action(name, rule.action.span));
                 }
             }
         }

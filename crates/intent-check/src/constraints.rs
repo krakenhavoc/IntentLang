@@ -75,8 +75,7 @@ fn expr_to_path(expr: &ast::Expr) -> Option<Vec<String>> {
 /// Walk an expression tree looking for tautological self-comparisons.
 fn walk_for_tautological(expr: &ast::Expr, errors: &mut Vec<CheckError>) {
     if let ExprKind::Compare { left, op, right } = &expr.kind
-        && let (Some(left_path), Some(right_path)) =
-            (expr_to_path(left), expr_to_path(right))
+        && let (Some(left_path), Some(right_path)) = (expr_to_path(left), expr_to_path(right))
         && left_path == right_path
     {
         let path_str = left_path.join(".");

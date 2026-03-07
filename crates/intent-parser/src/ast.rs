@@ -171,7 +171,11 @@ pub struct ActionCall {
 /// A call argument — either named (`key: value`) or positional.
 #[derive(Debug, Clone, Serialize)]
 pub enum CallArg {
-    Named { key: String, value: Expr, span: Span },
+    Named {
+        key: String,
+        value: Expr,
+        span: Span,
+    },
     Positional(Expr),
 }
 
@@ -255,10 +259,7 @@ pub enum ExprKind {
         body: Box<Expr>,
     },
     /// `name(args)` — function call.
-    Call {
-        name: String,
-        args: Vec<CallArg>,
-    },
+    Call { name: String, args: Vec<CallArg> },
     /// Field access chain: `a.b.c` or `f(x).y.z`.
     /// `root` is the base expression, `fields` are the `.`-accessed names.
     FieldAccess {
@@ -281,8 +282,12 @@ impl Expr {
             ExprKind::Implies(a, b)
             | ExprKind::Or(a, b)
             | ExprKind::And(a, b)
-            | ExprKind::Compare { left: a, right: b, .. }
-            | ExprKind::Arithmetic { left: a, right: b, .. } => {
+            | ExprKind::Compare {
+                left: a, right: b, ..
+            }
+            | ExprKind::Arithmetic {
+                left: a, right: b, ..
+            } => {
                 f(a);
                 f(b);
             }

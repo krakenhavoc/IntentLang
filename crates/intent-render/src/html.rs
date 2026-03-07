@@ -86,10 +86,7 @@ fn render_action(out: &mut String, action: &ast::ActionDecl) {
         for item in &ens.items {
             match item {
                 ast::EnsuresItem::Expr(e) => {
-                    out.push_str(&format!(
-                        "<li><code>{}</code></li>\n",
-                        esc(&format_expr(e))
-                    ));
+                    out.push_str(&format!("<li><code>{}</code></li>\n", esc(&format_expr(e))));
                 }
                 ast::EnsuresItem::When(w) => {
                     out.push_str(&format!(

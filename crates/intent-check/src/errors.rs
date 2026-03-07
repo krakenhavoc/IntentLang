@@ -13,7 +13,10 @@ fn to_source_span(span: Span) -> SourceSpan {
 #[derive(Debug, Clone, Error, Diagnostic)]
 pub enum CheckError {
     #[error("duplicate entity `{name}`")]
-    #[diagnostic(code(intent::check::duplicate_entity), help("rename one of the entities"))]
+    #[diagnostic(
+        code(intent::check::duplicate_entity),
+        help("rename one of the entities")
+    )]
     DuplicateEntity {
         name: String,
         #[label("first defined here")]
@@ -23,7 +26,10 @@ pub enum CheckError {
     },
 
     #[error("duplicate action `{name}`")]
-    #[diagnostic(code(intent::check::duplicate_action), help("rename one of the actions"))]
+    #[diagnostic(
+        code(intent::check::duplicate_action),
+        help("rename one of the actions")
+    )]
     DuplicateAction {
         name: String,
         #[label("first defined here")]
@@ -117,7 +123,9 @@ pub enum CheckError {
     #[error("comparing `{expr}` to itself is always {result}")]
     #[diagnostic(
         code(intent::check::tautological_comparison),
-        help("both sides of this comparison are identical — did you mean to compare different values?")
+        help(
+            "both sides of this comparison are identical — did you mean to compare different values?"
+        )
     )]
     TautologicalComparison {
         expr: String,
