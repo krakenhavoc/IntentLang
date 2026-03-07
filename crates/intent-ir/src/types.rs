@@ -202,6 +202,8 @@ pub enum IrExpr {
     },
     /// Function call.
     Call { name: String, args: Vec<IrExpr> },
+    /// List literal: `[a, b, c]`.
+    List(Vec<IrExpr>),
 }
 
 /// Comparison operators (shared with AST but owned by IR).

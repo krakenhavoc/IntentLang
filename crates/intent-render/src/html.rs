@@ -192,6 +192,10 @@ fn format_expr(expr: &ast::Expr) -> String {
         ast::ExprKind::FieldAccess { root, fields } => {
             format!("{}.{}", format_expr(root), fields.join("."))
         }
+        ast::ExprKind::List(items) => {
+            let inner: Vec<_> = items.iter().map(format_expr).collect();
+            format!("[{}]", inner.join(", "))
+        }
         ast::ExprKind::Ident(name) => name.clone(),
         ast::ExprKind::Literal(lit) => format_literal(lit),
     }

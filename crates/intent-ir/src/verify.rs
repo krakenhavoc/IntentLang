@@ -295,7 +295,7 @@ fn collect_old_field_accesses<'a>(
                 IrExpr::Forall { body, .. } | IrExpr::Exists { body, .. } => {
                     collect_old_field_accesses(body, param_to_entity, result);
                 }
-                IrExpr::Call { args, .. } => {
+                IrExpr::Call { args, .. } | IrExpr::List(args) => {
                     for arg in args {
                         collect_old_field_accesses(arg, param_to_entity, result);
                     }
@@ -339,7 +339,7 @@ fn collect_inner_field_accesses<'a>(
             IrExpr::Forall { body, .. } | IrExpr::Exists { body, .. } => {
                 collect_inner_field_accesses(body, param_to_entity, result);
             }
-            IrExpr::Call { args, .. } => {
+            IrExpr::Call { args, .. } | IrExpr::List(args) => {
                 for arg in args {
                     collect_inner_field_accesses(arg, param_to_entity, result);
                 }
@@ -427,6 +427,11 @@ fn collect_call_names<'a>(expr: &'a IrExpr, names: &mut HashSet<&'a str>) {
         IrExpr::FieldAccess { root, .. } => collect_call_names(root, names),
         IrExpr::Forall { body, .. } | IrExpr::Exists { body, .. } => {
             collect_call_names(body, names);
+        }
+        IrExpr::List(items) => {
+            for item in items {
+                collect_call_names(item, names);
+            }
         }
         IrExpr::Var(_) | IrExpr::Literal(_) | IrExpr::Call { .. } => {}
     }
@@ -666,7 +671,7 @@ fn for_each_child(expr: &IrExpr, mut f: impl FnMut(&IrExpr)) {
         IrExpr::Not(inner) | IrExpr::Old(inner) => f(inner),
         IrExpr::FieldAccess { root, .. } => f(root),
         IrExpr::Forall { body, .. } | IrExpr::Exists { body, .. } => f(body),
-        IrExpr::Call { args, .. } => {
+        IrExpr::Call { args, .. } | IrExpr::List(args) => {
             for arg in args {
                 f(arg);
             }

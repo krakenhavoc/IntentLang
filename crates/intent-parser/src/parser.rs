@@ -723,9 +723,9 @@ fn build_atom(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
             span,
         },
         Rule::list_literal => {
-            // TODO: build list expression
+            let items = pair.into_inner().map(build_expr).collect();
             Expr {
-                kind: ExprKind::Literal(Literal::Null),
+                kind: ExprKind::List(items),
                 span,
             }
         }
@@ -908,6 +908,66 @@ edge_cases {
             assert_eq!(ec.rules[1].action.name, "reject");
         } else {
             panic!("expected edge_cases");
+        }
+    }
+
+    #[test]
+    fn parse_list_literal() {
+        let src = r#"module Test
+
+action SetTags {
+  item: Item
+
+  ensures {
+    item.tags == [1, 2, 3]
+  }
+}
+"#;
+        let file = parse_file(src).unwrap();
+        if let TopLevelItem::Action(a) = &file.items[0] {
+            let ensures = a.ensures.as_ref().unwrap();
+            // The ensures condition is: item.tags == [1, 2, 3]
+            if let EnsuresItem::Expr(expr) = &ensures.items[0]
+                && let ExprKind::Compare { right, .. } = &expr.kind
+                && let ExprKind::List(items) = &right.kind
+            {
+                assert_eq!(items.len(), 3);
+                assert!(matches!(items[0].kind, ExprKind::Literal(Literal::Int(1))));
+                assert!(matches!(items[1].kind, ExprKind::Literal(Literal::Int(2))));
+                assert!(matches!(items[2].kind, ExprKind::Literal(Literal::Int(3))));
+            } else {
+                panic!("expected ensures expr with list literal");
+            }
+        } else {
+            panic!("expected action");
+        }
+    }
+
+    #[test]
+    fn parse_empty_list_literal() {
+        let src = r#"module Test
+
+action Clear {
+  item: Item
+
+  ensures {
+    item.tags == []
+  }
+}
+"#;
+        let file = parse_file(src).unwrap();
+        if let TopLevelItem::Action(a) = &file.items[0] {
+            let ensures = a.ensures.as_ref().unwrap();
+            if let EnsuresItem::Expr(expr) = &ensures.items[0]
+                && let ExprKind::Compare { right, .. } = &expr.kind
+                && let ExprKind::List(items) = &right.kind
+            {
+                assert!(items.is_empty());
+            } else {
+                panic!("expected ensures expr with empty list literal");
+            }
+        } else {
+            panic!("expected action");
         }
     }
 

@@ -339,6 +339,7 @@ fn lower_expr(expr: &ast::Expr) -> IrExpr {
                 })
                 .collect(),
         },
+        ast::ExprKind::List(items) => IrExpr::List(items.iter().map(lower_expr).collect()),
     }
 }
 
