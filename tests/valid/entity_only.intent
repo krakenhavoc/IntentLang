@@ -1,0 +1,8 @@
+module EntityOnly
+
+entity User {
+  id: UUID
+  name: String
+  email: Email
+  active: Bool
+}

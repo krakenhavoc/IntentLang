@@ -1,0 +1,21 @@
+module AllTypes
+
+--- Exercise every type form supported by the grammar.
+
+entity TypeShowcase {
+  simple: UUID
+  string_field: String
+  int_field: Int
+  bool_field: Bool
+  datetime_field: DateTime
+  email_field: Email
+  url_field: URL
+  currency_field: CurrencyCode
+  decimal_field: Decimal(precision: 4)
+  optional_field: String?
+  union_field: Active | Inactive | Pending
+  optional_union: Open | Closed?
+  list_field: List<String>
+  set_field: Set<UUID>
+  map_field: Map<String, Int>
+}

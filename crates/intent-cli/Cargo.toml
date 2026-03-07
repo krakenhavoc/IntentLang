@@ -1,0 +1,15 @@
+[package]
+name = "intent-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "intent"
+path = "src/main.rs"
+
+[dependencies]
+intent-parser = { path = "../intent-parser" }
+intent-check = { path = "../intent-check" }
+intent-render = { path = "../intent-render" }
+clap.workspace = true
+miette = { workspace = true, features = ["fancy"] }

@@ -1,0 +1,9 @@
+[package]
+name = "intent-check"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+intent-parser = { path = "../intent-parser" }
+miette.workspace = true
+thiserror.workspace = true
