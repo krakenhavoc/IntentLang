@@ -7,10 +7,12 @@
 use std::collections::HashMap;
 use std::fmt;
 
+use serde::Serialize;
+
 use crate::audit::{AuditEntry, AuditReport, CoverageSummary, SpecItemKind, TracePart};
 
 /// A complete diff report between two versions of a spec.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct DiffReport {
     pub module_name: String,
     pub changes: Vec<DiffEntry>,
@@ -18,7 +20,7 @@ pub struct DiffReport {
 }
 
 /// A single spec-item change.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct DiffEntry {
     pub kind: SpecItemKind,
     pub name: String,
@@ -28,7 +30,7 @@ pub struct DiffEntry {
 }
 
 /// What happened to a spec item or sub-item.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum ChangeKind {
     Added,
     Removed,
@@ -36,7 +38,7 @@ pub enum ChangeKind {
 }
 
 /// A change to a sub-item within a spec entry.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct DiffDetail {
     pub label: String,
     pub change: ChangeKind,
@@ -45,7 +47,7 @@ pub struct DiffDetail {
 }
 
 /// High-level summary of changes.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct DiffSummary {
     pub added: usize,
     pub removed: usize,
