@@ -1,0 +1,365 @@
+---
+source: crates/intent-parser/src/snapshot_tests.rs
+expression: ast
+---
+{
+  "module": {
+    "name": "AllTypes",
+    "span": {
+      "start": 0,
+      "end": 15
+    }
+  },
+  "doc": {
+    "lines": [
+      "Exercise every type form supported by the grammar."
+    ],
+    "span": {
+      "start": 17,
+      "end": 73
+    }
+  },
+  "items": [
+    {
+      "Entity": {
+        "doc": null,
+        "name": "TypeShowcase",
+        "fields": [
+          {
+            "name": "simple",
+            "ty": {
+              "ty": {
+                "Simple": "UUID"
+              },
+              "optional": false,
+              "span": {
+                "start": 105,
+                "end": 112
+              }
+            },
+            "span": {
+              "start": 97,
+              "end": 112
+            }
+          },
+          {
+            "name": "string_field",
+            "ty": {
+              "ty": {
+                "Simple": "String"
+              },
+              "optional": false,
+              "span": {
+                "start": 126,
+                "end": 135
+              }
+            },
+            "span": {
+              "start": 112,
+              "end": 135
+            }
+          },
+          {
+            "name": "int_field",
+            "ty": {
+              "ty": {
+                "Simple": "Int"
+              },
+              "optional": false,
+              "span": {
+                "start": 146,
+                "end": 152
+              }
+            },
+            "span": {
+              "start": 135,
+              "end": 152
+            }
+          },
+          {
+            "name": "bool_field",
+            "ty": {
+              "ty": {
+                "Simple": "Bool"
+              },
+              "optional": false,
+              "span": {
+                "start": 164,
+                "end": 171
+              }
+            },
+            "span": {
+              "start": 152,
+              "end": 171
+            }
+          },
+          {
+            "name": "datetime_field",
+            "ty": {
+              "ty": {
+                "Simple": "DateTime"
+              },
+              "optional": false,
+              "span": {
+                "start": 187,
+                "end": 198
+              }
+            },
+            "span": {
+              "start": 171,
+              "end": 198
+            }
+          },
+          {
+            "name": "email_field",
+            "ty": {
+              "ty": {
+                "Simple": "Email"
+              },
+              "optional": false,
+              "span": {
+                "start": 211,
+                "end": 219
+              }
+            },
+            "span": {
+              "start": 198,
+              "end": 219
+            }
+          },
+          {
+            "name": "url_field",
+            "ty": {
+              "ty": {
+                "Simple": "URL"
+              },
+              "optional": false,
+              "span": {
+                "start": 230,
+                "end": 236
+              }
+            },
+            "span": {
+              "start": 219,
+              "end": 236
+            }
+          },
+          {
+            "name": "currency_field",
+            "ty": {
+              "ty": {
+                "Simple": "CurrencyCode"
+              },
+              "optional": false,
+              "span": {
+                "start": 252,
+                "end": 267
+              }
+            },
+            "span": {
+              "start": 236,
+              "end": 267
+            }
+          },
+          {
+            "name": "decimal_field",
+            "ty": {
+              "ty": {
+                "Parameterized": {
+                  "name": "Decimal",
+                  "params": [
+                    {
+                      "name": "precision",
+                      "value": {
+                        "Int": 4
+                      },
+                      "span": {
+                        "start": 290,
+                        "end": 302
+                      }
+                    }
+                  ]
+                }
+              },
+              "optional": false,
+              "span": {
+                "start": 282,
+                "end": 306
+              }
+            },
+            "span": {
+              "start": 267,
+              "end": 306
+            }
+          },
+          {
+            "name": "optional_field",
+            "ty": {
+              "ty": {
+                "Simple": "String"
+              },
+              "optional": true,
+              "span": {
+                "start": 322,
+                "end": 329
+              }
+            },
+            "span": {
+              "start": 306,
+              "end": 329
+            }
+          },
+          {
+            "name": "union_field",
+            "ty": {
+              "ty": {
+                "Union": [
+                  {
+                    "Simple": "Active"
+                  },
+                  {
+                    "Simple": "Inactive"
+                  },
+                  {
+                    "Simple": "Pending"
+                  }
+                ]
+              },
+              "optional": false,
+              "span": {
+                "start": 345,
+                "end": 375
+              }
+            },
+            "span": {
+              "start": 332,
+              "end": 375
+            }
+          },
+          {
+            "name": "optional_union",
+            "ty": {
+              "ty": {
+                "Union": [
+                  {
+                    "Simple": "Open"
+                  },
+                  {
+                    "Simple": "Closed"
+                  }
+                ]
+              },
+              "optional": true,
+              "span": {
+                "start": 391,
+                "end": 405
+              }
+            },
+            "span": {
+              "start": 375,
+              "end": 405
+            }
+          },
+          {
+            "name": "list_field",
+            "ty": {
+              "ty": {
+                "List": {
+                  "ty": {
+                    "Simple": "String"
+                  },
+                  "optional": false,
+                  "span": {
+                    "start": 425,
+                    "end": 431
+                  }
+                }
+              },
+              "optional": false,
+              "span": {
+                "start": 420,
+                "end": 435
+              }
+            },
+            "span": {
+              "start": 408,
+              "end": 435
+            }
+          },
+          {
+            "name": "set_field",
+            "ty": {
+              "ty": {
+                "Set": {
+                  "ty": {
+                    "Simple": "UUID"
+                  },
+                  "optional": false,
+                  "span": {
+                    "start": 450,
+                    "end": 454
+                  }
+                }
+              },
+              "optional": false,
+              "span": {
+                "start": 446,
+                "end": 458
+              }
+            },
+            "span": {
+              "start": 435,
+              "end": 458
+            }
+          },
+          {
+            "name": "map_field",
+            "ty": {
+              "ty": {
+                "Map": [
+                  {
+                    "ty": {
+                      "Simple": "String"
+                    },
+                    "optional": false,
+                    "span": {
+                      "start": 473,
+                      "end": 479
+                    }
+                  },
+                  {
+                    "ty": {
+                      "Simple": "Int"
+                    },
+                    "optional": false,
+                    "span": {
+                      "start": 481,
+                      "end": 484
+                    }
+                  }
+                ]
+              },
+              "optional": false,
+              "span": {
+                "start": 469,
+                "end": 486
+              }
+            },
+            "span": {
+              "start": 458,
+              "end": 486
+            }
+          }
+        ],
+        "span": {
+          "start": 73,
+          "end": 487
+        }
+      }
+    }
+  ],
+  "span": {
+    "start": 0,
+    "end": 488
+  }
+}

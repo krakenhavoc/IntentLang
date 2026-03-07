@@ -1,0 +1,645 @@
+---
+source: crates/intent-parser/src/snapshot_tests.rs
+expression: ast
+---
+{
+  "module": {
+    "name": "FullAction",
+    "span": {
+      "start": 0,
+      "end": 17
+    }
+  },
+  "doc": null,
+  "items": [
+    {
+      "Entity": {
+        "doc": null,
+        "name": "Account",
+        "fields": [
+          {
+            "name": "id",
+            "ty": {
+              "ty": {
+                "Simple": "UUID"
+              },
+              "optional": false,
+              "span": {
+                "start": 42,
+                "end": 49
+              }
+            },
+            "span": {
+              "start": 38,
+              "end": 49
+            }
+          },
+          {
+            "name": "balance",
+            "ty": {
+              "ty": {
+                "Parameterized": {
+                  "name": "Decimal",
+                  "params": [
+                    {
+                      "name": "precision",
+                      "value": {
+                        "Int": 2
+                      },
+                      "span": {
+                        "start": 66,
+                        "end": 78
+                      }
+                    }
+                  ]
+                }
+              },
+              "optional": false,
+              "span": {
+                "start": 58,
+                "end": 82
+              }
+            },
+            "span": {
+              "start": 49,
+              "end": 82
+            }
+          },
+          {
+            "name": "status",
+            "ty": {
+              "ty": {
+                "Union": [
+                  {
+                    "Simple": "Active"
+                  },
+                  {
+                    "Simple": "Frozen"
+                  }
+                ]
+              },
+              "optional": false,
+              "span": {
+                "start": 90,
+                "end": 106
+              }
+            },
+            "span": {
+              "start": 82,
+              "end": 106
+            }
+          }
+        ],
+        "span": {
+          "start": 19,
+          "end": 107
+        }
+      }
+    },
+    {
+      "Action": {
+        "doc": {
+          "lines": [
+            "Withdraw funds from an account."
+          ],
+          "span": {
+            "start": 129,
+            "end": 167
+          }
+        },
+        "name": "Withdraw",
+        "params": [
+          {
+            "name": "account",
+            "ty": {
+              "ty": {
+                "Simple": "Account"
+              },
+              "optional": false,
+              "span": {
+                "start": 176,
+                "end": 186
+              }
+            },
+            "span": {
+              "start": 167,
+              "end": 186
+            }
+          },
+          {
+            "name": "amount",
+            "ty": {
+              "ty": {
+                "Parameterized": {
+                  "name": "Decimal",
+                  "params": [
+                    {
+                      "name": "precision",
+                      "value": {
+                        "Int": 2
+                      },
+                      "span": {
+                        "start": 202,
+                        "end": 214
+                      }
+                    }
+                  ]
+                }
+              },
+              "optional": false,
+              "span": {
+                "start": 194,
+                "end": 219
+              }
+            },
+            "span": {
+              "start": 186,
+              "end": 219
+            }
+          }
+        ],
+        "requires": {
+          "conditions": [
+            {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "account"
+                          },
+                          "span": {
+                            "start": 234,
+                            "end": 241
+                          }
+                        },
+                        "fields": [
+                          "status"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 234,
+                      "end": 248
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "kind": {
+                      "Ident": "Active"
+                    },
+                    "span": {
+                      "start": 252,
+                      "end": 263
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 234,
+                "end": 263
+              }
+            },
+            {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "Ident": "amount"
+                    },
+                    "span": {
+                      "start": 263,
+                      "end": 270
+                    }
+                  },
+                  "op": "Gt",
+                  "right": {
+                    "kind": {
+                      "Literal": {
+                        "Int": 0
+                      }
+                    },
+                    "span": {
+                      "start": 272,
+                      "end": 278
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 263,
+                "end": 278
+              }
+            },
+            {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "account"
+                          },
+                          "span": {
+                            "start": 278,
+                            "end": 285
+                          }
+                        },
+                        "fields": [
+                          "balance"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 278,
+                      "end": 293
+                    }
+                  },
+                  "op": "Ge",
+                  "right": {
+                    "kind": {
+                      "Ident": "amount"
+                    },
+                    "span": {
+                      "start": 297,
+                      "end": 306
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 278,
+                "end": 306
+              }
+            }
+          ],
+          "span": {
+            "start": 219,
+            "end": 307
+          }
+        },
+        "ensures": {
+          "items": [
+            {
+              "Expr": {
+                "kind": {
+                  "Compare": {
+                    "left": {
+                      "kind": {
+                        "FieldAccess": {
+                          "root": {
+                            "kind": {
+                              "Ident": "account"
+                            },
+                            "span": {
+                              "start": 325,
+                              "end": 332
+                            }
+                          },
+                          "fields": [
+                            "balance"
+                          ]
+                        }
+                      },
+                      "span": {
+                        "start": 325,
+                        "end": 340
+                      }
+                    },
+                    "op": "Eq",
+                    "right": {
+                      "kind": {
+                        "Arithmetic": {
+                          "left": {
+                            "kind": {
+                              "Old": {
+                                "kind": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "kind": {
+                                        "Ident": "account"
+                                      },
+                                      "span": {
+                                        "start": 348,
+                                        "end": 355
+                                      }
+                                    },
+                                    "fields": [
+                                      "balance"
+                                    ]
+                                  }
+                                },
+                                "span": {
+                                  "start": 348,
+                                  "end": 363
+                                }
+                              }
+                            },
+                            "span": {
+                              "start": 344,
+                              "end": 365
+                            }
+                          },
+                          "op": "Sub",
+                          "right": {
+                            "kind": {
+                              "Ident": "amount"
+                            },
+                            "span": {
+                              "start": 367,
+                              "end": 376
+                            }
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 344,
+                        "end": 376
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 325,
+                  "end": 376
+                }
+              }
+            }
+          ],
+          "span": {
+            "start": 311,
+            "end": 377
+          }
+        },
+        "properties": {
+          "entries": [
+            {
+              "key": "atomic",
+              "value": {
+                "Literal": {
+                  "Bool": true
+                }
+              },
+              "span": {
+                "start": 398,
+                "end": 410
+              }
+            },
+            {
+              "key": "audit_logged",
+              "value": {
+                "Literal": {
+                  "Bool": true
+                }
+              },
+              "span": {
+                "start": 415,
+                "end": 433
+              }
+            },
+            {
+              "key": "max_latency_ms",
+              "value": {
+                "Literal": {
+                  "Int": 200
+                }
+              },
+              "span": {
+                "start": 438,
+                "end": 457
+              }
+            }
+          ],
+          "span": {
+            "start": 381,
+            "end": 461
+          }
+        },
+        "span": {
+          "start": 109,
+          "end": 463
+        }
+      }
+    },
+    {
+      "Invariant": {
+        "doc": null,
+        "name": "NoOverdraft",
+        "body": {
+          "kind": {
+            "Quantifier": {
+              "kind": "Forall",
+              "binding": "a",
+              "ty": "Account",
+              "body": {
+                "kind": {
+                  "Compare": {
+                    "left": {
+                      "kind": {
+                        "FieldAccess": {
+                          "root": {
+                            "kind": {
+                              "Ident": "a"
+                            },
+                            "span": {
+                              "start": 512,
+                              "end": 513
+                            }
+                          },
+                          "fields": [
+                            "balance"
+                          ]
+                        }
+                      },
+                      "span": {
+                        "start": 512,
+                        "end": 521
+                      }
+                    },
+                    "op": "Ge",
+                    "right": {
+                      "kind": {
+                        "Literal": {
+                          "Int": 0
+                        }
+                      },
+                      "span": {
+                        "start": 525,
+                        "end": 527
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 512,
+                  "end": 527
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 491,
+            "end": 527
+          }
+        },
+        "span": {
+          "start": 465,
+          "end": 528
+        }
+      }
+    },
+    {
+      "EdgeCases": {
+        "rules": [
+          {
+            "condition": {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "account"
+                          },
+                          "span": {
+                            "start": 550,
+                            "end": 557
+                          }
+                        },
+                        "fields": [
+                          "status"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 550,
+                      "end": 564
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "kind": {
+                      "Ident": "Frozen"
+                    },
+                    "span": {
+                      "start": 568,
+                      "end": 575
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 550,
+                "end": 575
+              }
+            },
+            "action": {
+              "name": "reject",
+              "args": [
+                {
+                  "Positional": {
+                    "kind": {
+                      "Literal": {
+                        "String": "Account is frozen"
+                      }
+                    },
+                    "span": {
+                      "start": 585,
+                      "end": 604
+                    }
+                  }
+                }
+              ],
+              "span": {
+                "start": 578,
+                "end": 605
+              }
+            },
+            "span": {
+              "start": 545,
+              "end": 605
+            }
+          },
+          {
+            "condition": {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "Ident": "amount"
+                    },
+                    "span": {
+                      "start": 613,
+                      "end": 620
+                    }
+                  },
+                  "op": "Gt",
+                  "right": {
+                    "kind": {
+                      "Literal": {
+                        "Decimal": "50000.00"
+                      }
+                    },
+                    "span": {
+                      "start": 622,
+                      "end": 631
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 613,
+                "end": 631
+              }
+            },
+            "action": {
+              "name": "require_approval",
+              "args": [
+                {
+                  "Named": {
+                    "key": "level",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "senior_manager"
+                        }
+                      },
+                      "span": {
+                        "start": 658,
+                        "end": 674
+                      }
+                    },
+                    "span": {
+                      "start": 651,
+                      "end": 674
+                    }
+                  }
+                }
+              ],
+              "span": {
+                "start": 634,
+                "end": 675
+              }
+            },
+            "span": {
+              "start": 608,
+              "end": 675
+            }
+          }
+        ],
+        "span": {
+          "start": 530,
+          "end": 677
+        }
+      }
+    }
+  ],
+  "span": {
+    "start": 0,
+    "end": 678
+  }
+}

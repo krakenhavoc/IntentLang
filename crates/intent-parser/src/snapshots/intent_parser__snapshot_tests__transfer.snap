@@ -1,0 +1,1759 @@
+---
+source: crates/intent-parser/src/snapshot_tests.rs
+expression: ast
+---
+{
+  "module": {
+    "name": "TransferFunds",
+    "span": {
+      "start": 0,
+      "end": 20
+    }
+  },
+  "doc": {
+    "lines": [
+      "A fund transfer system between accounts within the same currency.",
+      "Supports basic account-to-account transfers with balance validation,",
+      "idempotency guarantees, and manager approval for large amounts."
+    ],
+    "span": {
+      "start": 22,
+      "end": 233
+    }
+  },
+  "items": [
+    {
+      "Entity": {
+        "doc": null,
+        "name": "Account",
+        "fields": [
+          {
+            "name": "id",
+            "ty": {
+              "ty": {
+                "Simple": "UUID"
+              },
+              "optional": false,
+              "span": {
+                "start": 257,
+                "end": 264
+              }
+            },
+            "span": {
+              "start": 253,
+              "end": 264
+            }
+          },
+          {
+            "name": "owner",
+            "ty": {
+              "ty": {
+                "Simple": "String"
+              },
+              "optional": false,
+              "span": {
+                "start": 271,
+                "end": 280
+              }
+            },
+            "span": {
+              "start": 264,
+              "end": 280
+            }
+          },
+          {
+            "name": "balance",
+            "ty": {
+              "ty": {
+                "Parameterized": {
+                  "name": "Decimal",
+                  "params": [
+                    {
+                      "name": "precision",
+                      "value": {
+                        "Int": 2
+                      },
+                      "span": {
+                        "start": 297,
+                        "end": 309
+                      }
+                    }
+                  ]
+                }
+              },
+              "optional": false,
+              "span": {
+                "start": 289,
+                "end": 313
+              }
+            },
+            "span": {
+              "start": 280,
+              "end": 313
+            }
+          },
+          {
+            "name": "currency",
+            "ty": {
+              "ty": {
+                "Simple": "CurrencyCode"
+              },
+              "optional": false,
+              "span": {
+                "start": 323,
+                "end": 338
+              }
+            },
+            "span": {
+              "start": 313,
+              "end": 338
+            }
+          },
+          {
+            "name": "status",
+            "ty": {
+              "ty": {
+                "Union": [
+                  {
+                    "Simple": "Active"
+                  },
+                  {
+                    "Simple": "Frozen"
+                  },
+                  {
+                    "Simple": "Closed"
+                  }
+                ]
+              },
+              "optional": false,
+              "span": {
+                "start": 346,
+                "end": 373
+              }
+            },
+            "span": {
+              "start": 338,
+              "end": 373
+            }
+          },
+          {
+            "name": "created_at",
+            "ty": {
+              "ty": {
+                "Simple": "DateTime"
+              },
+              "optional": false,
+              "span": {
+                "start": 385,
+                "end": 394
+              }
+            },
+            "span": {
+              "start": 373,
+              "end": 394
+            }
+          }
+        ],
+        "span": {
+          "start": 234,
+          "end": 395
+        }
+      }
+    },
+    {
+      "Entity": {
+        "doc": null,
+        "name": "TransferRecord",
+        "fields": [
+          {
+            "name": "id",
+            "ty": {
+              "ty": {
+                "Simple": "UUID"
+              },
+              "optional": false,
+              "span": {
+                "start": 427,
+                "end": 434
+              }
+            },
+            "span": {
+              "start": 423,
+              "end": 434
+            }
+          },
+          {
+            "name": "request_id",
+            "ty": {
+              "ty": {
+                "Simple": "UUID"
+              },
+              "optional": false,
+              "span": {
+                "start": 446,
+                "end": 453
+              }
+            },
+            "span": {
+              "start": 434,
+              "end": 453
+            }
+          },
+          {
+            "name": "from_account",
+            "ty": {
+              "ty": {
+                "Simple": "Account"
+              },
+              "optional": false,
+              "span": {
+                "start": 467,
+                "end": 477
+              }
+            },
+            "span": {
+              "start": 453,
+              "end": 477
+            }
+          },
+          {
+            "name": "to_account",
+            "ty": {
+              "ty": {
+                "Simple": "Account"
+              },
+              "optional": false,
+              "span": {
+                "start": 489,
+                "end": 499
+              }
+            },
+            "span": {
+              "start": 477,
+              "end": 499
+            }
+          },
+          {
+            "name": "amount",
+            "ty": {
+              "ty": {
+                "Parameterized": {
+                  "name": "Decimal",
+                  "params": [
+                    {
+                      "name": "precision",
+                      "value": {
+                        "Int": 2
+                      },
+                      "span": {
+                        "start": 515,
+                        "end": 527
+                      }
+                    }
+                  ]
+                }
+              },
+              "optional": false,
+              "span": {
+                "start": 507,
+                "end": 531
+              }
+            },
+            "span": {
+              "start": 499,
+              "end": 531
+            }
+          },
+          {
+            "name": "status",
+            "ty": {
+              "ty": {
+                "Union": [
+                  {
+                    "Simple": "Pending"
+                  },
+                  {
+                    "Simple": "Completed"
+                  },
+                  {
+                    "Simple": "Failed"
+                  },
+                  {
+                    "Simple": "Reversed"
+                  }
+                ]
+              },
+              "optional": false,
+              "span": {
+                "start": 539,
+                "end": 581
+              }
+            },
+            "span": {
+              "start": 531,
+              "end": 581
+            }
+          },
+          {
+            "name": "created_at",
+            "ty": {
+              "ty": {
+                "Simple": "DateTime"
+              },
+              "optional": false,
+              "span": {
+                "start": 593,
+                "end": 604
+              }
+            },
+            "span": {
+              "start": 581,
+              "end": 604
+            }
+          },
+          {
+            "name": "completed_at",
+            "ty": {
+              "ty": {
+                "Simple": "DateTime"
+              },
+              "optional": true,
+              "span": {
+                "start": 618,
+                "end": 627
+              }
+            },
+            "span": {
+              "start": 604,
+              "end": 627
+            }
+          }
+        ],
+        "span": {
+          "start": 397,
+          "end": 629
+        }
+      }
+    },
+    {
+      "Action": {
+        "doc": {
+          "lines": [
+            "Move funds from one account to another."
+          ],
+          "span": {
+            "start": 651,
+            "end": 697
+          }
+        },
+        "name": "Transfer",
+        "params": [
+          {
+            "name": "from",
+            "ty": {
+              "ty": {
+                "Simple": "Account"
+              },
+              "optional": false,
+              "span": {
+                "start": 703,
+                "end": 713
+              }
+            },
+            "span": {
+              "start": 697,
+              "end": 713
+            }
+          },
+          {
+            "name": "to",
+            "ty": {
+              "ty": {
+                "Simple": "Account"
+              },
+              "optional": false,
+              "span": {
+                "start": 717,
+                "end": 727
+              }
+            },
+            "span": {
+              "start": 713,
+              "end": 727
+            }
+          },
+          {
+            "name": "amount",
+            "ty": {
+              "ty": {
+                "Parameterized": {
+                  "name": "Decimal",
+                  "params": [
+                    {
+                      "name": "precision",
+                      "value": {
+                        "Int": 2
+                      },
+                      "span": {
+                        "start": 743,
+                        "end": 755
+                      }
+                    }
+                  ]
+                }
+              },
+              "optional": false,
+              "span": {
+                "start": 735,
+                "end": 759
+              }
+            },
+            "span": {
+              "start": 727,
+              "end": 759
+            }
+          },
+          {
+            "name": "request_id",
+            "ty": {
+              "ty": {
+                "Simple": "UUID"
+              },
+              "optional": false,
+              "span": {
+                "start": 771,
+                "end": 779
+              }
+            },
+            "span": {
+              "start": 759,
+              "end": 779
+            }
+          }
+        ],
+        "requires": {
+          "conditions": [
+            {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "from"
+                          },
+                          "span": {
+                            "start": 794,
+                            "end": 798
+                          }
+                        },
+                        "fields": [
+                          "status"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 794,
+                      "end": 805
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "kind": {
+                      "Ident": "Active"
+                    },
+                    "span": {
+                      "start": 809,
+                      "end": 820
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 794,
+                "end": 820
+              }
+            },
+            {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "to"
+                          },
+                          "span": {
+                            "start": 820,
+                            "end": 822
+                          }
+                        },
+                        "fields": [
+                          "status"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 820,
+                      "end": 829
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "kind": {
+                      "Ident": "Active"
+                    },
+                    "span": {
+                      "start": 833,
+                      "end": 844
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 820,
+                "end": 844
+              }
+            },
+            {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "from"
+                          },
+                          "span": {
+                            "start": 844,
+                            "end": 848
+                          }
+                        },
+                        "fields": [
+                          "currency"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 844,
+                      "end": 857
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "to"
+                          },
+                          "span": {
+                            "start": 861,
+                            "end": 863
+                          }
+                        },
+                        "fields": [
+                          "currency"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 861,
+                      "end": 872
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 844,
+                "end": 877
+              }
+            },
+            {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "Ident": "amount"
+                    },
+                    "span": {
+                      "start": 877,
+                      "end": 884
+                    }
+                  },
+                  "op": "Gt",
+                  "right": {
+                    "kind": {
+                      "Literal": {
+                        "Int": 0
+                      }
+                    },
+                    "span": {
+                      "start": 886,
+                      "end": 892
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 877,
+                "end": 892
+              }
+            },
+            {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "from"
+                          },
+                          "span": {
+                            "start": 892,
+                            "end": 896
+                          }
+                        },
+                        "fields": [
+                          "balance"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 892,
+                      "end": 904
+                    }
+                  },
+                  "op": "Ge",
+                  "right": {
+                    "kind": {
+                      "Ident": "amount"
+                    },
+                    "span": {
+                      "start": 908,
+                      "end": 919
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 892,
+                "end": 919
+              }
+            },
+            {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "from"
+                          },
+                          "span": {
+                            "start": 919,
+                            "end": 923
+                          }
+                        },
+                        "fields": [
+                          "id"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 919,
+                      "end": 926
+                    }
+                  },
+                  "op": "Ne",
+                  "right": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "to"
+                          },
+                          "span": {
+                            "start": 930,
+                            "end": 932
+                          }
+                        },
+                        "fields": [
+                          "id"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 930,
+                      "end": 935
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 919,
+                "end": 938
+              }
+            }
+          ],
+          "span": {
+            "start": 779,
+            "end": 939
+          }
+        },
+        "ensures": {
+          "items": [
+            {
+              "Expr": {
+                "kind": {
+                  "Compare": {
+                    "left": {
+                      "kind": {
+                        "FieldAccess": {
+                          "root": {
+                            "kind": {
+                              "Ident": "from"
+                            },
+                            "span": {
+                              "start": 957,
+                              "end": 961
+                            }
+                          },
+                          "fields": [
+                            "balance"
+                          ]
+                        }
+                      },
+                      "span": {
+                        "start": 957,
+                        "end": 969
+                      }
+                    },
+                    "op": "Eq",
+                    "right": {
+                      "kind": {
+                        "Arithmetic": {
+                          "left": {
+                            "kind": {
+                              "Old": {
+                                "kind": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "kind": {
+                                        "Ident": "from"
+                                      },
+                                      "span": {
+                                        "start": 977,
+                                        "end": 981
+                                      }
+                                    },
+                                    "fields": [
+                                      "balance"
+                                    ]
+                                  }
+                                },
+                                "span": {
+                                  "start": 977,
+                                  "end": 989
+                                }
+                              }
+                            },
+                            "span": {
+                              "start": 973,
+                              "end": 991
+                            }
+                          },
+                          "op": "Sub",
+                          "right": {
+                            "kind": {
+                              "Ident": "amount"
+                            },
+                            "span": {
+                              "start": 993,
+                              "end": 1004
+                            }
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 973,
+                        "end": 1004
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 957,
+                  "end": 1004
+                }
+              }
+            },
+            {
+              "Expr": {
+                "kind": {
+                  "Compare": {
+                    "left": {
+                      "kind": {
+                        "FieldAccess": {
+                          "root": {
+                            "kind": {
+                              "Ident": "to"
+                            },
+                            "span": {
+                              "start": 1004,
+                              "end": 1006
+                            }
+                          },
+                          "fields": [
+                            "balance"
+                          ]
+                        }
+                      },
+                      "span": {
+                        "start": 1004,
+                        "end": 1014
+                      }
+                    },
+                    "op": "Eq",
+                    "right": {
+                      "kind": {
+                        "Arithmetic": {
+                          "left": {
+                            "kind": {
+                              "Old": {
+                                "kind": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "kind": {
+                                        "Ident": "to"
+                                      },
+                                      "span": {
+                                        "start": 1022,
+                                        "end": 1024
+                                      }
+                                    },
+                                    "fields": [
+                                      "balance"
+                                    ]
+                                  }
+                                },
+                                "span": {
+                                  "start": 1022,
+                                  "end": 1032
+                                }
+                              }
+                            },
+                            "span": {
+                              "start": 1018,
+                              "end": 1034
+                            }
+                          },
+                          "op": "Add",
+                          "right": {
+                            "kind": {
+                              "Ident": "amount"
+                            },
+                            "span": {
+                              "start": 1036,
+                              "end": 1047
+                            }
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 1018,
+                        "end": 1047
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 1004,
+                  "end": 1047
+                }
+              }
+            },
+            {
+              "Expr": {
+                "kind": {
+                  "Quantifier": {
+                    "kind": "Exists",
+                    "binding": "r",
+                    "ty": "TransferRecord",
+                    "body": {
+                      "kind": {
+                        "And": [
+                          {
+                            "kind": {
+                              "Compare": {
+                                "left": {
+                                  "kind": {
+                                    "FieldAccess": {
+                                      "root": {
+                                        "kind": {
+                                          "Ident": "r"
+                                        },
+                                        "span": {
+                                          "start": 1081,
+                                          "end": 1082
+                                        }
+                                      },
+                                      "fields": [
+                                        "request_id"
+                                      ]
+                                    }
+                                  },
+                                  "span": {
+                                    "start": 1081,
+                                    "end": 1093
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "kind": {
+                                    "Ident": "request_id"
+                                  },
+                                  "span": {
+                                    "start": 1097,
+                                    "end": 1108
+                                  }
+                                }
+                              }
+                            },
+                            "span": {
+                              "start": 1081,
+                              "end": 1108
+                            }
+                          },
+                          {
+                            "kind": {
+                              "Compare": {
+                                "left": {
+                                  "kind": {
+                                    "FieldAccess": {
+                                      "root": {
+                                        "kind": {
+                                          "Ident": "r"
+                                        },
+                                        "span": {
+                                          "start": 1117,
+                                          "end": 1118
+                                        }
+                                      },
+                                      "fields": [
+                                        "status"
+                                      ]
+                                    }
+                                  },
+                                  "span": {
+                                    "start": 1117,
+                                    "end": 1125
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "kind": {
+                                    "Ident": "Completed"
+                                  },
+                                  "span": {
+                                    "start": 1129,
+                                    "end": 1141
+                                  }
+                                }
+                              }
+                            },
+                            "span": {
+                              "start": 1117,
+                              "end": 1141
+                            }
+                          }
+                        ]
+                      },
+                      "span": {
+                        "start": 1081,
+                        "end": 1141
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 1047,
+                  "end": 1141
+                }
+              }
+            }
+          ],
+          "span": {
+            "start": 943,
+            "end": 1142
+          }
+        },
+        "properties": {
+          "entries": [
+            {
+              "key": "idempotent",
+              "value": {
+                "Literal": {
+                  "Bool": true
+                }
+              },
+              "span": {
+                "start": 1163,
+                "end": 1179
+              }
+            },
+            {
+              "key": "idempotency_key",
+              "value": {
+                "Ident": "request_id"
+              },
+              "span": {
+                "start": 1184,
+                "end": 1211
+              }
+            },
+            {
+              "key": "atomic",
+              "value": {
+                "Literal": {
+                  "Bool": true
+                }
+              },
+              "span": {
+                "start": 1216,
+                "end": 1228
+              }
+            },
+            {
+              "key": "audit_logged",
+              "value": {
+                "Literal": {
+                  "Bool": true
+                }
+              },
+              "span": {
+                "start": 1233,
+                "end": 1251
+              }
+            },
+            {
+              "key": "max_latency_ms",
+              "value": {
+                "Literal": {
+                  "Int": 500
+                }
+              },
+              "span": {
+                "start": 1256,
+                "end": 1275
+              }
+            }
+          ],
+          "span": {
+            "start": 1146,
+            "end": 1279
+          }
+        },
+        "span": {
+          "start": 631,
+          "end": 1281
+        }
+      }
+    },
+    {
+      "Action": {
+        "doc": {
+          "lines": [
+            "Freeze an account, preventing all transfers."
+          ],
+          "span": {
+            "start": 1308,
+            "end": 1359
+          }
+        },
+        "name": "FreezeAccount",
+        "params": [
+          {
+            "name": "account",
+            "ty": {
+              "ty": {
+                "Simple": "Account"
+              },
+              "optional": false,
+              "span": {
+                "start": 1368,
+                "end": 1378
+              }
+            },
+            "span": {
+              "start": 1359,
+              "end": 1378
+            }
+          },
+          {
+            "name": "reason",
+            "ty": {
+              "ty": {
+                "Simple": "String"
+              },
+              "optional": false,
+              "span": {
+                "start": 1386,
+                "end": 1396
+              }
+            },
+            "span": {
+              "start": 1378,
+              "end": 1396
+            }
+          }
+        ],
+        "requires": {
+          "conditions": [
+            {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "account"
+                          },
+                          "span": {
+                            "start": 1411,
+                            "end": 1418
+                          }
+                        },
+                        "fields": [
+                          "status"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 1411,
+                      "end": 1425
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "kind": {
+                      "Ident": "Active"
+                    },
+                    "span": {
+                      "start": 1429,
+                      "end": 1438
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 1411,
+                "end": 1438
+              }
+            }
+          ],
+          "span": {
+            "start": 1396,
+            "end": 1439
+          }
+        },
+        "ensures": {
+          "items": [
+            {
+              "Expr": {
+                "kind": {
+                  "Compare": {
+                    "left": {
+                      "kind": {
+                        "FieldAccess": {
+                          "root": {
+                            "kind": {
+                              "Ident": "account"
+                            },
+                            "span": {
+                              "start": 1457,
+                              "end": 1464
+                            }
+                          },
+                          "fields": [
+                            "status"
+                          ]
+                        }
+                      },
+                      "span": {
+                        "start": 1457,
+                        "end": 1471
+                      }
+                    },
+                    "op": "Eq",
+                    "right": {
+                      "kind": {
+                        "Ident": "Frozen"
+                      },
+                      "span": {
+                        "start": 1475,
+                        "end": 1484
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 1457,
+                  "end": 1484
+                }
+              }
+            }
+          ],
+          "span": {
+            "start": 1443,
+            "end": 1485
+          }
+        },
+        "properties": {
+          "entries": [
+            {
+              "key": "audit_logged",
+              "value": {
+                "Literal": {
+                  "Bool": true
+                }
+              },
+              "span": {
+                "start": 1506,
+                "end": 1524
+              }
+            },
+            {
+              "key": "requires_role",
+              "value": {
+                "Literal": {
+                  "String": "compliance_officer"
+                }
+              },
+              "span": {
+                "start": 1529,
+                "end": 1564
+              }
+            }
+          ],
+          "span": {
+            "start": 1489,
+            "end": 1568
+          }
+        },
+        "span": {
+          "start": 1283,
+          "end": 1570
+        }
+      }
+    },
+    {
+      "Invariant": {
+        "doc": {
+          "lines": [
+            "No account may ever have a negative balance."
+          ],
+          "span": {
+            "start": 1605,
+            "end": 1656
+          }
+        },
+        "name": "NoNegativeBalances",
+        "body": {
+          "kind": {
+            "Quantifier": {
+              "kind": "Forall",
+              "binding": "a",
+              "ty": "Account",
+              "body": {
+                "kind": {
+                  "Compare": {
+                    "left": {
+                      "kind": {
+                        "FieldAccess": {
+                          "root": {
+                            "kind": {
+                              "Ident": "a"
+                            },
+                            "span": {
+                              "start": 1677,
+                              "end": 1678
+                            }
+                          },
+                          "fields": [
+                            "balance"
+                          ]
+                        }
+                      },
+                      "span": {
+                        "start": 1677,
+                        "end": 1686
+                      }
+                    },
+                    "op": "Ge",
+                    "right": {
+                      "kind": {
+                        "Literal": {
+                          "Int": 0
+                        }
+                      },
+                      "span": {
+                        "start": 1690,
+                        "end": 1692
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 1677,
+                  "end": 1692
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 1656,
+            "end": 1692
+          }
+        },
+        "span": {
+          "start": 1572,
+          "end": 1693
+        }
+      }
+    },
+    {
+      "Invariant": {
+        "doc": {
+          "lines": [
+            "Transfers must not create or destroy money.",
+            "The sum of all account balances must remain constant",
+            "after any Transfer action."
+          ],
+          "span": {
+            "start": 1730,
+            "end": 1870
+          }
+        },
+        "name": "TransferConservation",
+        "body": {
+          "kind": {
+            "Quantifier": {
+              "kind": "Forall",
+              "binding": "t",
+              "ty": "Transfer",
+              "body": {
+                "kind": {
+                  "Compare": {
+                    "left": {
+                      "kind": {
+                        "Arithmetic": {
+                          "left": {
+                            "kind": {
+                              "Old": {
+                                "kind": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "kind": {
+                                        "Ident": "t"
+                                      },
+                                      "span": {
+                                        "start": 1902,
+                                        "end": 1903
+                                      }
+                                    },
+                                    "fields": [
+                                      "from",
+                                      "balance"
+                                    ]
+                                  }
+                                },
+                                "span": {
+                                  "start": 1902,
+                                  "end": 1916
+                                }
+                              }
+                            },
+                            "span": {
+                              "start": 1898,
+                              "end": 1918
+                            }
+                          },
+                          "op": "Add",
+                          "right": {
+                            "kind": {
+                              "Old": {
+                                "kind": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "kind": {
+                                        "Ident": "t"
+                                      },
+                                      "span": {
+                                        "start": 1924,
+                                        "end": 1925
+                                      }
+                                    },
+                                    "fields": [
+                                      "to",
+                                      "balance"
+                                    ]
+                                  }
+                                },
+                                "span": {
+                                  "start": 1924,
+                                  "end": 1936
+                                }
+                              }
+                            },
+                            "span": {
+                              "start": 1920,
+                              "end": 1938
+                            }
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 1898,
+                        "end": 1938
+                      }
+                    },
+                    "op": "Eq",
+                    "right": {
+                      "kind": {
+                        "Arithmetic": {
+                          "left": {
+                            "kind": {
+                              "FieldAccess": {
+                                "root": {
+                                  "kind": {
+                                    "Ident": "t"
+                                  },
+                                  "span": {
+                                    "start": 1945,
+                                    "end": 1946
+                                  }
+                                },
+                                "fields": [
+                                  "from",
+                                  "balance"
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 1945,
+                              "end": 1959
+                            }
+                          },
+                          "op": "Add",
+                          "right": {
+                            "kind": {
+                              "FieldAccess": {
+                                "root": {
+                                  "kind": {
+                                    "Ident": "t"
+                                  },
+                                  "span": {
+                                    "start": 1962,
+                                    "end": 1963
+                                  }
+                                },
+                                "fields": [
+                                  "to",
+                                  "balance"
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 1962,
+                              "end": 1974
+                            }
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 1945,
+                        "end": 1974
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 1898,
+                  "end": 1974
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 1872,
+            "end": 1975
+          }
+        },
+        "span": {
+          "start": 1695,
+          "end": 1976
+        }
+      }
+    },
+    {
+      "EdgeCases": {
+        "rules": [
+          {
+            "condition": {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "Ident": "amount"
+                    },
+                    "span": {
+                      "start": 1998,
+                      "end": 2005
+                    }
+                  },
+                  "op": "Gt",
+                  "right": {
+                    "kind": {
+                      "Literal": {
+                        "Decimal": "10000.00"
+                      }
+                    },
+                    "span": {
+                      "start": 2007,
+                      "end": 2016
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 1998,
+                "end": 2016
+              }
+            },
+            "action": {
+              "name": "require_approval",
+              "args": [
+                {
+                  "Named": {
+                    "key": "level",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "manager"
+                        }
+                      },
+                      "span": {
+                        "start": 2043,
+                        "end": 2052
+                      }
+                    },
+                    "span": {
+                      "start": 2036,
+                      "end": 2052
+                    }
+                  }
+                }
+              ],
+              "span": {
+                "start": 2019,
+                "end": 2053
+              }
+            },
+            "span": {
+              "start": 1993,
+              "end": 2053
+            }
+          },
+          {
+            "condition": {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "from"
+                          },
+                          "span": {
+                            "start": 2061,
+                            "end": 2065
+                          }
+                        },
+                        "fields": [
+                          "owner"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 2061,
+                      "end": 2071
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "to"
+                          },
+                          "span": {
+                            "start": 2075,
+                            "end": 2077
+                          }
+                        },
+                        "fields": [
+                          "owner"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 2075,
+                      "end": 2083
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 2061,
+                "end": 2084
+              }
+            },
+            "action": {
+              "name": "allow",
+              "args": [
+                {
+                  "Named": {
+                    "key": "note",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "Self-transfer between own accounts"
+                        }
+                      },
+                      "span": {
+                        "start": 2099,
+                        "end": 2135
+                      }
+                    },
+                    "span": {
+                      "start": 2093,
+                      "end": 2135
+                    }
+                  }
+                }
+              ],
+              "span": {
+                "start": 2087,
+                "end": 2136
+              }
+            },
+            "span": {
+              "start": 2056,
+              "end": 2136
+            }
+          },
+          {
+            "condition": {
+              "kind": {
+                "Compare": {
+                  "left": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "from"
+                          },
+                          "span": {
+                            "start": 2144,
+                            "end": 2148
+                          }
+                        },
+                        "fields": [
+                          "currency"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 2144,
+                      "end": 2157
+                    }
+                  },
+                  "op": "Ne",
+                  "right": {
+                    "kind": {
+                      "FieldAccess": {
+                        "root": {
+                          "kind": {
+                            "Ident": "to"
+                          },
+                          "span": {
+                            "start": 2161,
+                            "end": 2163
+                          }
+                        },
+                        "fields": [
+                          "currency"
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 2161,
+                      "end": 2172
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 2144,
+                "end": 2173
+              }
+            },
+            "action": {
+              "name": "reject",
+              "args": [
+                {
+                  "Positional": {
+                    "kind": {
+                      "Literal": {
+                        "String": "Cross-currency transfers not supported. Use CurrencyExchange module."
+                      }
+                    },
+                    "span": {
+                      "start": 2183,
+                      "end": 2253
+                    }
+                  }
+                }
+              ],
+              "span": {
+                "start": 2176,
+                "end": 2254
+              }
+            },
+            "span": {
+              "start": 2139,
+              "end": 2254
+            }
+          }
+        ],
+        "span": {
+          "start": 1978,
+          "end": 2256
+        }
+      }
+    }
+  ],
+  "span": {
+    "start": 0,
+    "end": 2257
+  }
+}
