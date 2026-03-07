@@ -1,0 +1,233 @@
+# IntentLang
+
+A declarative specification language for human-AI collaboration.
+
+Humans write **what** the system must do and **what constraints must hold**.
+Agents handle **how** — generating verifiable implementations from specs.
+The toolchain proves the implementation satisfies the contract.
+
+## Why IntentLang?
+
+As AI agents write more code, the bottleneck shifts from *writing* to *verifying*. IntentLang addresses this with three layers:
+
+1. **Intent Layer** — Humans write declarative specs: entities, actions, pre/postconditions, invariants. Readable by anyone on the team, formally parseable by machines.
+2. **Agent IR** — Agents generate a dense, typed intermediate representation from specs. Optimized for machine generation, not human authoring.
+3. **Audit Bridge** — Tooling maps every IR construct back to a spec requirement. Orphan code (implementation without spec justification) is a first-class error.
+
+## Example
+
+```intent
+module TransferFunds
+
+--- A fund transfer between two accounts within the same currency.
+
+entity Account {
+  id: UUID
+  balance: Decimal(precision: 2)
+  currency: CurrencyCode
+  status: Active | Frozen | Closed
+}
+
+action Transfer {
+  from: Account
+  to: Account
+  amount: Decimal(precision: 2)
+
+  requires {
+    from.status == Active
+    to.status == Active
+    from.currency == to.currency
+    amount > 0
+    from.balance >= amount
+  }
+
+  ensures {
+    from.balance == old(from.balance) - amount
+    to.balance == old(to.balance) + amount
+  }
+
+  properties {
+    idempotent: true
+    atomic: true
+    audit_logged: true
+  }
+}
+
+invariant NoNegativeBalances {
+  forall a: Account => a.balance >= 0
+}
+
+edge_cases {
+  when amount > 10000.00 => require_approval(level: "manager")
+  when from.currency != to.currency => reject("Cross-currency transfers not supported.")
+}
+```
+
+```
+$ intent check examples/transfer.intent
+OK: TransferFunds — 7 top-level item(s), no issues found
+```
+
+More examples in [`examples/`](examples/): fund transfers, authentication with brute-force protection, shopping cart with inventory rules.
+
+## Getting Started
+
+### Pre-built binary (Linux x86_64)
+
+Download from the [latest release](https://github.com/krakenhavoc/IntentLang/releases):
+
+```bash
+chmod +x intent-linux-x86_64
+./intent-linux-x86_64 check examples/transfer.intent
+```
+
+### Build from source
+
+Requires [Rust](https://rustup.rs/) 1.70+.
+
+```bash
+git clone https://github.com/krakenhavoc/IntentLang.git
+cd IntentLang
+cargo build --release -p intent-cli
+# Binary at target/release/intent
+```
+
+### Docker
+
+```bash
+docker build -t intent .
+docker run -v $(pwd)/examples:/work intent check /work/transfer.intent
+```
+
+## CLI
+
+```
+intent check <file>         Parse, type-check, and validate constraints
+intent render <file>        Render spec to Markdown
+intent render-html <file>   Render spec to self-contained styled HTML
+```
+
+### Semantic Analysis
+
+`intent check` runs six passes:
+
+1. Collect definitions, detect duplicates
+2. Resolve type references (builtins + defined entities)
+3. Validate quantifier binding types (`forall`/`exists`)
+4. Validate edge case action references
+5. Validate field access on entity-typed parameters
+6. Constraint validation (`old()` placement, tautological comparisons)
+
+Errors include source spans, labels, and actionable help via [miette](https://crates.io/crates/miette):
+
+```
+intent::check::undefined_type
+
+  × undefined type `Customer`
+   ╭─[5:13]
+ 4 │       id: UUID
+ 5 │ ╭─▶   customer: Customer
+ 6 │ ├─▶   items: List<LineItem>
+   · ╰──── used here
+ 7 │     }
+   ╰────
+  help: define an entity named `Customer`, or use a built-in type
+```
+
+```
+intent::check::old_in_requires
+
+  × `old()` cannot be used in a `requires` block
+    ╭─[13:21]
+ 12 │       requires {
+ 13 │ ╭─▶     from.balance == old(from.balance)
+ 14 │ ├─▶   }
+    · ╰──── used here
+    ╰────
+  help: `old()` references pre-state values and is only meaningful in `ensures` blocks
+```
+
+### Rendering
+
+`intent render` produces Markdown with entity field tables, action signatures, pre/postconditions, and edge case rules — suitable for sharing with non-technical stakeholders.
+
+`intent render-html` produces a self-contained HTML document with color-coded sections. Redirect to a file and open in a browser:
+
+```bash
+intent render-html examples/transfer.intent > transfer.html
+```
+
+## Language Reference
+
+### Constructs
+
+| Construct | Purpose |
+|-----------|---------|
+| `module Name` | Required file header |
+| `--- text` | Documentation block (multi-line) |
+| `entity Name { ... }` | Data structure with typed fields |
+| `action Name { ... }` | Operation with params, pre/postconditions, properties |
+| `invariant Name { ... }` | System-wide constraint (`forall`/`exists`) |
+| `edge_cases { ... }` | Boundary conditions: `when cond => handler` |
+
+### Type System
+
+| Category | Examples |
+|----------|---------|
+| Primitives | `UUID`, `String`, `Int`, `Bool`, `DateTime` |
+| Numeric | `Decimal(precision: N)` |
+| Domain | `CurrencyCode`, `Email`, `URL` |
+| Collections | `List<T>`, `Set<T>`, `Map<K, V>` |
+| Optional | `T?` |
+| Union | `Active \| Frozen \| Closed` |
+
+### Expressions
+
+| Category | Syntax |
+|----------|--------|
+| Comparison | `==` `!=` `>` `<` `>=` `<=` |
+| Logical | `&&` `\|\|` `!` `=>` (implies) |
+| Quantifiers | `forall x: Type => pred`, `exists x: Type => pred` |
+| Pre-state | `old(expr)` — value before action execution |
+| Field access | `entity.field`, `f(x).field` |
+
+## Project Status
+
+**Current release: [v0.1.0-alpha.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.1.0-alpha.1)** — Phase 1 MVP.
+
+Phase 1 (complete):
+- PEG grammar via [pest](https://pest.rs/) with typed AST and source spans
+- Six-pass semantic checker with diagnostic error reporting
+- Markdown and self-contained HTML renderers
+- CLI toolchain with pre-built binary and Docker image
+- 40 tests across parser, snapshot, and semantic validation
+
+### Roadmap
+
+| Phase | Focus | Key Deliverables |
+|-------|-------|-----------------|
+| **2** | Agent IR | Typed intermediate representation, scaffold generation, postcondition verification |
+| **3** | Audit Bridge | Trace maps, diff reports, coverage analysis |
+| **4** | Agent API | Agents read specs and produce IR via structured API, incremental re-verification |
+
+Long-term: IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. See the [self-hosting roadmap](CLAUDE.md) for details.
+
+## Architecture
+
+```
+intent-cli ──→ intent-parser ←── grammar/intent.pest
+    │              ↑
+    ├──→ intent-check
+    │
+    └──→ intent-render
+```
+
+Four crates in a Cargo workspace. The parser produces a typed AST; the checker validates it; the renderer formats it. The CLI wires them together. See [`AGENTS.md`](AGENTS.md) for architecture details and [`docs/SPEC.md`](docs/SPEC.md) for the full language design.
+
+## Prior Art
+
+IntentLang draws on [Design by Contract](https://en.wikipedia.org/wiki/Design_by_contract) (requires/ensures), [Dafny](https://dafny.org/) (verification-aware programming), [TLA+](https://lamport.azurewebsites.net/tla/tla.html) (system-level invariants), and [Alloy](https://alloytools.org/) (lightweight formal modeling).
+
+## License
+
+MIT
