@@ -5,12 +5,12 @@
 //! to the originating spec element (for Phase 3 Audit Bridge).
 
 use intent_parser::ast::Span;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 // ── Source tracing ──────────────────────────────────────────
 
 /// Links an IR node back to its originating spec element.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SourceTrace {
     /// Module name from the intent file.
     pub module: String,

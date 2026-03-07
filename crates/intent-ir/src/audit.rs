@@ -7,7 +7,7 @@
 
 use std::fmt;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::types::*;
 use crate::verify::Obligation;
@@ -34,7 +34,7 @@ pub struct AuditEntry {
 }
 
 /// What kind of spec item this entry represents.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum SpecItemKind {
     Entity,
     Action,

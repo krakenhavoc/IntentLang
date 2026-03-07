@@ -3,10 +3,10 @@
 //! Every node carries a `Span` with byte offsets into the source text,
 //! supporting Phase 3 (Audit Bridge) source-location tracing.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Byte-offset span in the source text: `[start, end)`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Span {
     pub start: usize,
     pub end: usize,
