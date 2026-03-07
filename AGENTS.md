@@ -29,6 +29,12 @@ cargo run -p intent-cli -- check examples/transfer.intent
 
 # Render a spec to Markdown
 cargo run -p intent-cli -- render examples/transfer.intent
+
+# Compile to IR (JSON output)
+cargo run -p intent-cli -- compile examples/transfer.intent
+
+# Verify structural + logical correctness
+cargo run -p intent-cli -- verify examples/transfer.intent
 ```
 
 ## Project Structure
@@ -39,8 +45,9 @@ intentlang/
   crates/
     intent-parser/           -- Grammar -> typed AST
     intent-check/            -- Semantic analysis & validation
-    intent-render/           -- AST -> Markdown (HTML stub)
-    intent-cli/              -- CLI binary: `intent check`, `intent render`
+    intent-render/           -- AST -> Markdown/HTML
+    intent-ir/               -- AST -> Agent IR (lowering, verification)
+    intent-cli/              -- CLI binary: check, render, compile, verify
   examples/                  -- Example .intent files
   tests/valid/               -- Specs that must parse and pass checks
   tests/invalid/             -- Specs that must fail with known errors
@@ -50,7 +57,8 @@ intentlang/
 ### Crate Dependency Graph
 
 ```
-intent-cli -> intent-parser, intent-check, intent-render
+intent-cli -> intent-parser, intent-check, intent-render, intent-ir
+intent-ir -> intent-parser
 intent-check -> intent-parser
 intent-render -> intent-parser
 intent-parser -> pest (grammar/intent.pest)
@@ -118,7 +126,9 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 
 **Renderer (intent-render)**: Converts AST to Markdown and self-contained HTML. Shared `format_type` helper in lib root.
 
-**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`.
+**IR (intent-ir)**: Lowers AST to a typed intermediate representation (structs, functions, invariants, edge guards). Every IR node carries a `SourceTrace { module, item, part, span }` for audit tracing. The verification pass checks structural correctness (bound variables, `old()` placement, quantifier types, postcondition connectivity) and logical coherence (invariant-action field coverage, verification obligations).
+
+**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify`.
 
 ## Key Dependencies
 
@@ -128,7 +138,8 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 | miette | 7.x | Diagnostic error reporting |
 | thiserror | 2.x | Error type derivation |
 | clap | 4.x | CLI argument parsing |
-| serde | 1.x | AST serialization |
+| serde | 1.x | AST/IR serialization |
+| serde_json | 1.x | IR JSON output |
 
 ## Conventions
 
@@ -138,21 +149,26 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage (40 total)
+## Current Test Coverage (62+ total)
 
 - 26 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files)
-- 7 parser unit tests (all language constructs)
-- 7 insta snapshot tests (JSON AST for all fixtures and examples)
+- 14 parser tests (7 unit + 7 insta snapshot tests for all fixtures and examples)
+- 22 IR tests (11 lowering + 11 verification, including integration tests for all 3 examples)
 - Fixtures: 4 valid, 9 invalid + 3 example files
 
 ## Current Phase & Status
 
-Phase 1 MVP. Parser, six-pass semantic checker, Markdown/HTML renderers, and CLI are functional.
+Phase 2: Agent IR Foundation. Building on Phase 1 MVP (parser, checker, renderers).
 
-Completed:
+Phase 1 (complete):
 - PEG grammar, typed AST with spans, snapshot tests (insta)
-- Semantic analysis: duplicates, type resolution, quantifiers, edge actions, field access, constraint validation
-- Constraint validation: `old()` placement checks, tautological self-comparison detection
-- Markdown and HTML renderers (self-contained styled HTML)
-- CLI: `check`, `render`, `render-html` subcommands
-- Human-readable parse errors with miette diagnostics
+- Six-pass semantic analysis with miette diagnostics
+- Markdown and HTML renderers
+- CLI: `check`, `render`, `render-html`
+
+Phase 2 (in progress):
+- AST → IR lowering (entities→structs, actions→functions, invariants, edge cases→guards)
+- IR structural verification (bound variables, `old()` placement, quantifier types, postcondition connectivity)
+- IR coherence analysis (invariant-action field coverage, verification obligations)
+- CLI: `compile` (IR JSON output), `verify` (semantic + structural + coherence checks)
+- Every IR node carries `SourceTrace` for future audit bridge

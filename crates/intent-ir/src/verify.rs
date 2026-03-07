@@ -7,8 +7,13 @@
 //! - Postconditions reference at least one parameter (otherwise they're trivially unverifiable)
 //! - Quantifiers reference known types (structs or functions) in this module
 //! - Functions with postconditions have at least one parameter (nothing to ensure about)
+//!
+//! Also performs coherence analysis:
+//! - Extracts verification obligations (invariant-action relationships)
+//! - Tracks which entity fields each action modifies (via `old()` in postconditions)
+//! - Matches modified fields against invariant constraints
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use crate::types::*;
 
@@ -94,6 +99,291 @@ pub fn verify_module(module: &Module) -> Vec<VerifyError> {
 
     errors
 }
+
+// ── Coherence analysis ─────────────────────────────────────
+
+/// A verification obligation — something that needs to be proven
+/// for the module to be correct.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Obligation {
+    /// The action (function) that triggers this obligation.
+    pub action: String,
+    /// The invariant that must be preserved.
+    pub invariant: String,
+    /// The entity type involved.
+    pub entity: String,
+    /// The specific fields that the action modifies and the invariant constrains.
+    pub fields: Vec<String>,
+    /// The kind of obligation.
+    pub kind: ObligationKind,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ObligationKind {
+    /// Action modifies fields that an entity invariant constrains.
+    /// The invariant quantifies over the entity type (e.g., `forall a: Account => ...`).
+    InvariantPreservation,
+    /// A temporal invariant directly references this action via quantifier
+    /// (e.g., `forall t: Transfer => old(...) == ...`).
+    TemporalProperty,
+}
+
+impl std::fmt::Display for Obligation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.kind {
+            ObligationKind::InvariantPreservation => {
+                write!(
+                    f,
+                    "{} modifies {}.{{{}}} (constrained by {})",
+                    self.action,
+                    self.entity,
+                    self.fields.join(", "),
+                    self.invariant,
+                )
+            }
+            ObligationKind::TemporalProperty => {
+                write!(
+                    f,
+                    "{} must satisfy temporal property {}",
+                    self.action, self.invariant,
+                )
+            }
+        }
+    }
+}
+
+/// Analyze a verified IR module for verification obligations.
+///
+/// Returns a list of obligations that describe what logical properties
+/// need to hold for the module to be correct. These are informational —
+/// not errors — representing proof goals a formal verifier would check.
+pub fn analyze_obligations(module: &Module) -> Vec<Obligation> {
+    let mut obligations = Vec::new();
+
+    // Build a map of struct name → field names for lookup.
+    let struct_fields: HashMap<&str, Vec<&str>> = module
+        .structs
+        .iter()
+        .map(|s| {
+            (
+                s.name.as_str(),
+                s.fields.iter().map(|f| f.name.as_str()).collect(),
+            )
+        })
+        .collect();
+
+    // Build a map of param name → entity type for each function.
+    // Only includes params whose type is an entity (struct).
+    let func_entity_params: HashMap<&str, Vec<(&str, &str)>> = module
+        .functions
+        .iter()
+        .map(|func| {
+            let entity_params: Vec<(&str, &str)> = func
+                .params
+                .iter()
+                .filter_map(|p| match &p.ty {
+                    IrType::Named(t) | IrType::Struct(t)
+                        if struct_fields.contains_key(t.as_str()) =>
+                    {
+                        Some((p.name.as_str(), t.as_str()))
+                    }
+                    _ => None,
+                })
+                .collect();
+            (func.name.as_str(), entity_params)
+        })
+        .collect();
+
+    // For each function, collect fields modified in postconditions (via old()).
+    // Result: function name → set of (entity_type, field_name).
+    let mut modified_fields: HashMap<&str, HashSet<(&str, &str)>> = HashMap::new();
+    for func in &module.functions {
+        let entity_params = &func_entity_params[func.name.as_str()];
+        let param_to_entity: HashMap<&str, &str> =
+            entity_params.iter().copied().collect();
+        let mut fields = HashSet::new();
+        for post in &func.postconditions {
+            let exprs: Vec<&IrExpr> = match post {
+                Postcondition::Always { expr, .. } => vec![expr],
+                Postcondition::When { guard, expr, .. } => vec![guard, expr],
+            };
+            for expr in exprs {
+                collect_old_field_accesses(expr, &param_to_entity, &mut fields);
+            }
+        }
+        modified_fields.insert(func.name.as_str(), fields);
+    }
+
+    // For each invariant, determine what it constrains.
+    for inv in &module.invariants {
+        match &inv.expr {
+            IrExpr::Forall {
+                binding,
+                ty,
+                body,
+            } => {
+                // Check if this is a temporal invariant (quantifies over an action).
+                let is_action = module.functions.iter().any(|f| f.name == *ty);
+                if is_action {
+                    // Temporal property: directly references an action.
+                    obligations.push(Obligation {
+                        action: ty.clone(),
+                        invariant: inv.name.clone(),
+                        entity: ty.clone(),
+                        fields: vec![],
+                        kind: ObligationKind::TemporalProperty,
+                    });
+                    continue;
+                }
+
+                // Entity invariant: quantifies over an entity type.
+                // Collect fields the invariant constrains.
+                let constrained = collect_field_accesses_on(body, binding);
+
+                // Find all actions that modify any of these fields on this entity type.
+                for func in &module.functions {
+                    if let Some(mods) = modified_fields.get(func.name.as_str()) {
+                        let overlapping: Vec<String> = constrained
+                            .iter()
+                            .filter(|f| mods.contains(&(ty.as_str(), f.as_str())))
+                            .cloned()
+                            .collect();
+                        if !overlapping.is_empty() {
+                            obligations.push(Obligation {
+                                action: func.name.clone(),
+                                invariant: inv.name.clone(),
+                                entity: ty.clone(),
+                                fields: overlapping,
+                                kind: ObligationKind::InvariantPreservation,
+                            });
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    obligations
+}
+
+/// Collect field accesses inside `old()` expressions, mapping them to entity types
+/// via the param→entity mapping.
+///
+/// For an expression like `old(from.balance)`, if `from` maps to entity `Account`,
+/// this records `("Account", "balance")`.
+fn collect_old_field_accesses<'a>(
+    expr: &'a IrExpr,
+    param_to_entity: &HashMap<&str, &'a str>,
+    result: &mut HashSet<(&'a str, &'a str)>,
+) {
+    match expr {
+        IrExpr::Old(inner) => {
+            collect_inner_field_accesses(inner, param_to_entity, result);
+        }
+        _ => {
+            // Manual match for recursion (avoid lifetime issues with for_each_child closure)
+            match expr {
+                IrExpr::Compare { left, right, .. }
+                | IrExpr::Arithmetic { left, right, .. }
+                | IrExpr::And(left, right)
+                | IrExpr::Or(left, right)
+                | IrExpr::Implies(left, right) => {
+                    collect_old_field_accesses(left, param_to_entity, result);
+                    collect_old_field_accesses(right, param_to_entity, result);
+                }
+                IrExpr::Not(inner) => {
+                    collect_old_field_accesses(inner, param_to_entity, result);
+                }
+                IrExpr::FieldAccess { root, .. } => {
+                    collect_old_field_accesses(root, param_to_entity, result);
+                }
+                IrExpr::Forall { body, .. } | IrExpr::Exists { body, .. } => {
+                    collect_old_field_accesses(body, param_to_entity, result);
+                }
+                IrExpr::Call { args, .. } => {
+                    for arg in args {
+                        collect_old_field_accesses(arg, param_to_entity, result);
+                    }
+                }
+                IrExpr::Var(_) | IrExpr::Literal(_) | IrExpr::Old(_) => {}
+            }
+        }
+    }
+}
+
+/// Collect field accesses within an old() body, resolving param names to entity types.
+fn collect_inner_field_accesses<'a>(
+    expr: &'a IrExpr,
+    param_to_entity: &HashMap<&str, &'a str>,
+    result: &mut HashSet<(&'a str, &'a str)>,
+) {
+    match expr {
+        IrExpr::FieldAccess { root, field } => {
+            // Check if root is a direct param reference: old(param.field)
+            if let IrExpr::Var(var) = root.as_ref() {
+                if let Some(&entity) = param_to_entity.get(var.as_str()) {
+                    result.insert((entity, field.as_str()));
+                }
+            }
+            // Also check for chained access: old(param.sub.field)
+            collect_inner_field_accesses(root, param_to_entity, result);
+        }
+        _ => {
+            match expr {
+                IrExpr::Compare { left, right, .. }
+                | IrExpr::Arithmetic { left, right, .. }
+                | IrExpr::And(left, right)
+                | IrExpr::Or(left, right)
+                | IrExpr::Implies(left, right) => {
+                    collect_inner_field_accesses(left, param_to_entity, result);
+                    collect_inner_field_accesses(right, param_to_entity, result);
+                }
+                IrExpr::Not(inner) | IrExpr::Old(inner) => {
+                    collect_inner_field_accesses(inner, param_to_entity, result);
+                }
+                IrExpr::FieldAccess { .. } => unreachable!(),
+                IrExpr::Forall { body, .. } | IrExpr::Exists { body, .. } => {
+                    collect_inner_field_accesses(body, param_to_entity, result);
+                }
+                IrExpr::Call { args, .. } => {
+                    for arg in args {
+                        collect_inner_field_accesses(arg, param_to_entity, result);
+                    }
+                }
+                IrExpr::Var(_) | IrExpr::Literal(_) => {}
+            }
+        }
+    }
+}
+
+/// Collect field names accessed on a specific binding variable in an expression.
+///
+/// For `forall a: Account => a.balance >= 0`, calling this with binding="a"
+/// returns `["balance"]`.
+fn collect_field_accesses_on(expr: &IrExpr, binding: &str) -> Vec<String> {
+    let mut fields = Vec::new();
+    collect_fields_on_inner(expr, binding, &mut fields);
+    fields.sort();
+    fields.dedup();
+    fields
+}
+
+fn collect_fields_on_inner(expr: &IrExpr, binding: &str, fields: &mut Vec<String>) {
+    match expr {
+        IrExpr::FieldAccess { root, field } => {
+            if let IrExpr::Var(var) = root.as_ref() {
+                if var == binding {
+                    fields.push(field.clone());
+                }
+            }
+            collect_fields_on_inner(root, binding, fields);
+        }
+        _ => for_each_child(expr, |child| collect_fields_on_inner(child, binding, fields)),
+    }
+}
+
+// ── Structural verification helpers ────────────────────────
 
 /// Collect all function names used in Call expressions across the module.
 fn collect_module_call_names<'a>(module: &'a Module, names: &mut HashSet<&'a str>) {

@@ -1,5 +1,5 @@
 use crate::lower::lower_file;
-use crate::verify::{verify_module, VerifyErrorKind};
+use crate::verify::{analyze_obligations, verify_module, ObligationKind, VerifyErrorKind};
 
 fn parse_and_lower(src: &str) -> crate::types::Module {
     let ast = intent_parser::parse_file(src).unwrap();
@@ -9,6 +9,11 @@ fn parse_and_lower(src: &str) -> crate::types::Module {
 fn verify(src: &str) -> Vec<VerifyErrorKind> {
     let ir = parse_and_lower(src);
     verify_module(&ir).into_iter().map(|e| e.kind).collect()
+}
+
+fn obligations(src: &str) -> Vec<crate::verify::Obligation> {
+    let ir = parse_and_lower(src);
+    analyze_obligations(&ir)
 }
 
 #[test]
@@ -111,4 +116,74 @@ fn shopping_cart_example_verifies() {
     let ir = lower_file(&ast);
     let errors = verify_module(&ir);
     assert!(errors.is_empty(), "shopping_cart.intent should verify cleanly, got: {:?}", errors);
+}
+
+// ── Coherence analysis tests ───────────────────────────────
+
+#[test]
+fn obligation_invariant_preservation() {
+    let obs = obligations(
+        "module M entity X { v: Int } action A { x: X requires { x.v > 0 } ensures { x.v == old(x.v) + 1 } } invariant Pos { forall x: X => x.v >= 0 }",
+    );
+    assert_eq!(obs.len(), 1);
+    assert_eq!(obs[0].action, "A");
+    assert_eq!(obs[0].invariant, "Pos");
+    assert_eq!(obs[0].entity, "X");
+    assert_eq!(obs[0].fields, vec!["v"]);
+    assert_eq!(obs[0].kind, ObligationKind::InvariantPreservation);
+}
+
+#[test]
+fn obligation_temporal_property() {
+    let obs = obligations(
+        "module M entity X { v: Int } action A { x: X } invariant Cons { forall t: A => old(t.x.v) == t.x.v }",
+    );
+    assert_eq!(obs.len(), 1);
+    assert_eq!(obs[0].action, "A");
+    assert_eq!(obs[0].invariant, "Cons");
+    assert_eq!(obs[0].kind, ObligationKind::TemporalProperty);
+}
+
+#[test]
+fn no_obligations_when_no_invariants() {
+    let obs = obligations(
+        "module M entity X { v: Int } action A { x: X ensures { x.v == old(x.v) + 1 } }",
+    );
+    assert!(obs.is_empty());
+}
+
+#[test]
+fn no_obligations_when_no_old() {
+    // Action doesn't use old() → doesn't modify entity fields → no obligation
+    let obs = obligations(
+        "module M entity X { v: Int } action A { x: X ensures { x.v == 0 } } invariant Pos { forall x: X => x.v >= 0 }",
+    );
+    assert!(obs.is_empty());
+}
+
+#[test]
+fn obligation_only_for_constrained_fields() {
+    // Invariant constrains `v`, but action modifies `w` → no obligation
+    let obs = obligations(
+        "module M entity X { v: Int w: Int } action A { x: X ensures { x.w == old(x.w) + 1 } } invariant Pos { forall x: X => x.v >= 0 }",
+    );
+    assert!(obs.is_empty());
+}
+
+#[test]
+fn transfer_example_obligations() {
+    let src = std::fs::read_to_string("../../examples/transfer.intent").unwrap();
+    let ir = parse_and_lower(&src);
+    let obs = analyze_obligations(&ir);
+    // Transfer modifies Account.balance (constrained by NoNegativeBalances)
+    // TransferConservation is a temporal invariant on Transfer
+    assert_eq!(obs.len(), 2);
+    let preservation = obs.iter().find(|o| o.kind == ObligationKind::InvariantPreservation);
+    let temporal = obs.iter().find(|o| o.kind == ObligationKind::TemporalProperty);
+    assert!(preservation.is_some(), "expected InvariantPreservation obligation");
+    assert!(temporal.is_some(), "expected TemporalProperty obligation");
+    let p = preservation.unwrap();
+    assert_eq!(p.action, "Transfer");
+    assert_eq!(p.invariant, "NoNegativeBalances");
+    assert_eq!(p.fields, vec!["balance"]);
 }
