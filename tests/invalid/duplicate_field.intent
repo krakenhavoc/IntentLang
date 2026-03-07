@@ -1,0 +1,7 @@
+module DupFieldTest
+
+entity Account {
+  id: UUID
+  name: String
+  name: Email
+}

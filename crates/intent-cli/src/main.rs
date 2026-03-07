@@ -38,18 +38,37 @@ fn main() {
                 }
             };
 
-            match intent_parser::parse_file(&source) {
-                Ok(ast) => {
-                    println!(
-                        "OK: {} — {} top-level item(s)",
-                        ast.module.name,
-                        ast.items.len()
-                    );
-                }
+            let ast = match intent_parser::parse_file(&source) {
+                Ok(ast) => ast,
                 Err(e) => {
                     eprintln!("{}", e);
                     process::exit(1);
                 }
+            };
+
+            let errors = intent_check::check_file(&ast);
+            if errors.is_empty() {
+                println!(
+                    "OK: {} — {} top-level item(s), no issues found",
+                    ast.module.name,
+                    ast.items.len()
+                );
+            } else {
+                use miette::{GraphicalReportHandler, GraphicalTheme};
+                let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
+                for err in &errors {
+                    let mut buf = String::new();
+                    let report = miette::Report::new(err.clone())
+                        .with_source_code(source.clone());
+                    handler.render_report(&mut buf, report.as_ref()).ok();
+                    eprint!("{buf}");
+                }
+                eprintln!(
+                    "{} error(s) in {}",
+                    errors.len(),
+                    file.display()
+                );
+                process::exit(1);
             }
         }
         Commands::Render { file } => {

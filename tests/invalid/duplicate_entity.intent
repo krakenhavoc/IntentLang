@@ -1,0 +1,11 @@
+module DuplicateTest
+
+entity User {
+  id: UUID
+  name: String
+}
+
+entity User {
+  id: UUID
+  email: Email
+}

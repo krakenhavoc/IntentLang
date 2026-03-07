@@ -1,0 +1,7 @@
+module UndefinedTypeTest
+
+entity Order {
+  id: UUID
+  customer: Customer
+  items: List<LineItem>
+}

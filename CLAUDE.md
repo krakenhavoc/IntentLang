@@ -174,3 +174,63 @@ edge_cases {
 - **Phase 2**: Agent IR — the intent language compiles to a typed IR that agents can manipulate. The AST should be designed with this compilation step in mind.
 - **Phase 3**: Audit Bridge — trace maps from IR back to spec. The AST should carry enough source location info to support this.
 - **Phase 4**: Agent API — agents read specs and produce IR via an API. The parser should be embeddable as a library.
+
+---
+
+### Self-Hosting Roadmap
+
+#### Goal
+IntentLang compiles itself. The compiler's specification is written in the intent layer, its implementation is agent-generated IR, and the audit bridge verifies the compiler conforms to its own spec.
+
+#### Stage 1: Host-Compiled (Current)
+- Toolchain written in Rust
+- Intent language is specification-only (no execution semantics)
+- Rust is the single source of truth for compiler behavior
+
+#### Stage 2: Executable IR
+- Agent IR gains full execution capability (compiles to WASM or native via LLVM)
+- Intent specs compile to IR, IR compiles to runnable artifacts
+- Toolchain is still Rust, but IntentLang programs are now self-sufficient
+
+#### Stage 3: Spec-Described Compiler
+- The compiler's own behavior is specified in `.intent` files:
+  - `compiler/parsing.intent` — grammar rules, AST structure, error recovery
+  - `compiler/typechecking.intent` — type rules, constraint satisfaction
+  - `compiler/codegen.intent` — IR generation, optimization passes
+  - `compiler/audit.intent` — trace map generation, coverage analysis
+- Agents generate IR implementations from these specs
+- The Rust compiler still bootstraps the first generation
+- Audit bridge verifies the agent-produced compiler against its own spec
+
+#### Stage 4: Full Self-Hosting
+- The IntentLang compiler compiles itself
+- Bootstrap path: a pinned binary of the previous compiler version builds the next (same as Rust, Go, etc.)
+- The Rust implementation becomes a historical artifact, retained only as an emergency bootstrap
+- Humans maintain the compiler exclusively through intent specs
+- Agents own the implementation layer entirely
+
+#### Self-Hosting Invariants
+```intent
+module CompilerBootstrap
+
+invariant SpecFidelity {
+  --- The self-hosted compiler must produce identical output
+  --- to the Rust reference compiler for all valid inputs.
+  forall input: IntentFile =>
+    selfhosted_compile(input) == reference_compile(input)
+}
+
+invariant BootstrapStability {
+  --- Compiling the compiler with itself must produce
+  --- a binary that also compiles itself to the same binary.
+  --- (Fixed-point property.)
+  selfhosted_compile(compiler_source) ==
+    compile_with(selfhosted_compile(compiler_source), compiler_source)
+}
+```
+
+#### Open Questions (Self-Hosting Specific)
+
+1. **Compilation target**: WASM gives portability and sandboxing. LLVM gives native performance. Do we need both, or pick one for bootstrap?
+2. **Verification of the verifier**: When the audit bridge is itself spec'd in IntentLang, who verifies the verifier? This is a known problem in formal methods — at some point you need a trusted kernel. How small can we make it?
+3. **Agent trust boundary**: At Stage 4, agents maintain the tool that verifies agent work. What safeguards prevent a subtle drift where the verifier gradually accepts weaker proofs?
