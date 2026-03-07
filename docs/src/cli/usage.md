@@ -15,14 +15,21 @@ intent <command> <file>
 | `render-html <file>` | Render spec to self-contained styled HTML |
 | `compile <file>` | Compile spec to Agent IR (JSON) |
 | `verify <file>` | Verify structural + logical correctness |
+| `verify --incremental <file>` | Incremental verification (cache, re-verify only changes) |
 | `audit <file>` | Show audit trace map (spec to IR) |
 | `coverage <file>` | Show coverage summary |
+| `diff <old> <new>` | Spec-level diff between two versions |
+| `query <file> <target>` | Query specific items (for agent integration) |
+| `lock <file> <item> --agent X` | Claim a spec item for an agent |
+| `unlock <file> <item> --agent X` | Release a claimed spec item |
+| `status <file>` | Show lock status for all spec items |
 
 ## Global options
 
 ```
-intent --help       Show help
-intent --version    Show version
+intent --output json    JSON output (for agent consumption)
+intent --help           Show help
+intent --version        Show version
 ```
 
 See the subpages for detailed usage of each command.
