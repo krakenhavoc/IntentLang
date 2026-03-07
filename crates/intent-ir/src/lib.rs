@@ -16,8 +16,8 @@ mod lower_tests;
 #[cfg(test)]
 mod verify_tests;
 
-pub use audit::{AuditReport, generate_audit};
+pub use audit::{AuditReport, SpecItemKind, generate_audit};
 pub use diff::{DiffReport, diff_reports};
 pub use lower::lower_file;
 pub use types::*;
-pub use verify::{Obligation, ObligationKind, analyze_obligations, verify_module};
+pub use verify::{Obligation, ObligationKind, VerifyError, analyze_obligations, verify_module};

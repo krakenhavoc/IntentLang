@@ -7,11 +7,13 @@
 
 use std::fmt;
 
+use serde::Serialize;
+
 use crate::types::*;
 use crate::verify::Obligation;
 
 /// A complete audit report for a module.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct AuditReport {
     pub module_name: String,
     pub entries: Vec<AuditEntry>,
@@ -21,7 +23,7 @@ pub struct AuditReport {
 }
 
 /// One spec-level item and its IR trace.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct AuditEntry {
     pub kind: SpecItemKind,
     pub name: String,
@@ -32,7 +34,7 @@ pub struct AuditEntry {
 }
 
 /// What kind of spec item this entry represents.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
 pub enum SpecItemKind {
     Entity,
     Action,
@@ -41,7 +43,7 @@ pub enum SpecItemKind {
 }
 
 /// A single spec sub-item mapped to IR.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TracePart {
     /// Spec-level label (e.g., "field:balance", "requires[0]", "property:atomic").
     pub label: String,
@@ -52,7 +54,7 @@ pub struct TracePart {
 }
 
 /// Coverage statistics for the module.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct CoverageSummary {
     pub entities: usize,
     pub fields: usize,
