@@ -74,6 +74,14 @@ intentlang/
 │   │   │   ├── client.rs  ← LLM API client (OpenAI-compatible, model-agnostic)
 │   │   │   └── validate.rs ← Generate-check-retry loop
 │   │   └── Cargo.toml
+│   ├── intent-runtime/    ← Stateless runtime & HTTP server (Phase 6, planned)
+│   │   ├── src/
+│   │   │   ├── lib.rs     ← Public API: Runtime::from_ir() -> serve
+│   │   │   ├── eval.rs    ← Expression evaluator (concrete values)
+│   │   │   ├── transform.rs ← State transformer (apply ensures)
+│   │   │   ├── value.rs   ← Runtime value types
+│   │   │   └── serve.rs   ← HTTP server (auto-generated REST)
+│   │   └── Cargo.toml
 │   └── intent-cli/        ← CLI entry point
 │       ├── src/
 │       │   └── main.rs
@@ -188,15 +196,15 @@ edge_cases {
 - **Phase 3**: Audit Bridge — Trace maps, coverage summaries, spec-level diffs. CLI: `audit`, `coverage`, `diff`.
 - **Phase 4**: Agent Integration — JSON output, structured queries, incremental verification, multi-agent collaboration. CLI: `query`, `lock`, `unlock`, `status`.
 
-## Current Phase: Phase 5 — Language Polish & Natural Language Generation
+## Current Phase: Phase 5 — Language Polish & Natural Language Generation (in progress)
 
-### Language Polish (in progress)
+### Language Polish
 - `intent fmt` — auto-formatter for canonical `.intent` source
 - `intent init` — scaffold new spec files
 - `intent completions` — shell completions (bash, zsh, fish)
 - List literal expressions, type parameter rendering fix
 
-### Natural Language Generation (planned)
+### Natural Language Generation
 - New crate: `intent-gen` — translates natural language to `.intent` specs
 - CLI command: `intent generate "description"` (single-shot by default)
 - `--interactive` mode for conversational refinement
@@ -208,6 +216,36 @@ edge_cases {
 - Model-agnostic via OpenAI-compatible API (`AI_API_KEY`, `AI_API_BASE`, `AI_MODEL` env vars)
 - Generate-check-retry loop: auto-validates output via parser/checker, feeds errors back to LLM
 - Prompt preservation: original NL prompt stored in VCS alongside the generated `.intent` file
+
+## Planned Phases
+
+### Phase 6: Stateless Runtime
+IntentLang becomes executable in its own native language — not via WASM or LLVM, but through its own runtime.
+- New crate: `intent-runtime` — expression evaluator, state transformer, HTTP server
+- `intent serve <file>` — auto-generates REST endpoints from actions
+- **Stateless execution model**: caller sends entity state + action parameters in the request; runtime evaluates `requires`, computes new state from `ensures`, verifies `invariants`, returns result or constraint violations
+- Expression evaluator operates on concrete JSON values against the compiled IR
+- `old()` semantics via snapshot-and-compare
+- Quantifier evaluation (`forall`/`exists`) iterates entity instances provided in the request
+- CLI: `intent serve`
+
+### Phase 7: Module Imports
+Module imports unlock multi-file composition — required for beta.
+- `use OtherModule.Entity` syntax in grammar
+- Module resolver loads and parses imported modules
+- Cross-module type checking
+- `intent serve` loads multiple modules together
+
+### Long-Term: Self-Hosting
+IntentLang compiles itself — the compiler's spec is written in `.intent` files, agents generate the implementation, the audit bridge verifies conformance. Not a near-term priority, but a planned goal. See the Self-Hosting Roadmap section below for stages and invariants.
+
+### Milestone Definitions
+- **Alpha**: Core features working, API unstable, may have missing pieces
+- **Beta**: Small real-world system runs end-to-end. Module imports working. API stabilizing
+- **Preview**: Post-feedback hardening between beta and production (if needed)
+- **Stable (v1.0)**: Production-ready runtime, stable API
+
+Versions are not hardlocked to phases — minor/patch versions ship between milestones as needed.
 
 ---
 
@@ -221,9 +259,10 @@ IntentLang compiles itself. The compiler's specification is written in the inten
 - Intent language is specification-only (no execution semantics)
 - Rust is the single source of truth for compiler behavior
 
-#### Stage 2: Executable IR
-- Agent IR gains full execution capability (compiles to WASM or native via LLVM)
-- Intent specs compile to IR, IR compiles to runnable artifacts
+#### Stage 2: Executable IR (aligns with Phase 6)
+- IntentLang gains its own native runtime — specs execute directly via the `intent-runtime` crate
+- No WASM or LLVM compilation target; the runtime evaluates IR natively
+- Stateless HTTP server auto-generates REST endpoints from action definitions
 - Toolchain is still Rust, but IntentLang programs are now self-sufficient
 
 #### Stage 3: Spec-Described Compiler
@@ -265,6 +304,6 @@ invariant BootstrapStability {
 
 #### Open Questions (Self-Hosting Specific)
 
-1. **Compilation target**: WASM gives portability and sandboxing. LLVM gives native performance. Do we need both, or pick one for bootstrap?
+1. **Native runtime scope**: The runtime currently interprets IR. If performance becomes critical for self-hosting, do we add a compilation step (to native or WASM), or is interpretation sufficient?
 2. **Verification of the verifier**: When the audit bridge is itself spec'd in IntentLang, who verifies the verifier? This is a known problem in formal methods — at some point you need a trusted kernel. How small can we make it?
 3. **Agent trust boundary**: At Stage 4, agents maintain the tool that verifies agent work. What safeguards prevent a subtle drift where the verifier gradually accepts weaker proofs?

@@ -234,35 +234,92 @@ New behavior: Transfers exceeding 100/min per account are queued
 
 ## Development Roadmap
 
-### Phase 1: Intent Language MVP
+### Phase 1: Intent Language MVP (complete)
 - Parser and AST for the intent language
 - Validation (type checking, constraint consistency)
 - Markdown/HTML rendering of specs for human review
 - CLI tool: `intent check`, `intent render`
 
-### Phase 2: Agent IR Foundation
+### Phase 2: Agent IR Foundation (complete)
 - Define the core IR type system
 - Build IR generator from intent specs (scaffold generation)
 - Basic verification: do postconditions follow from preconditions?
 - CLI tool: `intent compile`, `intent verify`
 
-### Phase 3: Audit Bridge
+### Phase 3: Audit Bridge (complete)
 - Trace map generation
 - Diff reporting
 - Coverage analysis
 - CLI tool: `intent audit`, `intent coverage`
 
-### Phase 4: Agent Integration
+### Phase 4: Agent Integration (complete)
 - Agent-friendly API for reading specs and producing IR
 - Incremental verification (re-verify only changed code)
 - Multi-agent collaboration support (lock/claim spec sections)
 
-### Phase 5: Language Polish & Natural Language Generation
+### Phase 5: Language Polish & Natural Language Generation (in progress)
 - Auto-formatter (`intent fmt`), scaffolding (`intent init`), shell completions
 - Natural language to intent translation (`intent generate`)
 - Interactive and single-shot generation modes with confidence levels
 - Edit existing specs from natural language descriptions
 - Model-agnostic LLM integration (OpenAI-compatible API)
+
+### Phase 6: Stateless Runtime
+- **Expression evaluator** — evaluate `requires`/`ensures`/`invariant` expressions against concrete values
+- **State transformer** — apply `ensures` postconditions to compute new state from old
+- **HTTP server** — auto-generate REST endpoints from actions (`intent serve <file>`)
+- **Stateless execution model** — caller provides entity state in the request, runtime evaluates contracts, returns new state or constraint violations
+- New crate: `intent-runtime`
+- CLI tool: `intent serve`
+
+### Phase 7: Module Imports
+- `use OtherModule.Entity` syntax for cross-file composition
+- Module resolver — loads and parses imported modules
+- Cross-module type checking
+- `intent serve` loads multiple modules together
+
+### Long-Term: Self-Hosting
+IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. Not a near-term priority, but a planned goal. See the [self-hosting roadmap](../CLAUDE.md) for stages and invariants.
+
+### Milestone Definitions
+
+| Milestone | Meaning |
+|-----------|---------|
+| **Alpha** | Core features working, API unstable, may have missing pieces |
+| **Beta** | A small real-world system runs end-to-end. Module imports working. API stabilizing |
+| **Preview** | Post-feedback hardening. Between beta and production (if needed) |
+| **Stable (v1.0)** | Production-ready runtime, stable API |
+
+Version numbers are not hardlocked to phases — minor and patch versions (e.g. v0.5.1-alpha) may ship between milestones as incremental progress.
+
+### Future Considerations
+
+Features under consideration for post-beta phases, grouped by theme.
+
+#### Language Expressiveness
+- **Parameterized entities / generics** — `entity Queue<T> { ... }`
+- **Computed fields** — `derived total: sum(items.price * items.quantity)`
+- **Temporal operators** — `eventually`, `always`, `until` for richer invariants
+- **Enum values with data** — `status: Active(since: DateTime) | Frozen(reason: String)`
+
+#### Verification & Correctness
+- **SMT solver integration** — move beyond structural checking to actual constraint solving (Z3/CVC5)
+- **Counterexample generation** — when verification fails, produce a concrete violating state
+- **Property-based test generation** — derive tests from specs (fuzzing action sequences against invariants)
+- **Refinement types** — `amount: Decimal { > 0, <= 100000 }` with solver-backed checking
+
+#### Developer Experience
+- **LSP server** — syntax highlighting, diagnostics, go-to-definition, completions in editors
+- **WASM build** — run `intent check` in the browser, enable a playground site
+- **Watch mode** — `intent watch <file>` re-checks on save
+- **Explain command** — `intent explain <file> <item>` gives natural language explanation of a spec item
+- **Test command** — `intent test <file>` generates and runs property-based tests from specs
+
+#### Ecosystem & Integration
+- **Code generation** — `intent codegen <file> --lang rust/typescript/python` generates skeleton implementations
+- **OpenAPI bridge** — `intent import openapi.yaml` generates specs from existing API definitions
+- **GitHub Action** — `intent check` as a CI step for `.intent` files in any repo
+- **VS Code extension** — syntax highlighting + integrated diagnostics (lighter than full LSP)
 
 ---
 
@@ -272,11 +329,11 @@ New behavior: Transfers exceeding 100/min per account are queued
 
 2. **How do we handle specs that are inherently ambiguous?** Natural language leaks in at the edges. Should the intent language support probabilistic or fuzzy constraints?
 
-3. **What's the compilation target?** Does Agent IR compile to LLVM, WASM, or something else? Or is it interpreted?
+3. **Formal verification scope** — Full theorem proving (like Lean/Coq) is powerful but heavy. SMT-based checking (like Dafny) is more practical. Where on this spectrum do we land?
 
-4. **How do we bootstrap?** The first version needs to be written in an existing language. What's the best host language for the compiler/toolchain?
+4. **Runtime execution boundaries** — How much logic should the stateless runtime infer from `ensures` blocks? Pure contract enforcement (check but don't compute) vs. state derivation (compute new state from postconditions)?
 
-5. **Formal verification scope** — Full theorem proving (like Lean/Coq) is powerful but heavy. SMT-based checking (like Dafny) is more practical. Where on this spectrum do we land?
+5. **Module import resolution** — file-system based (relative paths) or registry-based (namespaced packages)? Or both?
 
 ---
 
