@@ -1,6 +1,8 @@
 # IntentLang
 
 [![CI](https://github.com/krakenhavoc/IntentLang/actions/workflows/ci.yml/badge.svg)](https://github.com/krakenhavoc/IntentLang/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/intent-cli.svg)](https://crates.io/crates/intent-cli)
+[![docs](https://img.shields.io/badge/docs-mdBook-blue)](https://krakenhavoc.github.io/IntentLang/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 A declarative specification language for human-AI collaboration.
@@ -71,7 +73,7 @@ $ intent check examples/transfer.intent
 OK: TransferFunds — 7 top-level item(s), no issues found
 ```
 
-See [`examples/`](examples/) for more: authentication, shopping cart, RBAC, API gateway, data pipeline.
+See [`examples/`](examples/) for more: authentication, shopping cart, RBAC, API gateway, data pipeline. Full language documentation is at [krakenhavoc.github.io/IntentLang](https://krakenhavoc.github.io/IntentLang/).
 
 ## Getting Started
 
