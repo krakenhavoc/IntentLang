@@ -44,6 +44,12 @@ pub fn check_file(file: &ast::File) -> Vec<CheckError> {
     // Pass 3: Check quantifier binding types.
     check_quantifier_types(file, &env, &mut errors);
 
+    // Pass 4: Check edge case action references.
+    check_edge_case_actions(file, &env, &mut errors);
+
+    // Pass 5: Check field access on known entity types.
+    check_field_access(file, &env, &mut errors);
+
     errors
 }
 
@@ -224,6 +230,136 @@ fn check_quantifier_types(file: &ast::File, env: &TypeEnv, errors: &mut Vec<Chec
             }
             _ => {}
         }
+    }
+}
+
+/// Pass 4: Check that actions referenced in edge_cases are defined.
+/// Only validates uppercase-starting names (defined actions use `type_ident`).
+/// Lowercase names like `reject`, `allow`, `require_approval` are convention-based
+/// handlers and don't need to resolve to a defined action.
+fn check_edge_case_actions(file: &ast::File, env: &TypeEnv, errors: &mut Vec<CheckError>) {
+    for item in &file.items {
+        if let TopLevelItem::EdgeCases(ec) = item {
+            for rule in &ec.rules {
+                let name = &rule.action.name;
+                let is_defined_action_name = name
+                    .chars()
+                    .next()
+                    .map_or(false, |c| c.is_uppercase());
+                if is_defined_action_name && !env.actions.contains_key(name) {
+                    errors.push(CheckError::undefined_edge_action(
+                        name,
+                        rule.action.span,
+                    ));
+                }
+            }
+        }
+    }
+}
+
+/// Pass 5: Check field access on parameters with known entity types.
+/// For each action, build a map of param_name -> entity_name, then walk
+/// expressions to verify that `param.field` accesses valid entity fields.
+fn check_field_access(file: &ast::File, env: &TypeEnv, errors: &mut Vec<CheckError>) {
+    for item in &file.items {
+        if let TopLevelItem::Action(action) = item {
+            // Build param -> entity type map for this action
+            let mut param_types: HashMap<String, String> = HashMap::new();
+            for param in &action.params {
+                if let ast::TypeKind::Simple(type_name) = &param.ty.ty {
+                    if env.entities.contains_key(type_name) {
+                        param_types.insert(param.name.clone(), type_name.clone());
+                    }
+                }
+            }
+            if param_types.is_empty() {
+                continue;
+            }
+
+            // Walk requires/ensures expressions
+            if let Some(req) = &action.requires {
+                for cond in &req.conditions {
+                    walk_expr_field_access(cond, &param_types, env, errors);
+                }
+            }
+            if let Some(ens) = &action.ensures {
+                for item in &ens.items {
+                    match item {
+                        ast::EnsuresItem::Expr(e) => {
+                            walk_expr_field_access(e, &param_types, env, errors);
+                        }
+                        ast::EnsuresItem::When(w) => {
+                            walk_expr_field_access(&w.condition, &param_types, env, errors);
+                            walk_expr_field_access(&w.consequence, &param_types, env, errors);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Walk an expression looking for field access on known entity-typed params.
+fn walk_expr_field_access(
+    expr: &ast::Expr,
+    param_types: &HashMap<String, String>,
+    env: &TypeEnv,
+    errors: &mut Vec<CheckError>,
+) {
+    match &expr.kind {
+        ast::ExprKind::FieldAccess { root, fields } => {
+            // Check if root is an ident that maps to a known entity param
+            if let ast::ExprKind::Ident(name) = &root.kind {
+                if let Some(entity_name) = param_types.get(name) {
+                    if let Some((_, entity_fields)) = env.entities.get(entity_name) {
+                        // Check the first field in the access chain
+                        if let Some(first_field) = fields.first() {
+                            let known: Vec<&str> =
+                                entity_fields.iter().map(|(n, _)| n.as_str()).collect();
+                            if !known.contains(&first_field.as_str()) {
+                                errors.push(CheckError::unknown_field(
+                                    first_field,
+                                    entity_name,
+                                    expr.span,
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+            // Also recurse into root in case it's a complex expression
+            walk_expr_field_access(root, param_types, env, errors);
+        }
+        ast::ExprKind::Old(inner) => {
+            walk_expr_field_access(inner, param_types, env, errors);
+        }
+        ast::ExprKind::Implies(a, b)
+        | ast::ExprKind::Or(a, b)
+        | ast::ExprKind::And(a, b)
+        | ast::ExprKind::Compare { left: a, right: b, .. }
+        | ast::ExprKind::Arithmetic { left: a, right: b, .. } => {
+            walk_expr_field_access(a, param_types, env, errors);
+            walk_expr_field_access(b, param_types, env, errors);
+        }
+        ast::ExprKind::Not(inner) => {
+            walk_expr_field_access(inner, param_types, env, errors);
+        }
+        ast::ExprKind::Call { args, .. } => {
+            for arg in args {
+                match arg {
+                    ast::CallArg::Named { value, .. } => {
+                        walk_expr_field_access(value, param_types, env, errors);
+                    }
+                    ast::CallArg::Positional(e) => {
+                        walk_expr_field_access(e, param_types, env, errors);
+                    }
+                }
+            }
+        }
+        ast::ExprKind::Quantifier { body, .. } => {
+            walk_expr_field_access(body, param_types, env, errors);
+        }
+        ast::ExprKind::Ident(_) | ast::ExprKind::Literal(_) => {}
     }
 }
 

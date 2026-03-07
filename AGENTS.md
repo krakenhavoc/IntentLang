@@ -106,16 +106,18 @@ edge_cases {
 
 **Parser (intent-parser)**: PEG grammar via `pest`. Every AST node carries a `Span { start, end }` for source locations. The grammar uses `or_expr` (not `expr`) for `when`/`edge_rule` conditions to avoid ambiguity with the `=>` operator. Union variants like `Active | Frozen` are treated as enum-like labels, not type references.
 
-**Checker (intent-check)**: Three-pass semantic analysis:
+**Checker (intent-check)**: Five-pass semantic analysis:
 1. Collect definitions + detect duplicates (entities, actions, invariants, fields)
 2. Resolve type references (verify all types exist as builtins or defined entities)
 3. Validate quantifier bindings (forall/exists variable types must be entities or actions)
+4. Validate edge case action references (uppercase names must be defined actions)
+5. Validate field access on entity-typed parameters (e.g., `from.balance` checks `balance` exists on the entity)
 
-Errors use `miette` diagnostics with source spans, labels, and help text.
+Both parse and check errors use `miette` diagnostics with source spans, labels, and help text.
 
-**Renderer (intent-render)**: Converts AST to Markdown. HTML renderer is a stub.
+**Renderer (intent-render)**: Converts AST to Markdown and self-contained HTML. Shared `format_type` helper in lib root.
 
-**CLI (intent-cli)**: `clap` derive-based. Two subcommands: `check` and `render`.
+**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`.
 
 ## Key Dependencies
 
@@ -135,18 +137,20 @@ Errors use `miette` diagnostics with source spans, labels, and help text.
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage
+## Current Test Coverage (36 total)
 
-- 17 semantic checker tests (duplicates, type resolution, quantifiers, valid files)
+- 22 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, valid files)
 - 7 parser unit tests (all language constructs)
-- 7 test fixtures (4 valid, 3 invalid) + 3 example files
+- 7 insta snapshot tests (JSON AST for all fixtures and examples)
+- Fixtures: 4 valid, 7 invalid + 3 example files
 
 ## Current Phase & Status
 
-Phase 1 MVP. The parser, semantic checker, Markdown renderer, and CLI are functional.
+Phase 1 MVP. Parser, five-pass semantic checker, Markdown/HTML renderers, and CLI are functional.
 
-Remaining work:
-- Snapshot tests (insta) for AST regression
-- HTML renderer
-- Richer parse error messages with miette source spans
-- Constraint satisfiability checking (constraints.rs is a stub)
+Completed:
+- PEG grammar, typed AST with spans, snapshot tests (insta)
+- Semantic analysis: duplicates, type resolution, quantifiers, edge actions, field access
+- Markdown and HTML renderers (self-contained styled HTML)
+- CLI: `check`, `render`, `render-html` subcommands
+- Human-readable parse errors with miette diagnostics

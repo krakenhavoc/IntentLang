@@ -201,3 +201,111 @@ invariant Conservation {
 "#;
     assert!(check(src).is_empty());
 }
+
+// ── Edge case action references ─────────────────────────────
+
+#[test]
+fn undefined_edge_action() {
+    let src = include_str!("../../../tests/invalid/undefined_edge_action.intent");
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    assert!(
+        matches!(&errs[0], CheckError::UndefinedEdgeAction { name, .. } if name == "RequireApproval")
+    );
+}
+
+#[test]
+fn valid_edge_action() {
+    let src = r#"module EdgeOk
+
+entity Account {
+  id: UUID
+  balance: Int
+}
+
+action Transfer {
+  from: Account
+  amount: Int
+
+  requires {
+    amount > 0
+  }
+}
+
+action Reject {
+  reason: String
+}
+
+edge_cases {
+  when amount > 10000 => Transfer(from: from, amount: amount)
+  when amount == 0 => Reject(reason: "zero amount")
+}
+"#;
+    assert!(check(src).is_empty());
+}
+
+// ── Field access validation ─────────────────────────────────
+
+#[test]
+fn unknown_field_access() {
+    let src = include_str!("../../../tests/invalid/unknown_field.intent");
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    assert!(
+        matches!(&errs[0], CheckError::UnknownField { field, entity, .. }
+            if field == "credit_limit" && entity == "Account")
+    );
+}
+
+#[test]
+fn valid_field_access() {
+    let src = r#"module FieldOk
+
+entity Account {
+  id: UUID
+  balance: Int
+  status: Active | Frozen
+}
+
+action Transfer {
+  from: Account
+  amount: Int
+
+  requires {
+    from.balance >= amount
+    from.status == Active
+  }
+
+  ensures {
+    from.balance == old(from.balance) - amount
+  }
+}
+"#;
+    assert!(check(src).is_empty());
+}
+
+#[test]
+fn unknown_field_in_ensures() {
+    let src = r#"module FieldEns
+
+entity Account {
+  id: UUID
+  balance: Int
+}
+
+action Withdraw {
+  account: Account
+  amount: Int
+
+  ensures {
+    account.remaining == old(account.balance) - amount
+  }
+}
+"#;
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    assert!(
+        matches!(&errs[0], CheckError::UnknownField { field, entity, .. }
+            if field == "remaining" && entity == "Account")
+    );
+}
