@@ -35,6 +35,12 @@ cargo run -p intent-cli -- compile examples/transfer.intent
 
 # Verify structural + logical correctness
 cargo run -p intent-cli -- verify examples/transfer.intent
+
+# Show audit trace map (spec items → IR constructs)
+cargo run -p intent-cli -- audit examples/transfer.intent
+
+# Show coverage summary
+cargo run -p intent-cli -- coverage examples/transfer.intent
 ```
 
 ## Project Structure
@@ -47,7 +53,7 @@ intentlang/
     intent-check/            -- Semantic analysis & validation
     intent-render/           -- AST -> Markdown/HTML
     intent-ir/               -- AST -> Agent IR (lowering, verification)
-    intent-cli/              -- CLI binary: check, render, compile, verify
+    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage
   examples/                  -- Example .intent files
   tests/valid/               -- Specs that must parse and pass checks
   tests/invalid/             -- Specs that must fail with known errors
@@ -126,9 +132,9 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 
 **Renderer (intent-render)**: Converts AST to Markdown and self-contained HTML. Shared `format_type` helper in lib root.
 
-**IR (intent-ir)**: Lowers AST to a typed intermediate representation (structs, functions, invariants, edge guards). Every IR node carries a `SourceTrace { module, item, part, span }` for audit tracing. The verification pass checks structural correctness (bound variables, `old()` placement, quantifier types, postcondition connectivity) and logical coherence (invariant-action field coverage, verification obligations).
+**IR (intent-ir)**: Lowers AST to a typed intermediate representation (structs, functions, invariants, edge guards). Every IR node carries a `SourceTrace { module, item, part, span }` for audit tracing. The verification pass checks structural correctness (bound variables, `old()` placement, quantifier types, postcondition connectivity) and logical coherence (invariant-action field coverage, verification obligations). The audit module generates trace maps (spec→IR mapping with source lines) and coverage summaries from the IR and verification results.
 
-**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify`.
+**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify`, `audit`, `coverage`.
 
 ## Key Dependencies
 
@@ -149,16 +155,17 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage (62+ total)
+## Current Test Coverage (77 total)
 
 - 26 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files)
 - 14 parser tests (7 unit + 7 insta snapshot tests for all fixtures and examples)
-- 22 IR tests (11 lowering + 11 verification, including integration tests for all 3 examples)
+- 28 IR tests (11 lowering + 11 verification + 6 coherence, including integration tests for all 3 examples)
+- 9 audit tests (trace map entries, coverage counts, line numbers, obligation display, integration)
 - Fixtures: 4 valid, 9 invalid + 3 example files
 
 ## Current Phase & Status
 
-Phase 2: Agent IR Foundation. Building on Phase 1 MVP (parser, checker, renderers).
+Phase 3: Audit Bridge. Building on Phase 2 (IR + verification).
 
 Phase 1 (complete):
 - PEG grammar, typed AST with spans, snapshot tests (insta)
@@ -166,9 +173,13 @@ Phase 1 (complete):
 - Markdown and HTML renderers
 - CLI: `check`, `render`, `render-html`
 
-Phase 2 (in progress):
+Phase 2 (complete):
 - AST → IR lowering (entities→structs, actions→functions, invariants, edge cases→guards)
 - IR structural verification (bound variables, `old()` placement, quantifier types, postcondition connectivity)
 - IR coherence analysis (invariant-action field coverage, verification obligations)
 - CLI: `compile` (IR JSON output), `verify` (semantic + structural + coherence checks)
-- Every IR node carries `SourceTrace` for future audit bridge
+
+Phase 3 (in progress):
+- Audit trace maps (spec items → IR constructs with source line numbers)
+- Coverage summaries (entity/action/invariant/edge guard counts, verification status, obligations)
+- CLI: `audit` (trace map view), `coverage` (summary view)

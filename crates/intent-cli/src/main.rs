@@ -39,6 +39,16 @@ enum Commands {
         /// Path to the .intent file
         file: PathBuf,
     },
+    /// Show the audit trace map (spec items → IR constructs)
+    Audit {
+        /// Path to the .intent file
+        file: PathBuf,
+    },
+    /// Show coverage summary for an intent specification
+    Coverage {
+        /// Path to the .intent file
+        file: PathBuf,
+    },
 }
 
 fn read_source(file: &Path) -> String {
@@ -174,6 +184,24 @@ fn main() {
                 );
                 process::exit(1);
             }
+        }
+        Commands::Audit { file } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+            let ir = intent_ir::lower_file(&ast);
+            let errors = intent_ir::verify_module(&ir);
+            let obligations = intent_ir::analyze_obligations(&ir);
+            let report = intent_ir::generate_audit(&source, &ir, &errors, &obligations);
+            print!("{}", report.format_trace_map());
+        }
+        Commands::Coverage { file } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+            let ir = intent_ir::lower_file(&ast);
+            let errors = intent_ir::verify_module(&ir);
+            let obligations = intent_ir::analyze_obligations(&ir);
+            let report = intent_ir::generate_audit(&source, &ir, &errors, &obligations);
+            print!("{}", report.format_coverage());
         }
     }
 }
