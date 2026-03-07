@@ -103,6 +103,28 @@ pub enum CheckError {
         #[label("accessed here")]
         span: SourceSpan,
     },
+
+    #[error("`old()` cannot be used in a `requires` block")]
+    #[diagnostic(
+        code(intent::check::old_in_requires),
+        help("`old()` references pre-state values and is only meaningful in `ensures` blocks")
+    )]
+    OldInRequires {
+        #[label("used here")]
+        span: SourceSpan,
+    },
+
+    #[error("comparing `{expr}` to itself is always {result}")]
+    #[diagnostic(
+        code(intent::check::tautological_comparison),
+        help("both sides of this comparison are identical — did you mean to compare different values?")
+    )]
+    TautologicalComparison {
+        expr: String,
+        result: String,
+        #[label("both sides are identical")]
+        span: SourceSpan,
+    },
 }
 
 impl CheckError {
@@ -164,6 +186,20 @@ impl CheckError {
         Self::UnknownField {
             field: field.to_string(),
             entity: entity.to_string(),
+            span: to_source_span(span),
+        }
+    }
+
+    pub fn old_in_requires(span: Span) -> Self {
+        Self::OldInRequires {
+            span: to_source_span(span),
+        }
+    }
+
+    pub fn tautological_comparison(expr: &str, result: &str, span: Span) -> Self {
+        Self::TautologicalComparison {
+            expr: expr.to_string(),
+            result: result.to_string(),
             span: to_source_span(span),
         }
     }

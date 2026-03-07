@@ -1,0 +1,15 @@
+module Test
+
+entity Account {
+  id: UUID
+  balance: Decimal(precision: 2)
+}
+
+action Transfer {
+  from: Account
+  amount: Decimal(precision: 2)
+
+  requires {
+    from.balance == from.balance
+  }
+}

@@ -8,7 +8,7 @@ action Transfer {
   from: Account
 
   requires {
-    from.id != from.id
+    from.id != null
   }
 }
 
@@ -16,6 +16,6 @@ action Transfer {
   to: Account
 
   requires {
-    to.id != to.id
+    to.id != null
   }
 }

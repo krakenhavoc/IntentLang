@@ -191,12 +191,12 @@ action Transfer {
   from: Account
 
   requires {
-    from.id != from.id
+    from.id != null
   }
 }
 
 invariant Conservation {
-  forall t: Transfer => t.from.id != t.from.id
+  forall t: Transfer => t.from.id != null
 }
 "#;
     assert!(check(src).is_empty());
@@ -308,4 +308,72 @@ action Withdraw {
         matches!(&errs[0], CheckError::UnknownField { field, entity, .. }
             if field == "remaining" && entity == "Account")
     );
+}
+
+// ── Constraint validation ────────────────────────────────────
+
+#[test]
+fn old_in_requires() {
+    let src = include_str!("../../../tests/invalid/old_in_requires.intent");
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    assert!(matches!(&errs[0], CheckError::OldInRequires { .. }));
+}
+
+#[test]
+fn tautological_comparison() {
+    let src = include_str!("../../../tests/invalid/tautological_comparison.intent");
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    assert!(
+        matches!(&errs[0], CheckError::TautologicalComparison { expr, result, .. }
+            if expr == "from.balance" && result == "true")
+    );
+}
+
+#[test]
+fn tautological_not_equal() {
+    let src = r#"module TautNe
+
+entity Account {
+  id: UUID
+  balance: Int
+}
+
+action Check {
+  a: Account
+
+  requires {
+    a.balance != a.balance
+  }
+}
+"#;
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    assert!(
+        matches!(&errs[0], CheckError::TautologicalComparison { result, .. }
+            if result == "false")
+    );
+}
+
+#[test]
+fn old_in_ensures_is_valid() {
+    // old() in ensures is correct usage — should produce no errors.
+    let src = r#"module OldEnsOk
+
+entity Account {
+  id: UUID
+  balance: Int
+}
+
+action Withdraw {
+  account: Account
+  amount: Int
+
+  ensures {
+    account.balance == old(account.balance) - amount
+  }
+}
+"#;
+    assert!(check(src).is_empty());
 }
