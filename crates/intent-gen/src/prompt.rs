@@ -45,6 +45,13 @@ pub(crate) fn retry_message(spec: &str, errors: &[String]) -> String {
     format!(
         "The generated spec has validation errors:\n\n{error_list}\n\n\
          Here was the spec:\n```\n{spec}\n```\n\n\
+         Common mistakes to avoid:\n\
+         - `---` is a LINE PREFIX, not a separator. Write `--- text here` NOT `---` alone on a line\n\
+         - Do NOT use import/use/fn/let/return/if-else — IntentLang has none of these\n\
+         - Do NOT wrap output in markdown code fences\n\
+         - Each requires/ensures condition must be on its own line\n\
+         - Union variants are bare identifiers (Active, not \"Active\")\n\
+         - old() is only valid inside ensures blocks\n\n\
          Fix the errors and respond with ONLY the corrected `.intent` file content. \
          No explanation, no markdown fences."
     )
@@ -81,49 +88,84 @@ raw `.intent` source code — no markdown fences, no explanations, no commentary
 const SYNTAX_REFERENCE: &str = "\
 # IntentLang Syntax Reference
 
-## Structure
-Every file starts with `module ModuleName` (PascalCase).
+IntentLang is a declarative specification language. It is NOT a general-purpose \
+programming language. There are no functions, no import statements, no return \
+statements, no loops, no variable assignments. You define entities (data), \
+actions (operations with pre/postconditions), invariants (universal rules), and \
+edge cases.
 
-Documentation blocks start with `---` and contain natural language descriptions.
+## Structure
+Every file starts with `module ModuleName` (PascalCase). Nothing else may appear \
+before the module declaration.
+
+Documentation blocks use `---` as a LINE PREFIX (not a separator). Each doc line \
+must start with `--- ` followed by text on the SAME line. Example:
+```
+--- This is a doc line.
+--- This is another doc line.
+```
+WRONG (do NOT do this):
+```
+---
+This text is NOT a doc block, it will cause parse errors.
+---
+```
 
 ## Entities
+Define domain objects with typed fields:
 ```
-entity EntityName {
-  field_name: Type
-  other_field: TypeA | TypeB
+entity Account {
+  id: UUID
+  owner: String
+  balance: Decimal(precision: 2)
+  status: Active | Frozen | Closed
+  created_at: DateTime
+  email: Email?
 }
 ```
 
 ## Actions
+Define operations with parameters, preconditions, postconditions, and properties:
 ```
-action ActionName {
-  param: Type
+action Transfer {
+  --- Move funds between accounts.
+  from: Account
+  to: Account
+  amount: Decimal(precision: 2)
 
   requires {
-    // preconditions (boolean expressions)
+    from.status == Active
+    to.status == Active
+    amount > 0
+    from.balance >= amount
   }
 
   ensures {
-    // postconditions, can use old(expr) for pre-state
+    from.balance == old(from.balance) - amount
+    to.balance == old(to.balance) + amount
   }
 
   properties {
-    key: value
+    idempotent: true
+    atomic: true
   }
 }
 ```
 
 ## Invariants
+Universal constraints using `forall` or `exists` over entity/action types:
 ```
-invariant InvariantName {
-  forall x: Type => predicate
+invariant NoNegativeBalances {
+  forall a: Account => a.balance >= 0
 }
 ```
 
 ## Edge Cases
+Conditional rules using `when condition => action(...)`:
 ```
 edge_cases {
-  when condition => action
+  when amount > 10000 => require_approval(level: \"manager\")
+  when from.id == to.id => reject(\"Cannot transfer to same account\")
 }
 ```
 
@@ -131,20 +173,26 @@ edge_cases {
 - Primitives: UUID, String, Int, Decimal(precision: N), Bool, DateTime
 - Domain types: CurrencyCode, Email, URL
 - Collections: List<T>, Set<T>, Map<K, V>
-- Optional: T?
-- Union: A | B | C (enum-like labels)
-- Refinement: inline constraints in requires/ensures blocks
+- Optional: T? (nullable)
+- Union: Active | Frozen | Closed (enum-like labels, NOT type references)
+- Union variants are bare uppercase identifiers, not strings
 
 ## Operators
 - Comparison: ==, !=, >, <, >=, <=
 - Logical: &&, ||, !, => (implies)
-- Quantifiers: forall, exists
-- State: old(expr) — value before action execution
+- Quantifiers: forall x: Type => predicate, exists x: Type => predicate
+- State: old(expr) — value before action execution (only in ensures blocks)
 - Arithmetic: +, -, *, /
 
-## Lists
-- Literal: [item1, item2, item3]
-- Methods: .contains(x), .length, .is_empty";
+## Critical Rules
+- `---` is a LINE PREFIX, not a separator. Write `--- text here` NOT `---` on its own line
+- Each requires/ensures condition goes on its OWN LINE — no semicolons, no commas
+- Union variants (Active, Frozen, etc.) are bare identifiers, NOT quoted strings
+- old() is ONLY valid inside `ensures` blocks
+- forall/exists bind a variable to an entity or action type defined in the same file
+- properties values can be: true, false, quoted strings, or numbers
+- There is NO `import`, `use`, `fn`, `let`, `return`, `if/else`, or `match` syntax
+- Do NOT wrap output in markdown code fences";
 
 const GENERATION_RULES: &str = "\
 # Generation Rules
