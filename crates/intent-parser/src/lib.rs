@@ -5,4 +5,4 @@ pub mod parser;
 mod snapshot_tests;
 
 pub use ast::*;
-pub use parser::{parse_file, ParseError};
+pub use parser::{ParseError, parse_file};

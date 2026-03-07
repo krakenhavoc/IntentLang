@@ -1,4 +1,4 @@
-use crate::audit::{generate_audit, SpecItemKind};
+use crate::audit::{SpecItemKind, generate_audit};
 use crate::lower::lower_file;
 use crate::verify::{analyze_obligations, verify_module};
 
@@ -26,7 +26,11 @@ fn basic_action_trace() {
     let report = audit(
         "module M entity X { v: Int } action A { x: X requires { x.v > 0 } ensures { x.v == old(x.v) + 1 } }",
     );
-    let action = report.entries.iter().find(|e| e.kind == SpecItemKind::Action).unwrap();
+    let action = report
+        .entries
+        .iter()
+        .find(|e| e.kind == SpecItemKind::Action)
+        .unwrap();
     assert_eq!(action.name, "A");
     assert_eq!(action.parts.len(), 3); // param + requires + ensures
     assert_eq!(action.parts[0].label, "param:x");
@@ -36,19 +40,23 @@ fn basic_action_trace() {
 
 #[test]
 fn invariant_trace() {
-    let report = audit(
-        "module M entity X { v: Int } invariant Pos { forall x: X => x.v >= 0 }",
-    );
-    let inv = report.entries.iter().find(|e| e.kind == SpecItemKind::Invariant).unwrap();
+    let report = audit("module M entity X { v: Int } invariant Pos { forall x: X => x.v >= 0 }");
+    let inv = report
+        .entries
+        .iter()
+        .find(|e| e.kind == SpecItemKind::Invariant)
+        .unwrap();
     assert_eq!(inv.name, "Pos");
 }
 
 #[test]
 fn edge_cases_trace() {
-    let report = audit(
-        "module M edge_cases { when x == y => reject(\"no\") }",
-    );
-    let ec = report.entries.iter().find(|e| e.kind == SpecItemKind::EdgeCases).unwrap();
+    let report = audit("module M edge_cases { when x == y => reject(\"no\") }");
+    let ec = report
+        .entries
+        .iter()
+        .find(|e| e.kind == SpecItemKind::EdgeCases)
+        .unwrap();
     assert_eq!(ec.parts.len(), 1);
     assert_eq!(ec.parts[0].label, "guard[0]");
     assert!(ec.parts[0].ir_desc.contains("reject"));
@@ -75,7 +83,11 @@ fn obligations_appear_in_report() {
         "module M entity X { v: Int } action A { x: X ensures { x.v == old(x.v) + 1 } } invariant Pos { forall x: X => x.v >= 0 }",
     );
     assert_eq!(report.obligations.len(), 1);
-    let action = report.entries.iter().find(|e| e.kind == SpecItemKind::Action).unwrap();
+    let action = report
+        .entries
+        .iter()
+        .find(|e| e.kind == SpecItemKind::Action)
+        .unwrap();
     assert!(!action.related_obligations.is_empty());
 }
 
@@ -96,9 +108,7 @@ fn transfer_example_audit() {
 
 #[test]
 fn coverage_format_contains_sections() {
-    let report = audit(
-        "module M entity X { v: Int } action A { x: X requires { x.v > 0 } }",
-    );
+    let report = audit("module M entity X { v: Int } action A { x: X requires { x.v > 0 } }");
     let cov = report.format_coverage();
     assert!(cov.contains("Entities:"));
     assert!(cov.contains("Actions:"));

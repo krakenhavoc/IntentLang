@@ -43,7 +43,11 @@ fn render_entity(out: &mut String, entity: &ast::EntityDecl) {
     }
     out.push_str("| Field | Type |\n|-------|------|\n");
     for field in &entity.fields {
-        out.push_str(&format!("| `{}` | `{}` |\n", field.name, format_type(&field.ty)));
+        out.push_str(&format!(
+            "| `{}` | `{}` |\n",
+            field.name,
+            format_type(&field.ty)
+        ));
     }
     out.push('\n');
 }
@@ -80,4 +84,3 @@ fn render_invariant(out: &mut String, inv: &ast::InvariantDecl) {
 fn render_edge_cases(out: &mut String, _ec: &ast::EdgeCasesDecl) {
     out.push_str("## Edge Cases\n\n");
 }
-

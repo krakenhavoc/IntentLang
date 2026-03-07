@@ -199,8 +199,7 @@ pub fn analyze_obligations(module: &Module) -> Vec<Obligation> {
     let mut modified_fields: HashMap<&str, HashSet<(&str, &str)>> = HashMap::new();
     for func in &module.functions {
         let entity_params = &func_entity_params[func.name.as_str()];
-        let param_to_entity: HashMap<&str, &str> =
-            entity_params.iter().copied().collect();
+        let param_to_entity: HashMap<&str, &str> = entity_params.iter().copied().collect();
         let mut fields = HashSet::new();
         for post in &func.postconditions {
             let exprs: Vec<&IrExpr> = match post {
@@ -216,51 +215,44 @@ pub fn analyze_obligations(module: &Module) -> Vec<Obligation> {
 
     // For each invariant, determine what it constrains.
     for inv in &module.invariants {
-        match &inv.expr {
-            IrExpr::Forall {
-                binding,
-                ty,
-                body,
-            } => {
-                // Check if this is a temporal invariant (quantifies over an action).
-                let is_action = module.functions.iter().any(|f| f.name == *ty);
-                if is_action {
-                    // Temporal property: directly references an action.
-                    obligations.push(Obligation {
-                        action: ty.clone(),
-                        invariant: inv.name.clone(),
-                        entity: ty.clone(),
-                        fields: vec![],
-                        kind: ObligationKind::TemporalProperty,
-                    });
-                    continue;
-                }
+        if let IrExpr::Forall { binding, ty, body } = &inv.expr {
+            // Check if this is a temporal invariant (quantifies over an action).
+            let is_action = module.functions.iter().any(|f| f.name == *ty);
+            if is_action {
+                // Temporal property: directly references an action.
+                obligations.push(Obligation {
+                    action: ty.clone(),
+                    invariant: inv.name.clone(),
+                    entity: ty.clone(),
+                    fields: vec![],
+                    kind: ObligationKind::TemporalProperty,
+                });
+                continue;
+            }
 
-                // Entity invariant: quantifies over an entity type.
-                // Collect fields the invariant constrains.
-                let constrained = collect_field_accesses_on(body, binding);
+            // Entity invariant: quantifies over an entity type.
+            // Collect fields the invariant constrains.
+            let constrained = collect_field_accesses_on(body, binding);
 
-                // Find all actions that modify any of these fields on this entity type.
-                for func in &module.functions {
-                    if let Some(mods) = modified_fields.get(func.name.as_str()) {
-                        let overlapping: Vec<String> = constrained
-                            .iter()
-                            .filter(|f| mods.contains(&(ty.as_str(), f.as_str())))
-                            .cloned()
-                            .collect();
-                        if !overlapping.is_empty() {
-                            obligations.push(Obligation {
-                                action: func.name.clone(),
-                                invariant: inv.name.clone(),
-                                entity: ty.clone(),
-                                fields: overlapping,
-                                kind: ObligationKind::InvariantPreservation,
-                            });
-                        }
+            // Find all actions that modify any of these fields on this entity type.
+            for func in &module.functions {
+                if let Some(mods) = modified_fields.get(func.name.as_str()) {
+                    let overlapping: Vec<String> = constrained
+                        .iter()
+                        .filter(|f| mods.contains(&(ty.as_str(), f.as_str())))
+                        .cloned()
+                        .collect();
+                    if !overlapping.is_empty() {
+                        obligations.push(Obligation {
+                            action: func.name.clone(),
+                            invariant: inv.name.clone(),
+                            entity: ty.clone(),
+                            fields: overlapping,
+                            kind: ObligationKind::InvariantPreservation,
+                        });
                     }
                 }
             }
-            _ => {}
         }
     }
 
@@ -321,39 +313,37 @@ fn collect_inner_field_accesses<'a>(
     match expr {
         IrExpr::FieldAccess { root, field } => {
             // Check if root is a direct param reference: old(param.field)
-            if let IrExpr::Var(var) = root.as_ref() {
-                if let Some(&entity) = param_to_entity.get(var.as_str()) {
-                    result.insert((entity, field.as_str()));
-                }
+            if let IrExpr::Var(var) = root.as_ref()
+                && let Some(&entity) = param_to_entity.get(var.as_str())
+            {
+                result.insert((entity, field.as_str()));
             }
             // Also check for chained access: old(param.sub.field)
             collect_inner_field_accesses(root, param_to_entity, result);
         }
-        _ => {
-            match expr {
-                IrExpr::Compare { left, right, .. }
-                | IrExpr::Arithmetic { left, right, .. }
-                | IrExpr::And(left, right)
-                | IrExpr::Or(left, right)
-                | IrExpr::Implies(left, right) => {
-                    collect_inner_field_accesses(left, param_to_entity, result);
-                    collect_inner_field_accesses(right, param_to_entity, result);
-                }
-                IrExpr::Not(inner) | IrExpr::Old(inner) => {
-                    collect_inner_field_accesses(inner, param_to_entity, result);
-                }
-                IrExpr::FieldAccess { .. } => unreachable!(),
-                IrExpr::Forall { body, .. } | IrExpr::Exists { body, .. } => {
-                    collect_inner_field_accesses(body, param_to_entity, result);
-                }
-                IrExpr::Call { args, .. } => {
-                    for arg in args {
-                        collect_inner_field_accesses(arg, param_to_entity, result);
-                    }
-                }
-                IrExpr::Var(_) | IrExpr::Literal(_) => {}
+        _ => match expr {
+            IrExpr::Compare { left, right, .. }
+            | IrExpr::Arithmetic { left, right, .. }
+            | IrExpr::And(left, right)
+            | IrExpr::Or(left, right)
+            | IrExpr::Implies(left, right) => {
+                collect_inner_field_accesses(left, param_to_entity, result);
+                collect_inner_field_accesses(right, param_to_entity, result);
             }
-        }
+            IrExpr::Not(inner) | IrExpr::Old(inner) => {
+                collect_inner_field_accesses(inner, param_to_entity, result);
+            }
+            IrExpr::FieldAccess { .. } => unreachable!(),
+            IrExpr::Forall { body, .. } | IrExpr::Exists { body, .. } => {
+                collect_inner_field_accesses(body, param_to_entity, result);
+            }
+            IrExpr::Call { args, .. } => {
+                for arg in args {
+                    collect_inner_field_accesses(arg, param_to_entity, result);
+                }
+            }
+            IrExpr::Var(_) | IrExpr::Literal(_) => {}
+        },
     }
 }
 
@@ -372,14 +362,16 @@ fn collect_field_accesses_on(expr: &IrExpr, binding: &str) -> Vec<String> {
 fn collect_fields_on_inner(expr: &IrExpr, binding: &str, fields: &mut Vec<String>) {
     match expr {
         IrExpr::FieldAccess { root, field } => {
-            if let IrExpr::Var(var) = root.as_ref() {
-                if var == binding {
-                    fields.push(field.clone());
-                }
+            if let IrExpr::Var(var) = root.as_ref()
+                && var == binding
+            {
+                fields.push(field.clone());
             }
             collect_fields_on_inner(root, binding, fields);
         }
-        _ => for_each_child(expr, |child| collect_fields_on_inner(child, binding, fields)),
+        _ => for_each_child(expr, |child| {
+            collect_fields_on_inner(child, binding, fields)
+        }),
     }
 }
 
@@ -459,7 +451,14 @@ fn verify_function(
     // Check preconditions: no old(), variables must be bound
     for pre in &func.preconditions {
         check_no_old(&pre.expr, &pre.trace, errors);
-        check_bound_vars(&pre.expr, &param_names, &HashSet::new(), call_names, &pre.trace, errors);
+        check_bound_vars(
+            &pre.expr,
+            &param_names,
+            &HashSet::new(),
+            call_names,
+            &pre.trace,
+            errors,
+        );
     }
 
     // Check postconditions: variables must be bound, check param references
@@ -467,11 +466,25 @@ fn verify_function(
         let (expr, trace) = match post {
             Postcondition::Always { expr, trace } => (expr, trace),
             Postcondition::When { guard, expr, trace } => {
-                check_bound_vars(guard, &param_names, &HashSet::new(), call_names, trace, errors);
+                check_bound_vars(
+                    guard,
+                    &param_names,
+                    &HashSet::new(),
+                    call_names,
+                    trace,
+                    errors,
+                );
                 (expr, trace)
             }
         };
-        check_bound_vars(expr, &param_names, &HashSet::new(), call_names, trace, errors);
+        check_bound_vars(
+            expr,
+            &param_names,
+            &HashSet::new(),
+            call_names,
+            trace,
+            errors,
+        );
 
         // Check postcondition references at least one parameter
         let vars = collect_vars(expr);
@@ -523,7 +536,11 @@ fn verify_invariant(
     );
 }
 
-fn verify_edge_guard(guard: &EdgeGuard, known_types: &HashSet<&str>, errors: &mut Vec<VerifyError>) {
+fn verify_edge_guard(
+    guard: &EdgeGuard,
+    known_types: &HashSet<&str>,
+    errors: &mut Vec<VerifyError>,
+) {
     check_no_old(&guard.condition, &guard.trace, errors);
     check_quantifier_types(&guard.condition, known_types, &guard.trace, errors);
     for (_, arg_expr) in &guard.args {
@@ -581,7 +598,14 @@ fn check_bound_vars(
         }
         _ => {
             for_each_child(expr, |child| {
-                check_bound_vars(child, params, quantifier_bindings, call_names, trace, errors);
+                check_bound_vars(
+                    child,
+                    params,
+                    quantifier_bindings,
+                    call_names,
+                    trace,
+                    errors,
+                );
             });
         }
     }

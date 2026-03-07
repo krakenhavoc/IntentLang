@@ -76,7 +76,10 @@ fn humanize_expected_rules(rules: &[Rule]) -> (String, String, Option<String>) {
         return (
             "invalid type".to_string(),
             "expected a type".to_string(),
-            Some("types must start with an uppercase letter (e.g., String, UUID, MyEntity)".to_string()),
+            Some(
+                "types must start with an uppercase letter (e.g., String, UUID, MyEntity)"
+                    .to_string(),
+            ),
         );
     }
 
@@ -117,11 +120,7 @@ fn humanize_expected_rules(rules: &[Rule]) -> (String, String, Option<String>) {
         format!("expected {}", names.join(" or "))
     };
 
-    (
-        "syntax error".to_string(),
-        msg,
-        None,
-    )
+    ("syntax error".to_string(), msg, None)
 }
 
 /// Parse a complete `.intent` source string into an AST [`File`].
@@ -664,10 +663,7 @@ fn build_primary(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
         };
     }
 
-    let fields: Vec<String> = inner
-        .into_iter()
-        .map(|p| p.as_str().to_string())
-        .collect();
+    let fields: Vec<String> = inner.into_iter().map(|p| p.as_str().to_string()).collect();
 
     Expr {
         kind: ExprKind::FieldAccess {

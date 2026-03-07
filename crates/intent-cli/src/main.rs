@@ -102,16 +102,11 @@ fn main() {
                 let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
                 for err in &errors {
                     let mut buf = String::new();
-                    let report = miette::Report::new(err.clone())
-                        .with_source_code(source.clone());
+                    let report = miette::Report::new(err.clone()).with_source_code(source.clone());
                     handler.render_report(&mut buf, report.as_ref()).ok();
                     eprint!("{buf}");
                 }
-                eprintln!(
-                    "{} error(s) in {}",
-                    errors.len(),
-                    file.display()
-                );
+                eprintln!("{} error(s) in {}", errors.len(), file.display());
                 process::exit(1);
             }
         }
@@ -144,8 +139,7 @@ fn main() {
                 let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
                 for err in &check_errors {
                     let mut buf = String::new();
-                    let report = miette::Report::new(err.clone())
-                        .with_source_code(source.clone());
+                    let report = miette::Report::new(err.clone()).with_source_code(source.clone());
                     handler.render_report(&mut buf, report.as_ref()).ok();
                     eprint!("{buf}");
                 }

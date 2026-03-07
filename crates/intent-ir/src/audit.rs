@@ -179,10 +179,7 @@ pub fn generate_audit(
 
     // Edge guards
     if !module.edge_guards.is_empty() {
-        let first_line = offset_to_line(
-            &line_index,
-            module.edge_guards[0].trace.span.start,
-        );
+        let first_line = offset_to_line(&line_index, module.edge_guards[0].trace.span.start);
         let mut parts = Vec::new();
         for (i, guard) in module.edge_guards.iter().enumerate() {
             parts.push(TracePart {
@@ -205,18 +202,13 @@ pub fn generate_audit(
         fields: module.structs.iter().map(|s| s.fields.len()).sum(),
         actions: module.functions.len(),
         params: module.functions.iter().map(|f| f.params.len()).sum(),
-        preconditions: module.functions
-            .iter()
-            .map(|f| f.preconditions.len())
-            .sum(),
-        postconditions: module.functions
+        preconditions: module.functions.iter().map(|f| f.preconditions.len()).sum(),
+        postconditions: module
+            .functions
             .iter()
             .map(|f| f.postconditions.len())
             .sum(),
-        properties: module.functions
-            .iter()
-            .map(|f| f.properties.len())
-            .sum(),
+        properties: module.functions.iter().map(|f| f.properties.len()).sum(),
         invariants: module.invariants.len(),
         edge_guards: module.edge_guards.len(),
     };
@@ -260,10 +252,7 @@ impl AuditReport {
             if entry.kind == SpecItemKind::EdgeCases {
                 out.push_str(&format!("  EdgeCases -> {ir_kind}\n"));
             } else {
-                out.push_str(&format!(
-                    "  {} {} -> {ir_kind}",
-                    entry.kind, entry.name,
-                ));
+                out.push_str(&format!("  {} {} -> {ir_kind}", entry.kind, entry.name,));
                 out.push_str(&format!("  [L{}]\n", entry.line));
             }
 
@@ -397,4 +386,3 @@ fn format_prop_value(v: &PropertyValue) -> String {
         PropertyValue::Ident(i) => i.clone(),
     }
 }
-

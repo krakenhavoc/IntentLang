@@ -1,5 +1,5 @@
-use crate::audit::{generate_audit, SpecItemKind};
-use crate::diff::{diff_reports, ChangeKind};
+use crate::audit::{SpecItemKind, generate_audit};
+use crate::diff::{ChangeKind, diff_reports};
 use crate::lower::lower_file;
 use crate::verify::{analyze_obligations, verify_module};
 
@@ -29,7 +29,11 @@ fn added_entity() {
     let new = audit("module M entity X { v: Int } entity Y { w: Bool }");
     let diff = diff_reports(&old, &new);
     assert_eq!(diff.summary.added, 1);
-    let added = diff.changes.iter().find(|c| c.change == ChangeKind::Added).unwrap();
+    let added = diff
+        .changes
+        .iter()
+        .find(|c| c.change == ChangeKind::Added)
+        .unwrap();
     assert_eq!(added.kind, SpecItemKind::Entity);
     assert_eq!(added.name, "Y");
 }
@@ -40,7 +44,11 @@ fn removed_entity() {
     let new = audit("module M entity X { v: Int }");
     let diff = diff_reports(&old, &new);
     assert_eq!(diff.summary.removed, 1);
-    let removed = diff.changes.iter().find(|c| c.change == ChangeKind::Removed).unwrap();
+    let removed = diff
+        .changes
+        .iter()
+        .find(|c| c.change == ChangeKind::Removed)
+        .unwrap();
     assert_eq!(removed.kind, SpecItemKind::Entity);
     assert_eq!(removed.name, "Y");
 }
@@ -90,7 +98,11 @@ fn added_action() {
     let new = audit("module M entity X { v: Int } action A { x: X requires { x.v > 0 } }");
     let diff = diff_reports(&old, &new);
     assert_eq!(diff.summary.added, 1);
-    let added = diff.changes.iter().find(|c| c.change == ChangeKind::Added).unwrap();
+    let added = diff
+        .changes
+        .iter()
+        .find(|c| c.change == ChangeKind::Added)
+        .unwrap();
     assert_eq!(added.kind, SpecItemKind::Action);
     assert_eq!(added.name, "A");
 }
@@ -101,7 +113,11 @@ fn added_invariant() {
     let new = audit("module M entity X { v: Int } invariant Pos { forall x: X => x.v >= 0 }");
     let diff = diff_reports(&old, &new);
     assert_eq!(diff.summary.added, 1);
-    let added = diff.changes.iter().find(|c| c.change == ChangeKind::Added).unwrap();
+    let added = diff
+        .changes
+        .iter()
+        .find(|c| c.change == ChangeKind::Added)
+        .unwrap();
     assert_eq!(added.kind, SpecItemKind::Invariant);
     assert_eq!(added.name, "Pos");
 }
@@ -156,8 +172,11 @@ fn verification_status_in_format() {
 
 #[test]
 fn obligations_delta() {
-    let old = audit("module M entity X { v: Int } action A { x: X ensures { x.v == old(x.v) + 1 } }");
-    let new = audit("module M entity X { v: Int } action A { x: X ensures { x.v == old(x.v) + 1 } } invariant Pos { forall x: X => x.v >= 0 }");
+    let old =
+        audit("module M entity X { v: Int } action A { x: X ensures { x.v == old(x.v) + 1 } }");
+    let new = audit(
+        "module M entity X { v: Int } action A { x: X ensures { x.v == old(x.v) + 1 } } invariant Pos { forall x: X => x.v >= 0 }",
+    );
     let diff = diff_reports(&old, &new);
     assert_eq!(diff.summary.old_obligations, 0);
     assert_eq!(diff.summary.new_obligations, 1);
