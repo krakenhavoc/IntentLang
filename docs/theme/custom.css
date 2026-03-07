@@ -1,0 +1,10 @@
+/* IntentLang docs custom styles */
+
+:root {
+    --sidebar-width: 280px;
+}
+
+/* Slightly tighter code blocks */
+pre {
+    padding: 0.75em 1em;
+}

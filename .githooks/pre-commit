@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
+# Ensure correct Rust toolchain is on PATH
+[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
+
 echo "==> Running cargo fmt --all -- --check"
 cargo fmt --all -- --check
 

@@ -1,0 +1,14 @@
+[book]
+title = "IntentLang"
+description = "A declarative specification language for human-AI collaboration"
+authors = ["krakenhavoc"]
+language = "en"
+src = "src"
+
+[build]
+build-dir = "../target/book"
+
+[output.html]
+git-repository-url = "https://github.com/krakenhavoc/IntentLang"
+edit-url-template = "https://github.com/krakenhavoc/IntentLang/edit/main/docs/{path}"
+additional-css = ["theme/custom.css"]
