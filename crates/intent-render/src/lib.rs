@@ -1,7 +1,19 @@
+pub mod format;
 pub mod html;
 pub mod markdown;
 
 use intent_parser::ast;
+
+/// Format a [`Literal`] as a human-readable string.
+pub fn format_literal(lit: &ast::Literal) -> String {
+    match lit {
+        ast::Literal::Null => "null".to_string(),
+        ast::Literal::Bool(b) => b.to_string(),
+        ast::Literal::Int(n) => n.to_string(),
+        ast::Literal::Decimal(s) => s.clone(),
+        ast::Literal::String(s) => format!("\"{}\"", s),
+    }
+}
 
 /// Format a [`TypeExpr`] as a human-readable string.
 pub fn format_type(ty: &ast::TypeExpr) -> String {
@@ -21,7 +33,7 @@ pub fn format_type(ty: &ast::TypeExpr) -> String {
         ast::TypeKind::Parameterized { name, params } => {
             let ps: Vec<String> = params
                 .iter()
-                .map(|p| format!("{}: {:?}", p.name, p.value))
+                .map(|p| format!("{}: {}", p.name, format_literal(&p.value)))
                 .collect();
             format!("{}({})", name, ps.join(", "))
         }

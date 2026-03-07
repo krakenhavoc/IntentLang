@@ -57,6 +57,17 @@ cargo run -p intent-cli -- lock examples/transfer.intent Transfer --agent agent-
 cargo run -p intent-cli -- status examples/transfer.intent
 cargo run -p intent-cli -- unlock examples/transfer.intent Transfer --agent agent-1
 
+# Format a spec file
+cargo run -p intent-cli -- fmt examples/transfer.intent
+cargo run -p intent-cli -- fmt examples/transfer.intent --write
+
+# Scaffold a new spec
+cargo run -p intent-cli -- init --name MyModule
+
+# Shell completions
+cargo run -p intent-cli -- completions bash > intent.bash
+cargo run -p intent-cli -- completions zsh > _intent
+
 # JSON output (for agent consumption)
 cargo run -p intent-cli -- --output json check examples/transfer.intent
 ```
@@ -69,9 +80,9 @@ intentlang/
   crates/
     intent-parser/           -- Grammar -> typed AST
     intent-check/            -- Semantic analysis & validation
-    intent-render/           -- AST -> Markdown/HTML
+    intent-render/           -- AST -> Markdown/HTML/formatted source
     intent-ir/               -- AST -> Agent IR (lowering, verification, audit, diff, incremental, lock)
-    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status
+    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status, fmt, init, completions
   examples/                  -- Example .intent files
   tests/valid/               -- Specs that must parse and pass checks
   tests/invalid/             -- Specs that must fail with known errors
@@ -148,11 +159,11 @@ edge_cases {
 
 Both parse and check errors use `miette` diagnostics with source spans, labels, and help text.
 
-**Renderer (intent-render)**: Converts AST to Markdown and self-contained HTML. Shared `format_type` helper in lib root.
+**Renderer (intent-render)**: Converts AST to Markdown, self-contained HTML, and canonical `.intent` source (formatter). Shared `format_type` and `format_literal` helpers in lib root.
 
 **IR (intent-ir)**: Lowers AST to a typed intermediate representation (structs, functions, invariants, edge guards). Every IR node carries a `SourceTrace { module, item, part, span }` for audit tracing. Modules: `lower` (AST→IR), `verify` (structural + coherence), `audit` (trace maps + coverage), `diff` (spec-level diffs), `incremental` (cached per-item verification), `lock` (multi-agent spec-item claiming).
 
-**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`. Global `--output json` flag for agent consumption.
+**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`. Global `--output json` flag for agent consumption.
 
 ## Key Dependencies
 
@@ -173,16 +184,16 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage (112 total)
+## Current Test Coverage (116 total)
 
 - 26 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files)
-- 14 parser tests (7 unit + 7 insta snapshot tests for all fixtures and examples)
-- 72 IR tests: 11 lowering + 11 verification + 6 coherence + 9 audit + 13 diff + 11 incremental + 11 lock
-- Fixtures: 4 valid, 9 invalid + 3 example files
+- 16 parser tests (9 unit + 7 insta snapshot tests for all fixtures and examples)
+- 74 IR tests: 13 lowering + 11 verification + 6 coherence + 9 audit + 13 diff + 11 incremental + 11 lock
+- Fixtures: 4 valid, 9 invalid + 6 example files
 
 ## Current Phase & Status
 
-All four phases complete. Current release: v0.4.0-alpha.1.
+All four phases complete. Phase 5 (language polish) in progress. Current release: v0.4.0-alpha.1.
 
 Phase 1 (complete): PEG grammar, typed AST with spans, six-pass semantic analysis, Markdown/HTML renderers. CLI: `check`, `render`, `render-html`.
 
@@ -191,3 +202,5 @@ Phase 2 (complete): AST → IR lowering, structural verification, coherence anal
 Phase 3 (complete): Audit trace maps, coverage summaries, spec-level diffs. CLI: `audit`, `coverage`, `diff`.
 
 Phase 4 (complete): Agent API (`--output json`, `query`), incremental verification (`verify --incremental`), multi-agent collaboration (`lock`, `unlock`, `status`).
+
+Phase 5 (in progress): Language polish — `fmt` (auto-formatter), `init` (scaffolding), `completions` (shell completions), list literal expressions, type parameter rendering fix.

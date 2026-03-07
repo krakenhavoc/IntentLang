@@ -2,7 +2,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
 
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
+use clap_complete::Shell;
 use miette::{GraphicalReportHandler, GraphicalTheme};
 use serde::Serialize;
 
@@ -101,6 +102,31 @@ enum Commands {
     Status {
         /// Path to the .intent file
         file: PathBuf,
+    },
+    /// Format an intent specification file
+    Fmt {
+        /// Path to the .intent file
+        file: PathBuf,
+        /// Write formatted output back to the file (default: print to stdout)
+        #[arg(long)]
+        write: bool,
+        /// Check if file is formatted (exit 1 if not)
+        #[arg(long)]
+        check: bool,
+    },
+    /// Generate shell completions
+    Completions {
+        /// Shell to generate completions for
+        shell: Shell,
+    },
+    /// Initialize a new .intent spec file
+    Init {
+        /// Module name (defaults to directory name)
+        #[arg(long)]
+        name: Option<String>,
+        /// Output file path (defaults to <name>.intent)
+        #[arg(short = 'o', long = "out")]
+        out: Option<PathBuf>,
     },
 }
 
@@ -585,6 +611,57 @@ fn main() {
                 print!("{}", intent_ir::format_status(&lockfile, &spec_items));
             }
         }
+        Commands::Fmt { file, write, check } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+            let formatted = intent_render::format::format(&ast);
+
+            if check {
+                if source != formatted {
+                    eprintln!("{} is not formatted", file.display());
+                    process::exit(1);
+                }
+            } else if write {
+                if source != formatted {
+                    if let Err(e) = fs::write(&file, &formatted) {
+                        eprintln!("error: could not write {}: {}", file.display(), e);
+                        process::exit(1);
+                    }
+                    println!("Formatted {}", file.display());
+                } else {
+                    println!("{} already formatted", file.display());
+                }
+            } else {
+                print!("{}", formatted);
+            }
+        }
+        Commands::Completions { shell } => {
+            clap_complete::generate(shell, &mut Cli::command(), "intent", &mut std::io::stdout());
+        }
+        Commands::Init { name, out } => {
+            let module_name = name.unwrap_or_else(|| {
+                std::env::current_dir()
+                    .ok()
+                    .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()))
+                    .unwrap_or_else(|| "MyModule".to_string())
+            });
+            // Capitalize first letter for module name convention
+            let module_name = capitalize(&module_name);
+            let file_path = out
+                .unwrap_or_else(|| PathBuf::from(format!("{}.intent", module_name.to_lowercase())));
+
+            if file_path.exists() {
+                eprintln!("error: {} already exists", file_path.display());
+                process::exit(1);
+            }
+
+            let content = generate_scaffold(&module_name);
+            if let Err(e) = fs::write(&file_path, &content) {
+                eprintln!("error: could not write {}: {}", file_path.display(), e);
+                process::exit(1);
+            }
+            println!("Created {} (module {})", file_path.display(), module_name);
+        }
     }
 }
 
@@ -661,4 +738,46 @@ fn chrono_now() -> String {
         .duration_since(SystemTime::UNIX_EPOCH)
         .unwrap_or_default();
     format!("{}Z", dur.as_secs())
+}
+
+// ── Init helpers ─────────────────────────────────────────
+
+fn capitalize(s: &str) -> String {
+    let mut chars = s.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
+    }
+}
+
+fn generate_scaffold(module_name: &str) -> String {
+    format!(
+        r#"module {module_name}
+
+--- TODO: Describe what this module specifies.
+
+entity Example {{
+  id: UUID
+  name: String
+  status: Active | Inactive
+}}
+
+action CreateExample {{
+  name: String
+
+  requires {{
+    name != ""
+  }}
+
+  ensures {{
+    exists e: Example => e.name == name
+  }}
+}}
+
+invariant UniqueNames {{
+  forall a: Example => forall b: Example =>
+    a.id != b.id => a.name != b.name
+}}
+"#
+    )
 }
