@@ -1,0 +1,1886 @@
+{
+  "name": "Catalog",
+  "structs": [
+    {
+      "name": "Category",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Category",
+            "part": "field:id",
+            "span": {
+              "start": 147,
+              "end": 158
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Category",
+            "part": "field:name",
+            "span": {
+              "start": 158,
+              "end": 173
+            }
+          }
+        },
+        {
+          "name": "parent",
+          "ty": {
+            "Optional": {
+              "Named": "Category"
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Category",
+            "part": "field:parent",
+            "span": {
+              "start": 173,
+              "end": 190
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Active",
+              "Hidden",
+              "Archived"
+            ]
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Category",
+            "part": "field:status",
+            "span": {
+              "start": 193,
+              "end": 228
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Catalog",
+        "item": "Category",
+        "part": "entity",
+        "span": {
+          "start": 127,
+          "end": 229
+        }
+      }
+    },
+    {
+      "name": "Product",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:id",
+            "span": {
+              "start": 250,
+              "end": 261
+            }
+          }
+        },
+        {
+          "name": "sku",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:sku",
+            "span": {
+              "start": 261,
+              "end": 275
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:name",
+            "span": {
+              "start": 275,
+              "end": 290
+            }
+          }
+        },
+        {
+          "name": "description",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:description",
+            "span": {
+              "start": 290,
+              "end": 312
+            }
+          }
+        },
+        {
+          "name": "category",
+          "ty": {
+            "Named": "Category"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:category",
+            "span": {
+              "start": 312,
+              "end": 333
+            }
+          }
+        },
+        {
+          "name": "base_price",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:base_price",
+            "span": {
+              "start": 333,
+              "end": 369
+            }
+          }
+        },
+        {
+          "name": "currency",
+          "ty": {
+            "Named": "CurrencyCode"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:currency",
+            "span": {
+              "start": 369,
+              "end": 394
+            }
+          }
+        },
+        {
+          "name": "weight_grams",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:weight_grams",
+            "span": {
+              "start": 394,
+              "end": 414
+            }
+          }
+        },
+        {
+          "name": "tags",
+          "ty": {
+            "Set": {
+              "Named": "String"
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:tags",
+            "span": {
+              "start": 414,
+              "end": 434
+            }
+          }
+        },
+        {
+          "name": "images",
+          "ty": {
+            "List": {
+              "Named": "URL"
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:images",
+            "span": {
+              "start": 434,
+              "end": 454
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Draft",
+              "Listed",
+              "OutOfStock",
+              "Discontinued"
+            ]
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:status",
+            "span": {
+              "start": 454,
+              "end": 507
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:created_at",
+            "span": {
+              "start": 507,
+              "end": 530
+            }
+          }
+        },
+        {
+          "name": "updated_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Product",
+            "part": "field:updated_at",
+            "span": {
+              "start": 530,
+              "end": 551
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Catalog",
+        "item": "Product",
+        "part": "entity",
+        "span": {
+          "start": 231,
+          "end": 552
+        }
+      }
+    },
+    {
+      "name": "PriceTier",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "PriceTier",
+            "part": "field:id",
+            "span": {
+              "start": 575,
+              "end": 586
+            }
+          }
+        },
+        {
+          "name": "product",
+          "ty": {
+            "Named": "Product"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "PriceTier",
+            "part": "field:product",
+            "span": {
+              "start": 586,
+              "end": 605
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "PriceTier",
+            "part": "field:name",
+            "span": {
+              "start": 605,
+              "end": 620
+            }
+          }
+        },
+        {
+          "name": "min_quantity",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "PriceTier",
+            "part": "field:min_quantity",
+            "span": {
+              "start": 620,
+              "end": 640
+            }
+          }
+        },
+        {
+          "name": "unit_price",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "PriceTier",
+            "part": "field:unit_price",
+            "span": {
+              "start": 640,
+              "end": 674
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Catalog",
+        "item": "PriceTier",
+        "part": "entity",
+        "span": {
+          "start": 554,
+          "end": 675
+        }
+      }
+    },
+    {
+      "name": "Review",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Review",
+            "part": "field:id",
+            "span": {
+              "start": 695,
+              "end": 706
+            }
+          }
+        },
+        {
+          "name": "product",
+          "ty": {
+            "Named": "Product"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Review",
+            "part": "field:product",
+            "span": {
+              "start": 706,
+              "end": 725
+            }
+          }
+        },
+        {
+          "name": "author_id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Review",
+            "part": "field:author_id",
+            "span": {
+              "start": 725,
+              "end": 743
+            }
+          }
+        },
+        {
+          "name": "rating",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Review",
+            "part": "field:rating",
+            "span": {
+              "start": 743,
+              "end": 757
+            }
+          }
+        },
+        {
+          "name": "comment",
+          "ty": {
+            "Optional": {
+              "Named": "String"
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Review",
+            "part": "field:comment",
+            "span": {
+              "start": 757,
+              "end": 773
+            }
+          }
+        },
+        {
+          "name": "verified_purchase",
+          "ty": {
+            "Named": "Bool"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Review",
+            "part": "field:verified_purchase",
+            "span": {
+              "start": 776,
+              "end": 802
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "Review",
+            "part": "field:created_at",
+            "span": {
+              "start": 802,
+              "end": 823
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Catalog",
+        "item": "Review",
+        "part": "entity",
+        "span": {
+          "start": 677,
+          "end": 824
+        }
+      }
+    }
+  ],
+  "functions": [
+    {
+      "name": "ListProduct",
+      "params": [
+        {
+          "name": "product",
+          "ty": {
+            "Named": "Product"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "ListProduct",
+            "part": "param:product",
+            "span": {
+              "start": 900,
+              "end": 920
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "product"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Draft"
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "ListProduct",
+            "part": "requires",
+            "span": {
+              "start": 935,
+              "end": 963
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "product"
+                  },
+                  "field": "name"
+                }
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "ListProduct",
+            "part": "requires",
+            "span": {
+              "start": 963,
+              "end": 986
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "product"
+                  },
+                  "field": "base_price"
+                }
+              },
+              "op": "Gt",
+              "right": {
+                "Literal": {
+                  "Int": 0
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "ListProduct",
+            "part": "requires",
+            "span": {
+              "start": 986,
+              "end": 1013
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "product"
+                      },
+                      "field": "category"
+                    }
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "ListProduct",
+            "part": "requires",
+            "span": {
+              "start": 1013,
+              "end": 1049
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "product"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Listed"
+                }
+              }
+            },
+            "trace": {
+              "module": "Catalog",
+              "item": "ListProduct",
+              "part": "ensures",
+              "span": {
+                "start": 1068,
+                "end": 1095
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "ListProduct",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1117,
+              "end": 1135
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Catalog",
+        "item": "ListProduct",
+        "part": "action",
+        "span": {
+          "start": 826,
+          "end": 1141
+        }
+      }
+    },
+    {
+      "name": "UpdatePrice",
+      "params": [
+        {
+          "name": "product",
+          "ty": {
+            "Named": "Product"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "UpdatePrice",
+            "part": "param:product",
+            "span": {
+              "start": 1215,
+              "end": 1234
+            }
+          }
+        },
+        {
+          "name": "new_price",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "UpdatePrice",
+            "part": "param:new_price",
+            "span": {
+              "start": 1234,
+              "end": 1270
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "product"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Listed"
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "UpdatePrice",
+            "part": "requires",
+            "span": {
+              "start": 1285,
+              "end": 1314
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "new_price"
+              },
+              "op": "Gt",
+              "right": {
+                "Literal": {
+                  "Int": 0
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "UpdatePrice",
+            "part": "requires",
+            "span": {
+              "start": 1314,
+              "end": 1330
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "product"
+                    },
+                    "field": "base_price"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "new_price"
+                }
+              }
+            },
+            "trace": {
+              "module": "Catalog",
+              "item": "UpdatePrice",
+              "part": "ensures",
+              "span": {
+                "start": 1349,
+                "end": 1383
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "UpdatePrice",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1405,
+              "end": 1423
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Catalog",
+        "item": "UpdatePrice",
+        "part": "action",
+        "span": {
+          "start": 1143,
+          "end": 1429
+        }
+      }
+    },
+    {
+      "name": "AddPriceTier",
+      "params": [
+        {
+          "name": "product",
+          "ty": {
+            "Named": "Product"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "AddPriceTier",
+            "part": "param:product",
+            "span": {
+              "start": 1502,
+              "end": 1521
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "AddPriceTier",
+            "part": "param:name",
+            "span": {
+              "start": 1521,
+              "end": 1536
+            }
+          }
+        },
+        {
+          "name": "min_quantity",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "AddPriceTier",
+            "part": "param:min_quantity",
+            "span": {
+              "start": 1536,
+              "end": 1556
+            }
+          }
+        },
+        {
+          "name": "unit_price",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "AddPriceTier",
+            "part": "param:unit_price",
+            "span": {
+              "start": 1556,
+              "end": 1593
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "product"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Listed"
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "AddPriceTier",
+            "part": "requires",
+            "span": {
+              "start": 1608,
+              "end": 1637
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "min_quantity"
+              },
+              "op": "Gt",
+              "right": {
+                "Literal": {
+                  "Int": 1
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "AddPriceTier",
+            "part": "requires",
+            "span": {
+              "start": 1637,
+              "end": 1658
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "unit_price"
+              },
+              "op": "Gt",
+              "right": {
+                "Literal": {
+                  "Int": 0
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "AddPriceTier",
+            "part": "requires",
+            "span": {
+              "start": 1658,
+              "end": 1677
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "unit_price"
+              },
+              "op": "Lt",
+              "right": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "product"
+                  },
+                  "field": "base_price"
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "AddPriceTier",
+            "part": "requires",
+            "span": {
+              "start": 1677,
+              "end": 1711
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "tier",
+                "ty": "PriceTier",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "tier"
+                                },
+                                "field": "product"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "product"
+                            }
+                          }
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "tier"
+                                },
+                                "field": "min_quantity"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "min_quantity"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "tier"
+                            },
+                            "field": "unit_price"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "unit_price"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "Catalog",
+              "item": "AddPriceTier",
+              "part": "ensures",
+              "span": {
+                "start": 1730,
+                "end": 1870
+              }
+            }
+          }
+        }
+      ],
+      "properties": [],
+      "trace": {
+        "module": "Catalog",
+        "item": "AddPriceTier",
+        "part": "action",
+        "span": {
+          "start": 1431,
+          "end": 1873
+        }
+      }
+    },
+    {
+      "name": "SubmitReview",
+      "params": [
+        {
+          "name": "product",
+          "ty": {
+            "Named": "Product"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "SubmitReview",
+            "part": "param:product",
+            "span": {
+              "start": 1945,
+              "end": 1964
+            }
+          }
+        },
+        {
+          "name": "author_id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "SubmitReview",
+            "part": "param:author_id",
+            "span": {
+              "start": 1964,
+              "end": 1982
+            }
+          }
+        },
+        {
+          "name": "rating",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "SubmitReview",
+            "part": "param:rating",
+            "span": {
+              "start": 1982,
+              "end": 1996
+            }
+          }
+        },
+        {
+          "name": "comment",
+          "ty": {
+            "Optional": {
+              "Named": "String"
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "SubmitReview",
+            "part": "param:comment",
+            "span": {
+              "start": 1996,
+              "end": 2012
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "product"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Listed"
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "SubmitReview",
+            "part": "requires",
+            "span": {
+              "start": 2031,
+              "end": 2060
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "rating"
+              },
+              "op": "Ge",
+              "right": {
+                "Literal": {
+                  "Int": 1
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "SubmitReview",
+            "part": "requires",
+            "span": {
+              "start": 2060,
+              "end": 2076
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "rating"
+              },
+              "op": "Le",
+              "right": {
+                "Literal": {
+                  "Int": 5
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "SubmitReview",
+            "part": "requires",
+            "span": {
+              "start": 2076,
+              "end": 2092
+            }
+          }
+        },
+        {
+          "expr": {
+            "Not": {
+              "Exists": {
+                "binding": "r",
+                "ty": "Review",
+                "body": {
+                  "And": [
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "r"
+                            },
+                            "field": "product"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "product"
+                        }
+                      }
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "r"
+                            },
+                            "field": "author_id"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "author_id"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "SubmitReview",
+            "part": "requires",
+            "span": {
+              "start": 2092,
+              "end": 2178
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "r",
+                "ty": "Review",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "r"
+                                },
+                                "field": "product"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "product"
+                            }
+                          }
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "r"
+                                },
+                                "field": "author_id"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "author_id"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "r"
+                            },
+                            "field": "rating"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "rating"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "Catalog",
+              "item": "SubmitReview",
+              "part": "ensures",
+              "span": {
+                "start": 2197,
+                "end": 2308
+              }
+            }
+          }
+        }
+      ],
+      "properties": [],
+      "trace": {
+        "module": "Catalog",
+        "item": "SubmitReview",
+        "part": "action",
+        "span": {
+          "start": 1875,
+          "end": 2311
+        }
+      }
+    },
+    {
+      "name": "DiscontinueProduct",
+      "params": [
+        {
+          "name": "product",
+          "ty": {
+            "Named": "Product"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "DiscontinueProduct",
+            "part": "param:product",
+            "span": {
+              "start": 2396,
+              "end": 2415
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "DiscontinueProduct",
+            "part": "param:reason",
+            "span": {
+              "start": 2415,
+              "end": 2433
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "product"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Ne",
+              "right": {
+                "Var": "Discontinued"
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "DiscontinueProduct",
+            "part": "requires",
+            "span": {
+              "start": 2448,
+              "end": 2483
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "reason"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "DiscontinueProduct",
+            "part": "requires",
+            "span": {
+              "start": 2483,
+              "end": 2498
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "product"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Discontinued"
+                }
+              }
+            },
+            "trace": {
+              "module": "Catalog",
+              "item": "DiscontinueProduct",
+              "part": "ensures",
+              "span": {
+                "start": 2517,
+                "end": 2550
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "DiscontinueProduct",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 2572,
+              "end": 2590
+            }
+          }
+        },
+        {
+          "key": "requires_role",
+          "value": {
+            "String": "catalog_manager"
+          },
+          "trace": {
+            "module": "Catalog",
+            "item": "DiscontinueProduct",
+            "part": "property:requires_role",
+            "span": {
+              "start": 2595,
+              "end": 2627
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Catalog",
+        "item": "DiscontinueProduct",
+        "part": "action",
+        "span": {
+          "start": 2313,
+          "end": 2633
+        }
+      }
+    }
+  ],
+  "invariants": [
+    {
+      "name": "PositivePricing",
+      "expr": {
+        "Forall": {
+          "binding": "p",
+          "ty": "Product",
+          "body": {
+            "Implies": [
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "p"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Listed"
+                  }
+                }
+              },
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "p"
+                      },
+                      "field": "base_price"
+                    }
+                  },
+                  "op": "Gt",
+                  "right": {
+                    "Literal": {
+                      "Int": 0
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "module": "Catalog",
+        "item": "PositivePricing",
+        "part": "invariant",
+        "span": {
+          "start": 2635,
+          "end": 2789
+        }
+      }
+    },
+    {
+      "name": "TierBelowBase",
+      "expr": {
+        "Forall": {
+          "binding": "tier",
+          "ty": "PriceTier",
+          "body": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "tier"
+                  },
+                  "field": "unit_price"
+                }
+              },
+              "op": "Lt",
+              "right": {
+                "FieldAccess": {
+                  "root": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "tier"
+                      },
+                      "field": "product"
+                    }
+                  },
+                  "field": "base_price"
+                }
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "Catalog",
+        "item": "TierBelowBase",
+        "part": "invariant",
+        "span": {
+          "start": 2791,
+          "end": 2961
+        }
+      }
+    },
+    {
+      "name": "OneReviewPerAuthor",
+      "expr": {
+        "Forall": {
+          "binding": "r1",
+          "ty": "Review",
+          "body": {
+            "Forall": {
+              "binding": "r2",
+              "ty": "Review",
+              "body": {
+                "Implies": [
+                  {
+                    "And": [
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "r1"
+                              },
+                              "field": "product"
+                            }
+                          },
+                          "op": "Eq",
+                          "right": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "r2"
+                              },
+                              "field": "product"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "r1"
+                              },
+                              "field": "author_id"
+                            }
+                          },
+                          "op": "Eq",
+                          "right": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "r2"
+                              },
+                              "field": "author_id"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "Var": "r1"
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "r2"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "Catalog",
+        "item": "OneReviewPerAuthor",
+        "part": "invariant",
+        "span": {
+          "start": 2963,
+          "end": 3184
+        }
+      }
+    },
+    {
+      "name": "ValidRatings",
+      "expr": {
+        "Forall": {
+          "binding": "r",
+          "ty": "Review",
+          "body": {
+            "And": [
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "r"
+                      },
+                      "field": "rating"
+                    }
+                  },
+                  "op": "Ge",
+                  "right": {
+                    "Literal": {
+                      "Int": 1
+                    }
+                  }
+                }
+              },
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "r"
+                      },
+                      "field": "rating"
+                    }
+                  },
+                  "op": "Le",
+                  "right": {
+                    "Literal": {
+                      "Int": 5
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "module": "Catalog",
+        "item": "ValidRatings",
+        "part": "invariant",
+        "span": {
+          "start": 3186,
+          "end": 3311
+        }
+      }
+    }
+  ],
+  "edge_guards": [
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "product"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Discontinued"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Product has been discontinued"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Catalog",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 3328,
+          "end": 3406
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "product"
+                  },
+                  "field": "category"
+                }
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Archived"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Category is archived — move product first"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Catalog",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 3409,
+          "end": 3506
+        }
+      }
+    }
+  ]
+}

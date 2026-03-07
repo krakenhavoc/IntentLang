@@ -1,0 +1,196 @@
+{
+  "name": "Hello",
+  "structs": [
+    {
+      "name": "Greeting",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Hello",
+            "item": "Greeting",
+            "part": "field:id",
+            "span": {
+              "start": 142,
+              "end": 153
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Hello",
+            "item": "Greeting",
+            "part": "field:name",
+            "span": {
+              "start": 153,
+              "end": 168
+            }
+          }
+        },
+        {
+          "name": "message",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Hello",
+            "item": "Greeting",
+            "part": "field:message",
+            "span": {
+              "start": 168,
+              "end": 184
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Hello",
+        "item": "Greeting",
+        "part": "entity",
+        "span": {
+          "start": 122,
+          "end": 185
+        }
+      }
+    }
+  ],
+  "functions": [
+    {
+      "name": "CreateGreeting",
+      "params": [
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Hello",
+            "item": "CreateGreeting",
+            "part": "param:name",
+            "span": {
+              "start": 253,
+              "end": 268
+            }
+          }
+        },
+        {
+          "name": "message",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Hello",
+            "item": "CreateGreeting",
+            "part": "param:message",
+            "span": {
+              "start": 268,
+              "end": 287
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "name"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Hello",
+            "item": "CreateGreeting",
+            "part": "requires",
+            "span": {
+              "start": 302,
+              "end": 315
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "g",
+                "ty": "Greeting",
+                "body": {
+                  "And": [
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "g"
+                            },
+                            "field": "name"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "name"
+                        }
+                      }
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "g"
+                            },
+                            "field": "message"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "message"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "Hello",
+              "item": "CreateGreeting",
+              "part": "ensures",
+              "span": {
+                "start": 334,
+                "end": 409
+              }
+            }
+          }
+        }
+      ],
+      "properties": [],
+      "trace": {
+        "module": "Hello",
+        "item": "CreateGreeting",
+        "part": "action",
+        "span": {
+          "start": 187,
+          "end": 412
+        }
+      }
+    }
+  ],
+  "invariants": [],
+  "edge_guards": []
+}

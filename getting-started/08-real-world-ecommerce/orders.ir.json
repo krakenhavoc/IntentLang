@@ -1,0 +1,2329 @@
+{
+  "name": "Orders",
+  "structs": [
+    {
+      "name": "Customer",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Customer",
+            "part": "field:id",
+            "span": {
+              "start": 135,
+              "end": 146
+            }
+          }
+        },
+        {
+          "name": "email",
+          "ty": {
+            "Named": "Email"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Customer",
+            "part": "field:email",
+            "span": {
+              "start": 146,
+              "end": 161
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Customer",
+            "part": "field:name",
+            "span": {
+              "start": 161,
+              "end": 176
+            }
+          }
+        },
+        {
+          "name": "shipping_address",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Customer",
+            "part": "field:shipping_address",
+            "span": {
+              "start": 176,
+              "end": 203
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Active",
+              "Suspended"
+            ]
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Customer",
+            "part": "field:status",
+            "span": {
+              "start": 203,
+              "end": 230
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "Customer",
+        "part": "entity",
+        "span": {
+          "start": 115,
+          "end": 231
+        }
+      }
+    },
+    {
+      "name": "CartItem",
+      "fields": [
+        {
+          "name": "product_id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "CartItem",
+            "part": "field:product_id",
+            "span": {
+              "start": 253,
+              "end": 272
+            }
+          }
+        },
+        {
+          "name": "product_name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "CartItem",
+            "part": "field:product_name",
+            "span": {
+              "start": 272,
+              "end": 295
+            }
+          }
+        },
+        {
+          "name": "quantity",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "CartItem",
+            "part": "field:quantity",
+            "span": {
+              "start": 295,
+              "end": 311
+            }
+          }
+        },
+        {
+          "name": "unit_price",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "CartItem",
+            "part": "field:unit_price",
+            "span": {
+              "start": 311,
+              "end": 345
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "CartItem",
+        "part": "entity",
+        "span": {
+          "start": 233,
+          "end": 346
+        }
+      }
+    },
+    {
+      "name": "Cart",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Cart",
+            "part": "field:id",
+            "span": {
+              "start": 364,
+              "end": 375
+            }
+          }
+        },
+        {
+          "name": "customer",
+          "ty": {
+            "Named": "Customer"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Cart",
+            "part": "field:customer",
+            "span": {
+              "start": 375,
+              "end": 396
+            }
+          }
+        },
+        {
+          "name": "items",
+          "ty": {
+            "List": {
+              "Named": "CartItem"
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Cart",
+            "part": "field:items",
+            "span": {
+              "start": 396,
+              "end": 420
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Open",
+              "CheckedOut",
+              "Abandoned"
+            ]
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Cart",
+            "part": "field:status",
+            "span": {
+              "start": 420,
+              "end": 458
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "Cart",
+        "part": "entity",
+        "span": {
+          "start": 348,
+          "end": 459
+        }
+      }
+    },
+    {
+      "name": "OrderLine",
+      "fields": [
+        {
+          "name": "product_id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "OrderLine",
+            "part": "field:product_id",
+            "span": {
+              "start": 482,
+              "end": 501
+            }
+          }
+        },
+        {
+          "name": "product_name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "OrderLine",
+            "part": "field:product_name",
+            "span": {
+              "start": 501,
+              "end": 524
+            }
+          }
+        },
+        {
+          "name": "quantity",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "OrderLine",
+            "part": "field:quantity",
+            "span": {
+              "start": 524,
+              "end": 540
+            }
+          }
+        },
+        {
+          "name": "unit_price",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "OrderLine",
+            "part": "field:unit_price",
+            "span": {
+              "start": 540,
+              "end": 576
+            }
+          }
+        },
+        {
+          "name": "line_total",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "OrderLine",
+            "part": "field:line_total",
+            "span": {
+              "start": 576,
+              "end": 610
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "OrderLine",
+        "part": "entity",
+        "span": {
+          "start": 461,
+          "end": 611
+        }
+      }
+    },
+    {
+      "name": "Order",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Order",
+            "part": "field:id",
+            "span": {
+              "start": 630,
+              "end": 641
+            }
+          }
+        },
+        {
+          "name": "customer",
+          "ty": {
+            "Named": "Customer"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Order",
+            "part": "field:customer",
+            "span": {
+              "start": 641,
+              "end": 662
+            }
+          }
+        },
+        {
+          "name": "lines",
+          "ty": {
+            "List": {
+              "Named": "OrderLine"
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Order",
+            "part": "field:lines",
+            "span": {
+              "start": 662,
+              "end": 687
+            }
+          }
+        },
+        {
+          "name": "subtotal",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Order",
+            "part": "field:subtotal",
+            "span": {
+              "start": 687,
+              "end": 721
+            }
+          }
+        },
+        {
+          "name": "tax",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Order",
+            "part": "field:tax",
+            "span": {
+              "start": 721,
+              "end": 750
+            }
+          }
+        },
+        {
+          "name": "total",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Order",
+            "part": "field:total",
+            "span": {
+              "start": 750,
+              "end": 781
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Pending",
+              "Confirmed",
+              "Shipped",
+              "Delivered",
+              "Cancelled",
+              "Returned"
+            ]
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Order",
+            "part": "field:status",
+            "span": {
+              "start": 781,
+              "end": 856
+            }
+          }
+        },
+        {
+          "name": "shipping_address",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Order",
+            "part": "field:shipping_address",
+            "span": {
+              "start": 856,
+              "end": 883
+            }
+          }
+        },
+        {
+          "name": "tracking_number",
+          "ty": {
+            "Optional": {
+              "Named": "String"
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Order",
+            "part": "field:tracking_number",
+            "span": {
+              "start": 883,
+              "end": 907
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Order",
+            "part": "field:created_at",
+            "span": {
+              "start": 910,
+              "end": 933
+            }
+          }
+        },
+        {
+          "name": "shipped_at",
+          "ty": {
+            "Optional": {
+              "Named": "DateTime"
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Order",
+            "part": "field:shipped_at",
+            "span": {
+              "start": 933,
+              "end": 954
+            }
+          }
+        },
+        {
+          "name": "delivered_at",
+          "ty": {
+            "Optional": {
+              "Named": "DateTime"
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Order",
+            "part": "field:delivered_at",
+            "span": {
+              "start": 957,
+              "end": 980
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "Order",
+        "part": "entity",
+        "span": {
+          "start": 613,
+          "end": 982
+        }
+      }
+    },
+    {
+      "name": "ReturnRequest",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ReturnRequest",
+            "part": "field:id",
+            "span": {
+              "start": 1009,
+              "end": 1020
+            }
+          }
+        },
+        {
+          "name": "order",
+          "ty": {
+            "Named": "Order"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ReturnRequest",
+            "part": "field:order",
+            "span": {
+              "start": 1020,
+              "end": 1035
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ReturnRequest",
+            "part": "field:reason",
+            "span": {
+              "start": 1035,
+              "end": 1052
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Requested",
+              "Approved",
+              "Rejected",
+              "Completed"
+            ]
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ReturnRequest",
+            "part": "field:status",
+            "span": {
+              "start": 1052,
+              "end": 1106
+            }
+          }
+        },
+        {
+          "name": "refund_amount",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ReturnRequest",
+            "part": "field:refund_amount",
+            "span": {
+              "start": 1106,
+              "end": 1145
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ReturnRequest",
+            "part": "field:created_at",
+            "span": {
+              "start": 1145,
+              "end": 1166
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "ReturnRequest",
+        "part": "entity",
+        "span": {
+          "start": 984,
+          "end": 1167
+        }
+      }
+    }
+  ],
+  "functions": [
+    {
+      "name": "Checkout",
+      "params": [
+        {
+          "name": "cart",
+          "ty": {
+            "Named": "Cart"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Checkout",
+            "part": "param:cart",
+            "span": {
+              "start": 1232,
+              "end": 1245
+            }
+          }
+        },
+        {
+          "name": "shipping_address",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Checkout",
+            "part": "param:shipping_address",
+            "span": {
+              "start": 1245,
+              "end": 1273
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "cart"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Open"
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Checkout",
+            "part": "requires",
+            "span": {
+              "start": 1288,
+              "end": 1312
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "cart"
+                      },
+                      "field": "customer"
+                    }
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Checkout",
+            "part": "requires",
+            "span": {
+              "start": 1312,
+              "end": 1347
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "shipping_address"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Checkout",
+            "part": "requires",
+            "span": {
+              "start": 1347,
+              "end": 1372
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "cart"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "CheckedOut"
+                }
+              }
+            },
+            "trace": {
+              "module": "Orders",
+              "item": "Checkout",
+              "part": "ensures",
+              "span": {
+                "start": 1391,
+                "end": 1421
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "o",
+                "ty": "Order",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "And": [
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "o"
+                                    },
+                                    "field": "customer"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "cart"
+                                    },
+                                    "field": "customer"
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "o"
+                                    },
+                                    "field": "status"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "Pending"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "o"
+                                },
+                                "field": "shipping_address"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "shipping_address"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "o"
+                            },
+                            "field": "total"
+                          }
+                        },
+                        "op": "Gt",
+                        "right": {
+                          "Literal": {
+                            "Int": 0
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "Orders",
+              "item": "Checkout",
+              "part": "ensures",
+              "span": {
+                "start": 1421,
+                "end": 1574
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "atomic",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Checkout",
+            "part": "property:atomic",
+            "span": {
+              "start": 1596,
+              "end": 1608
+            }
+          }
+        },
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "Checkout",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1613,
+              "end": 1631
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "Checkout",
+        "part": "action",
+        "span": {
+          "start": 1169,
+          "end": 1637
+        }
+      }
+    },
+    {
+      "name": "ConfirmOrder",
+      "params": [
+        {
+          "name": "order",
+          "ty": {
+            "Named": "Order"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ConfirmOrder",
+            "part": "param:order",
+            "span": {
+              "start": 1721,
+              "end": 1737
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "order"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Pending"
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ConfirmOrder",
+            "part": "requires",
+            "span": {
+              "start": 1752,
+              "end": 1778
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "order"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Confirmed"
+                }
+              }
+            },
+            "trace": {
+              "module": "Orders",
+              "item": "ConfirmOrder",
+              "part": "ensures",
+              "span": {
+                "start": 1797,
+                "end": 1825
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ConfirmOrder",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1847,
+              "end": 1865
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "ConfirmOrder",
+        "part": "action",
+        "span": {
+          "start": 1639,
+          "end": 1871
+        }
+      }
+    },
+    {
+      "name": "ShipOrder",
+      "params": [
+        {
+          "name": "order",
+          "ty": {
+            "Named": "Order"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ShipOrder",
+            "part": "param:order",
+            "span": {
+              "start": 1949,
+              "end": 1964
+            }
+          }
+        },
+        {
+          "name": "tracking_number",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ShipOrder",
+            "part": "param:tracking_number",
+            "span": {
+              "start": 1964,
+              "end": 1991
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "order"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Confirmed"
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ShipOrder",
+            "part": "requires",
+            "span": {
+              "start": 2006,
+              "end": 2036
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "tracking_number"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ShipOrder",
+            "part": "requires",
+            "span": {
+              "start": 2036,
+              "end": 2060
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "order"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Shipped"
+                }
+              }
+            },
+            "trace": {
+              "module": "Orders",
+              "item": "ShipOrder",
+              "part": "ensures",
+              "span": {
+                "start": 2079,
+                "end": 2107
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "order"
+                    },
+                    "field": "tracking_number"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "tracking_number"
+                }
+              }
+            },
+            "trace": {
+              "module": "Orders",
+              "item": "ShipOrder",
+              "part": "ensures",
+              "span": {
+                "start": 2107,
+                "end": 2150
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ShipOrder",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 2172,
+              "end": 2190
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "ShipOrder",
+        "part": "action",
+        "span": {
+          "start": 1873,
+          "end": 2196
+        }
+      }
+    },
+    {
+      "name": "DeliverOrder",
+      "params": [
+        {
+          "name": "order",
+          "ty": {
+            "Named": "Order"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "DeliverOrder",
+            "part": "param:order",
+            "span": {
+              "start": 2256,
+              "end": 2272
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "order"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Shipped"
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "DeliverOrder",
+            "part": "requires",
+            "span": {
+              "start": 2287,
+              "end": 2313
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "order"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Delivered"
+                }
+              }
+            },
+            "trace": {
+              "module": "Orders",
+              "item": "DeliverOrder",
+              "part": "ensures",
+              "span": {
+                "start": 2332,
+                "end": 2360
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "DeliverOrder",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 2382,
+              "end": 2400
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "DeliverOrder",
+        "part": "action",
+        "span": {
+          "start": 2198,
+          "end": 2406
+        }
+      }
+    },
+    {
+      "name": "CancelOrder",
+      "params": [
+        {
+          "name": "order",
+          "ty": {
+            "Named": "Order"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "CancelOrder",
+            "part": "param:order",
+            "span": {
+              "start": 2478,
+              "end": 2493
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "CancelOrder",
+            "part": "param:reason",
+            "span": {
+              "start": 2493,
+              "end": 2511
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Or": [
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "order"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Pending"
+                  }
+                }
+              },
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "order"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Confirmed"
+                  }
+                }
+              }
+            ]
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "CancelOrder",
+            "part": "requires",
+            "span": {
+              "start": 2526,
+              "end": 2583
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "reason"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "CancelOrder",
+            "part": "requires",
+            "span": {
+              "start": 2583,
+              "end": 2598
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "order"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Cancelled"
+                }
+              }
+            },
+            "trace": {
+              "module": "Orders",
+              "item": "CancelOrder",
+              "part": "ensures",
+              "span": {
+                "start": 2617,
+                "end": 2645
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "CancelOrder",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 2667,
+              "end": 2685
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "CancelOrder",
+        "part": "action",
+        "span": {
+          "start": 2408,
+          "end": 2691
+        }
+      }
+    },
+    {
+      "name": "RequestReturn",
+      "params": [
+        {
+          "name": "order",
+          "ty": {
+            "Named": "Order"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "RequestReturn",
+            "part": "param:order",
+            "span": {
+              "start": 2774,
+              "end": 2789
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "RequestReturn",
+            "part": "param:reason",
+            "span": {
+              "start": 2789,
+              "end": 2807
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "order"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Delivered"
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "RequestReturn",
+            "part": "requires",
+            "span": {
+              "start": 2822,
+              "end": 2852
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "reason"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "RequestReturn",
+            "part": "requires",
+            "span": {
+              "start": 2852,
+              "end": 2869
+            }
+          }
+        },
+        {
+          "expr": {
+            "Not": {
+              "Exists": {
+                "binding": "rr",
+                "ty": "ReturnRequest",
+                "body": {
+                  "And": [
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "rr"
+                            },
+                            "field": "order"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "order"
+                        }
+                      }
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "rr"
+                            },
+                            "field": "status"
+                          }
+                        },
+                        "op": "Ne",
+                        "right": {
+                          "Var": "Rejected"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "RequestReturn",
+            "part": "requires",
+            "span": {
+              "start": 2869,
+              "end": 2957
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "rr",
+                "ty": "ReturnRequest",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "rr"
+                                },
+                                "field": "order"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "order"
+                            }
+                          }
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "rr"
+                                },
+                                "field": "reason"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "reason"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "rr"
+                            },
+                            "field": "status"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "Requested"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "Orders",
+              "item": "RequestReturn",
+              "part": "ensures",
+              "span": {
+                "start": 2976,
+                "end": 3091
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "RequestReturn",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 3113,
+              "end": 3131
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "RequestReturn",
+        "part": "action",
+        "span": {
+          "start": 2693,
+          "end": 3137
+        }
+      }
+    },
+    {
+      "name": "ApproveReturn",
+      "params": [
+        {
+          "name": "return_request",
+          "ty": {
+            "Named": "ReturnRequest"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ApproveReturn",
+            "part": "param:return_request",
+            "span": {
+              "start": 3222,
+              "end": 3254
+            }
+          }
+        },
+        {
+          "name": "refund_amount",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ApproveReturn",
+            "part": "param:refund_amount",
+            "span": {
+              "start": 3254,
+              "end": 3294
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "return_request"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Requested"
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ApproveReturn",
+            "part": "requires",
+            "span": {
+              "start": 3309,
+              "end": 3348
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "refund_amount"
+              },
+              "op": "Gt",
+              "right": {
+                "Literal": {
+                  "Int": 0
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ApproveReturn",
+            "part": "requires",
+            "span": {
+              "start": 3348,
+              "end": 3370
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "refund_amount"
+              },
+              "op": "Le",
+              "right": {
+                "FieldAccess": {
+                  "root": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "return_request"
+                      },
+                      "field": "order"
+                    }
+                  },
+                  "field": "total"
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ApproveReturn",
+            "part": "requires",
+            "span": {
+              "start": 3370,
+              "end": 3416
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "return_request"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Approved"
+                }
+              }
+            },
+            "trace": {
+              "module": "Orders",
+              "item": "ApproveReturn",
+              "part": "ensures",
+              "span": {
+                "start": 3435,
+                "end": 3473
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "return_request"
+                    },
+                    "field": "refund_amount"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "refund_amount"
+                }
+              }
+            },
+            "trace": {
+              "module": "Orders",
+              "item": "ApproveReturn",
+              "part": "ensures",
+              "span": {
+                "start": 3473,
+                "end": 3521
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ApproveReturn",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 3543,
+              "end": 3561
+            }
+          }
+        },
+        {
+          "key": "requires_role",
+          "value": {
+            "String": "customer_service"
+          },
+          "trace": {
+            "module": "Orders",
+            "item": "ApproveReturn",
+            "part": "property:requires_role",
+            "span": {
+              "start": 3566,
+              "end": 3599
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "ApproveReturn",
+        "part": "action",
+        "span": {
+          "start": 3139,
+          "end": 3605
+        }
+      }
+    }
+  ],
+  "invariants": [
+    {
+      "name": "OrderTotalPositive",
+      "expr": {
+        "Forall": {
+          "binding": "o",
+          "ty": "Order",
+          "body": {
+            "Implies": [
+              {
+                "Or": [
+                  {
+                    "Or": [
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "o"
+                              },
+                              "field": "status"
+                            }
+                          },
+                          "op": "Eq",
+                          "right": {
+                            "Var": "Confirmed"
+                          }
+                        }
+                      },
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "o"
+                              },
+                              "field": "status"
+                            }
+                          },
+                          "op": "Eq",
+                          "right": {
+                            "Var": "Shipped"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "o"
+                          },
+                          "field": "status"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "Delivered"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "o"
+                      },
+                      "field": "total"
+                    }
+                  },
+                  "op": "Gt",
+                  "right": {
+                    "Literal": {
+                      "Int": 0
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "module": "Orders",
+        "item": "OrderTotalPositive",
+        "part": "invariant",
+        "span": {
+          "start": 3607,
+          "end": 3814
+        }
+      }
+    },
+    {
+      "name": "RefundNotExceedTotal",
+      "expr": {
+        "Forall": {
+          "binding": "rr",
+          "ty": "ReturnRequest",
+          "body": {
+            "Implies": [
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "rr"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Approved"
+                  }
+                }
+              },
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "rr"
+                      },
+                      "field": "refund_amount"
+                    }
+                  },
+                  "op": "Le",
+                  "right": {
+                    "FieldAccess": {
+                      "root": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "rr"
+                          },
+                          "field": "order"
+                        }
+                      },
+                      "field": "total"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "module": "Orders",
+        "item": "RefundNotExceedTotal",
+        "part": "invariant",
+        "span": {
+          "start": 3816,
+          "end": 4003
+        }
+      }
+    },
+    {
+      "name": "NoShippedCancellations",
+      "expr": {
+        "Forall": {
+          "binding": "o",
+          "ty": "Order",
+          "body": {
+            "Implies": [
+              {
+                "Or": [
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "o"
+                          },
+                          "field": "status"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "Shipped"
+                      }
+                    }
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "o"
+                          },
+                          "field": "status"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "Delivered"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "o"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Ne",
+                  "right": {
+                    "Var": "Cancelled"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "module": "Orders",
+        "item": "NoShippedCancellations",
+        "part": "invariant",
+        "span": {
+          "start": 4005,
+          "end": 4203
+        }
+      }
+    }
+  ],
+  "edge_guards": [
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "cart"
+                  },
+                  "field": "customer"
+                }
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Suspended"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Suspended customers cannot checkout"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 4220,
+          "end": 4307
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "order"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Cancelled"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Order has been cancelled"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 4310,
+          "end": 4378
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "order"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Returned"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Order has already been returned"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Orders",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 4381,
+          "end": 4455
+        }
+      }
+    }
+  ]
+}

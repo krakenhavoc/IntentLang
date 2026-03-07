@@ -8,11 +8,14 @@ The toolchain proves the implementation satisfies the contract.
 
 ## Why IntentLang?
 
-As AI agents write more code, the bottleneck shifts from *writing* to *verifying*. IntentLang addresses this with three layers:
+As AI agents write more code, the bottleneck shifts from *writing* to *verifying*. IntentLang addresses this with four layers:
 
-1. **Intent Layer** — Humans write declarative specs: entities, actions, pre/postconditions, invariants. Readable by anyone on the team, formally parseable by machines.
+0. **Natural Language** — Describe what you want in plain English. An AI agent generates a formal spec from your description. The lowest-barrier entry point.
+1. **Intent Layer** — Write or refine declarative specs directly: entities, actions, pre/postconditions, invariants. Readable by anyone on the team, formally parseable by machines.
 2. **Agent IR** — Agents generate a dense, typed intermediate representation from specs. Optimized for machine generation, not human authoring.
 3. **Audit Bridge** — Tooling maps every IR construct back to a spec requirement. Orphan code (implementation without spec justification) is a first-class error.
+
+Layers 0 and 1 are both human-facing — the system meets you where you are.
 
 ## Quick Example
 

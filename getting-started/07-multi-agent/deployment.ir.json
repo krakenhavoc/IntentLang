@@ -1,0 +1,1834 @@
+{
+  "name": "Deployment",
+  "structs": [
+    {
+      "name": "Service",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Service",
+            "part": "field:id",
+            "span": {
+              "start": 241,
+              "end": 252
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Service",
+            "part": "field:name",
+            "span": {
+              "start": 252,
+              "end": 267
+            }
+          }
+        },
+        {
+          "name": "version",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Service",
+            "part": "field:version",
+            "span": {
+              "start": 267,
+              "end": 285
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Healthy",
+              "Degraded",
+              "Down"
+            ]
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Service",
+            "part": "field:status",
+            "span": {
+              "start": 285,
+              "end": 321
+            }
+          }
+        },
+        {
+          "name": "replicas",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Service",
+            "part": "field:replicas",
+            "span": {
+              "start": 321,
+              "end": 337
+            }
+          }
+        },
+        {
+          "name": "min_replicas",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Service",
+            "part": "field:min_replicas",
+            "span": {
+              "start": 337,
+              "end": 355
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Deployment",
+        "item": "Service",
+        "part": "entity",
+        "span": {
+          "start": 222,
+          "end": 356
+        }
+      }
+    },
+    {
+      "name": "Environment",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Environment",
+            "part": "field:id",
+            "span": {
+              "start": 381,
+              "end": 392
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Environment",
+            "part": "field:name",
+            "span": {
+              "start": 392,
+              "end": 407
+            }
+          }
+        },
+        {
+          "name": "tier",
+          "ty": {
+            "Union": [
+              "Development",
+              "Staging",
+              "Production"
+            ]
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Environment",
+            "part": "field:tier",
+            "span": {
+              "start": 407,
+              "end": 450
+            }
+          }
+        },
+        {
+          "name": "services",
+          "ty": {
+            "List": {
+              "Named": "Service"
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Environment",
+            "part": "field:services",
+            "span": {
+              "start": 450,
+              "end": 476
+            }
+          }
+        },
+        {
+          "name": "locked",
+          "ty": {
+            "Named": "Bool"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Environment",
+            "part": "field:locked",
+            "span": {
+              "start": 476,
+              "end": 489
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Deployment",
+        "item": "Environment",
+        "part": "entity",
+        "span": {
+          "start": 358,
+          "end": 490
+        }
+      }
+    },
+    {
+      "name": "Release",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Release",
+            "part": "field:id",
+            "span": {
+              "start": 511,
+              "end": 522
+            }
+          }
+        },
+        {
+          "name": "service",
+          "ty": {
+            "Named": "Service"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Release",
+            "part": "field:service",
+            "span": {
+              "start": 522,
+              "end": 541
+            }
+          }
+        },
+        {
+          "name": "version",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Release",
+            "part": "field:version",
+            "span": {
+              "start": 541,
+              "end": 559
+            }
+          }
+        },
+        {
+          "name": "target_env",
+          "ty": {
+            "Named": "Environment"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Release",
+            "part": "field:target_env",
+            "span": {
+              "start": 559,
+              "end": 585
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Pending",
+              "Deploying",
+              "Deployed",
+              "RolledBack",
+              "Failed"
+            ]
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Release",
+            "part": "field:status",
+            "span": {
+              "start": 585,
+              "end": 648
+            }
+          }
+        },
+        {
+          "name": "approved_by",
+          "ty": {
+            "Optional": {
+              "Named": "String"
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Release",
+            "part": "field:approved_by",
+            "span": {
+              "start": 648,
+              "end": 668
+            }
+          }
+        },
+        {
+          "name": "deployed_at",
+          "ty": {
+            "Optional": {
+              "Named": "DateTime"
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Release",
+            "part": "field:deployed_at",
+            "span": {
+              "start": 671,
+              "end": 693
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Deployment",
+        "item": "Release",
+        "part": "entity",
+        "span": {
+          "start": 492,
+          "end": 695
+        }
+      }
+    },
+    {
+      "name": "HealthCheck",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "HealthCheck",
+            "part": "field:id",
+            "span": {
+              "start": 720,
+              "end": 731
+            }
+          }
+        },
+        {
+          "name": "service",
+          "ty": {
+            "Named": "Service"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "HealthCheck",
+            "part": "field:service",
+            "span": {
+              "start": 731,
+              "end": 750
+            }
+          }
+        },
+        {
+          "name": "endpoint",
+          "ty": {
+            "Named": "URL"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "HealthCheck",
+            "part": "field:endpoint",
+            "span": {
+              "start": 750,
+              "end": 766
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Passing",
+              "Failing"
+            ]
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "HealthCheck",
+            "part": "field:status",
+            "span": {
+              "start": 766,
+              "end": 794
+            }
+          }
+        },
+        {
+          "name": "last_checked",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "HealthCheck",
+            "part": "field:last_checked",
+            "span": {
+              "start": 794,
+              "end": 817
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Deployment",
+        "item": "HealthCheck",
+        "part": "entity",
+        "span": {
+          "start": 697,
+          "end": 818
+        }
+      }
+    }
+  ],
+  "functions": [
+    {
+      "name": "CreateRelease",
+      "params": [
+        {
+          "name": "service",
+          "ty": {
+            "Named": "Service"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "CreateRelease",
+            "part": "param:service",
+            "span": {
+              "start": 889,
+              "end": 908
+            }
+          }
+        },
+        {
+          "name": "version",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "CreateRelease",
+            "part": "param:version",
+            "span": {
+              "start": 908,
+              "end": 926
+            }
+          }
+        },
+        {
+          "name": "target_env",
+          "ty": {
+            "Named": "Environment"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "CreateRelease",
+            "part": "param:target_env",
+            "span": {
+              "start": 926,
+              "end": 953
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "target_env"
+                  },
+                  "field": "locked"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Literal": {
+                  "Bool": false
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "CreateRelease",
+            "part": "requires",
+            "span": {
+              "start": 968,
+              "end": 999
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "version"
+              },
+              "op": "Ne",
+              "right": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "service"
+                  },
+                  "field": "version"
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "CreateRelease",
+            "part": "requires",
+            "span": {
+              "start": 999,
+              "end": 1028
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "r",
+                "ty": "Release",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "And": [
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "r"
+                                    },
+                                    "field": "service"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "service"
+                                }
+                              }
+                            },
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "r"
+                                    },
+                                    "field": "version"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "version"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "r"
+                                },
+                                "field": "target_env"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "target_env"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "r"
+                            },
+                            "field": "status"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "Pending"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "Deployment",
+              "item": "CreateRelease",
+              "part": "ensures",
+              "span": {
+                "start": 1047,
+                "end": 1192
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "CreateRelease",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1214,
+              "end": 1232
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Deployment",
+        "item": "CreateRelease",
+        "part": "action",
+        "span": {
+          "start": 820,
+          "end": 1238
+        }
+      }
+    },
+    {
+      "name": "ApproveRelease",
+      "params": [
+        {
+          "name": "release",
+          "ty": {
+            "Named": "Release"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "ApproveRelease",
+            "part": "param:release",
+            "span": {
+              "start": 1320,
+              "end": 1339
+            }
+          }
+        },
+        {
+          "name": "approver",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "ApproveRelease",
+            "part": "param:approver",
+            "span": {
+              "start": 1339,
+              "end": 1359
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "release"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Pending"
+              }
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "ApproveRelease",
+            "part": "requires",
+            "span": {
+              "start": 1374,
+              "end": 1404
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "release"
+                      },
+                      "field": "target_env"
+                    }
+                  },
+                  "field": "tier"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Production"
+              }
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "ApproveRelease",
+            "part": "requires",
+            "span": {
+              "start": 1404,
+              "end": 1446
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "approver"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "ApproveRelease",
+            "part": "requires",
+            "span": {
+              "start": 1446,
+              "end": 1463
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "release"
+                    },
+                    "field": "approved_by"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "approver"
+                }
+              }
+            },
+            "trace": {
+              "module": "Deployment",
+              "item": "ApproveRelease",
+              "part": "ensures",
+              "span": {
+                "start": 1482,
+                "end": 1516
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "ApproveRelease",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1538,
+              "end": 1556
+            }
+          }
+        },
+        {
+          "key": "requires_role",
+          "value": {
+            "String": "release_manager"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "ApproveRelease",
+            "part": "property:requires_role",
+            "span": {
+              "start": 1561,
+              "end": 1593
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Deployment",
+        "item": "ApproveRelease",
+        "part": "action",
+        "span": {
+          "start": 1240,
+          "end": 1599
+        }
+      }
+    },
+    {
+      "name": "Deploy",
+      "params": [
+        {
+          "name": "release",
+          "ty": {
+            "Named": "Release"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Deploy",
+            "part": "param:release",
+            "span": {
+              "start": 1673,
+              "end": 1693
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "release"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Pending"
+              }
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Deploy",
+            "part": "requires",
+            "span": {
+              "start": 1708,
+              "end": 1738
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "release"
+                      },
+                      "field": "target_env"
+                    }
+                  },
+                  "field": "locked"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Literal": {
+                  "Bool": false
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Deploy",
+            "part": "requires",
+            "span": {
+              "start": 1738,
+              "end": 1775
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "release"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Deploying"
+                }
+              }
+            },
+            "trace": {
+              "module": "Deployment",
+              "item": "Deploy",
+              "part": "ensures",
+              "span": {
+                "start": 1794,
+                "end": 1826
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "FieldAccess": {
+                        "root": {
+                          "Var": "release"
+                        },
+                        "field": "target_env"
+                      }
+                    },
+                    "field": "locked"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Literal": {
+                    "Bool": true
+                  }
+                }
+              }
+            },
+            "trace": {
+              "module": "Deployment",
+              "item": "Deploy",
+              "part": "ensures",
+              "span": {
+                "start": 1826,
+                "end": 1862
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "atomic",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Deploy",
+            "part": "property:atomic",
+            "span": {
+              "start": 1884,
+              "end": 1896
+            }
+          }
+        },
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Deploy",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1901,
+              "end": 1919
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Deployment",
+        "item": "Deploy",
+        "part": "action",
+        "span": {
+          "start": 1601,
+          "end": 1925
+        }
+      }
+    },
+    {
+      "name": "Rollback",
+      "params": [
+        {
+          "name": "release",
+          "ty": {
+            "Named": "Release"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Rollback",
+            "part": "param:release",
+            "span": {
+              "start": 1984,
+              "end": 2003
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Rollback",
+            "part": "param:reason",
+            "span": {
+              "start": 2003,
+              "end": 2021
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Or": [
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "release"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Deploying"
+                  }
+                }
+              },
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "release"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Deployed"
+                  }
+                }
+              }
+            ]
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Rollback",
+            "part": "requires",
+            "span": {
+              "start": 2036,
+              "end": 2098
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "reason"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Rollback",
+            "part": "requires",
+            "span": {
+              "start": 2098,
+              "end": 2113
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "release"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "RolledBack"
+                }
+              }
+            },
+            "trace": {
+              "module": "Deployment",
+              "item": "Rollback",
+              "part": "ensures",
+              "span": {
+                "start": 2132,
+                "end": 2165
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "FieldAccess": {
+                        "root": {
+                          "Var": "release"
+                        },
+                        "field": "target_env"
+                      }
+                    },
+                    "field": "locked"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Literal": {
+                    "Bool": false
+                  }
+                }
+              }
+            },
+            "trace": {
+              "module": "Deployment",
+              "item": "Rollback",
+              "part": "ensures",
+              "span": {
+                "start": 2165,
+                "end": 2202
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "atomic",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Rollback",
+            "part": "property:atomic",
+            "span": {
+              "start": 2224,
+              "end": 2236
+            }
+          }
+        },
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "Rollback",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 2241,
+              "end": 2259
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Deployment",
+        "item": "Rollback",
+        "part": "action",
+        "span": {
+          "start": 1927,
+          "end": 2265
+        }
+      }
+    },
+    {
+      "name": "ConfirmHealthy",
+      "params": [
+        {
+          "name": "release",
+          "ty": {
+            "Named": "Release"
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "ConfirmHealthy",
+            "part": "param:release",
+            "span": {
+              "start": 2348,
+              "end": 2368
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "release"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Deploying"
+              }
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "ConfirmHealthy",
+            "part": "requires",
+            "span": {
+              "start": 2383,
+              "end": 2415
+            }
+          }
+        },
+        {
+          "expr": {
+            "Forall": {
+              "binding": "hc",
+              "ty": "HealthCheck",
+              "body": {
+                "Implies": [
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "hc"
+                          },
+                          "field": "service"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "release"
+                          },
+                          "field": "service"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "hc"
+                          },
+                          "field": "status"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "Passing"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "ConfirmHealthy",
+            "part": "requires",
+            "span": {
+              "start": 2415,
+              "end": 2511
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "release"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Deployed"
+                }
+              }
+            },
+            "trace": {
+              "module": "Deployment",
+              "item": "ConfirmHealthy",
+              "part": "ensures",
+              "span": {
+                "start": 2530,
+                "end": 2561
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "FieldAccess": {
+                        "root": {
+                          "Var": "release"
+                        },
+                        "field": "target_env"
+                      }
+                    },
+                    "field": "locked"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Literal": {
+                    "Bool": false
+                  }
+                }
+              }
+            },
+            "trace": {
+              "module": "Deployment",
+              "item": "ConfirmHealthy",
+              "part": "ensures",
+              "span": {
+                "start": 2561,
+                "end": 2600
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "FieldAccess": {
+                        "root": {
+                          "Var": "release"
+                        },
+                        "field": "service"
+                      }
+                    },
+                    "field": "version"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "release"
+                    },
+                    "field": "version"
+                  }
+                }
+              }
+            },
+            "trace": {
+              "module": "Deployment",
+              "item": "ConfirmHealthy",
+              "part": "ensures",
+              "span": {
+                "start": 2600,
+                "end": 2645
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Deployment",
+            "item": "ConfirmHealthy",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 2667,
+              "end": 2685
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Deployment",
+        "item": "ConfirmHealthy",
+        "part": "action",
+        "span": {
+          "start": 2267,
+          "end": 2691
+        }
+      }
+    }
+  ],
+  "invariants": [
+    {
+      "name": "MinimumReplicas",
+      "expr": {
+        "Forall": {
+          "binding": "s",
+          "ty": "Service",
+          "body": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "s"
+                  },
+                  "field": "replicas"
+                }
+              },
+              "op": "Ge",
+              "right": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "s"
+                  },
+                  "field": "min_replicas"
+                }
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "Deployment",
+        "item": "MinimumReplicas",
+        "part": "invariant",
+        "span": {
+          "start": 2693,
+          "end": 2839
+        }
+      }
+    },
+    {
+      "name": "ProductionRequiresApproval",
+      "expr": {
+        "Forall": {
+          "binding": "r",
+          "ty": "Release",
+          "body": {
+            "Implies": [
+              {
+                "And": [
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "r"
+                              },
+                              "field": "target_env"
+                            }
+                          },
+                          "field": "tier"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "Production"
+                      }
+                    }
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "r"
+                          },
+                          "field": "status"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "Deployed"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "r"
+                      },
+                      "field": "approved_by"
+                    }
+                  },
+                  "op": "Ne",
+                  "right": {
+                    "Literal": {
+                      "String": ""
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "module": "Deployment",
+        "item": "ProductionRequiresApproval",
+        "part": "invariant",
+        "span": {
+          "start": 2841,
+          "end": 3055
+        }
+      }
+    },
+    {
+      "name": "SingleActiveDeployment",
+      "expr": {
+        "Forall": {
+          "binding": "r1",
+          "ty": "Release",
+          "body": {
+            "Forall": {
+              "binding": "r2",
+              "ty": "Release",
+              "body": {
+                "Implies": [
+                  {
+                    "And": [
+                      {
+                        "And": [
+                          {
+                            "Compare": {
+                              "left": {
+                                "FieldAccess": {
+                                  "root": {
+                                    "Var": "r1"
+                                  },
+                                  "field": "target_env"
+                                }
+                              },
+                              "op": "Eq",
+                              "right": {
+                                "FieldAccess": {
+                                  "root": {
+                                    "Var": "r2"
+                                  },
+                                  "field": "target_env"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Compare": {
+                              "left": {
+                                "FieldAccess": {
+                                  "root": {
+                                    "Var": "r1"
+                                  },
+                                  "field": "status"
+                                }
+                              },
+                              "op": "Eq",
+                              "right": {
+                                "Var": "Deploying"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "r2"
+                              },
+                              "field": "status"
+                            }
+                          },
+                          "op": "Eq",
+                          "right": {
+                            "Var": "Deploying"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "Var": "r1"
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "r2"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "Deployment",
+        "item": "SingleActiveDeployment",
+        "part": "invariant",
+        "span": {
+          "start": 3057,
+          "end": 3330
+        }
+      }
+    }
+  ],
+  "edge_guards": [
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "release"
+                  },
+                  "field": "target_env"
+                }
+              },
+              "field": "locked"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Literal": {
+              "Bool": true
+            }
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Environment is locked by an active deployment"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Deployment",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 3347,
+          "end": 3444
+        }
+      }
+    },
+    {
+      "condition": {
+        "And": [
+          {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "release"
+                      },
+                      "field": "target_env"
+                    }
+                  },
+                  "field": "tier"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Production"
+              }
+            }
+          },
+          {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "release"
+                  },
+                  "field": "approved_by"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          }
+        ]
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Production releases require approval"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Deployment",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 3447,
+          "end": 3568
+        }
+      }
+    }
+  ]
+}

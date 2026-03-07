@@ -1,0 +1,2752 @@
+{
+  "name": "Appointments",
+  "structs": [
+    {
+      "name": "Clinic",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Clinic",
+            "part": "field:id",
+            "span": {
+              "start": 156,
+              "end": 167
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Clinic",
+            "part": "field:name",
+            "span": {
+              "start": 167,
+              "end": 182
+            }
+          }
+        },
+        {
+          "name": "address",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Clinic",
+            "part": "field:address",
+            "span": {
+              "start": 182,
+              "end": 200
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Open",
+              "Closed",
+              "Renovating"
+            ]
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Clinic",
+            "part": "field:status",
+            "span": {
+              "start": 200,
+              "end": 235
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "Clinic",
+        "part": "entity",
+        "span": {
+          "start": 138,
+          "end": 236
+        }
+      }
+    },
+    {
+      "name": "TimeSlot",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "TimeSlot",
+            "part": "field:id",
+            "span": {
+              "start": 258,
+              "end": 269
+            }
+          }
+        },
+        {
+          "name": "clinic",
+          "ty": {
+            "Named": "Clinic"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "TimeSlot",
+            "part": "field:clinic",
+            "span": {
+              "start": 269,
+              "end": 286
+            }
+          }
+        },
+        {
+          "name": "provider_id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "TimeSlot",
+            "part": "field:provider_id",
+            "span": {
+              "start": 286,
+              "end": 306
+            }
+          }
+        },
+        {
+          "name": "provider_name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "TimeSlot",
+            "part": "field:provider_name",
+            "span": {
+              "start": 306,
+              "end": 330
+            }
+          }
+        },
+        {
+          "name": "start_time",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "TimeSlot",
+            "part": "field:start_time",
+            "span": {
+              "start": 330,
+              "end": 353
+            }
+          }
+        },
+        {
+          "name": "end_time",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "TimeSlot",
+            "part": "field:end_time",
+            "span": {
+              "start": 353,
+              "end": 374
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Available",
+              "Booked",
+              "Blocked"
+            ]
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "TimeSlot",
+            "part": "field:status",
+            "span": {
+              "start": 374,
+              "end": 411
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "TimeSlot",
+        "part": "entity",
+        "span": {
+          "start": 238,
+          "end": 412
+        }
+      }
+    },
+    {
+      "name": "Appointment",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Appointment",
+            "part": "field:id",
+            "span": {
+              "start": 437,
+              "end": 448
+            }
+          }
+        },
+        {
+          "name": "patient_id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Appointment",
+            "part": "field:patient_id",
+            "span": {
+              "start": 448,
+              "end": 467
+            }
+          }
+        },
+        {
+          "name": "patient_name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Appointment",
+            "part": "field:patient_name",
+            "span": {
+              "start": 467,
+              "end": 490
+            }
+          }
+        },
+        {
+          "name": "time_slot",
+          "ty": {
+            "Named": "TimeSlot"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Appointment",
+            "part": "field:time_slot",
+            "span": {
+              "start": 490,
+              "end": 512
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Appointment",
+            "part": "field:reason",
+            "span": {
+              "start": 512,
+              "end": 529
+            }
+          }
+        },
+        {
+          "name": "appointment_type",
+          "ty": {
+            "Union": [
+              "InPerson",
+              "Telehealth"
+            ]
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Appointment",
+            "part": "field:appointment_type",
+            "span": {
+              "start": 529,
+              "end": 571
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Scheduled",
+              "CheckedIn",
+              "InProgress",
+              "Completed",
+              "Cancelled",
+              "NoShow"
+            ]
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Appointment",
+            "part": "field:status",
+            "span": {
+              "start": 571,
+              "end": 649
+            }
+          }
+        },
+        {
+          "name": "notes",
+          "ty": {
+            "Optional": {
+              "Named": "String"
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Appointment",
+            "part": "field:notes",
+            "span": {
+              "start": 649,
+              "end": 663
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Appointment",
+            "part": "field:created_at",
+            "span": {
+              "start": 666,
+              "end": 689
+            }
+          }
+        },
+        {
+          "name": "cancelled_at",
+          "ty": {
+            "Optional": {
+              "Named": "DateTime"
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Appointment",
+            "part": "field:cancelled_at",
+            "span": {
+              "start": 689,
+              "end": 712
+            }
+          }
+        },
+        {
+          "name": "cancellation_reason",
+          "ty": {
+            "Optional": {
+              "Named": "String"
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "Appointment",
+            "part": "field:cancellation_reason",
+            "span": {
+              "start": 715,
+              "end": 743
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "Appointment",
+        "part": "entity",
+        "span": {
+          "start": 414,
+          "end": 745
+        }
+      }
+    },
+    {
+      "name": "WaitlistEntry",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "WaitlistEntry",
+            "part": "field:id",
+            "span": {
+              "start": 772,
+              "end": 783
+            }
+          }
+        },
+        {
+          "name": "patient_id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "WaitlistEntry",
+            "part": "field:patient_id",
+            "span": {
+              "start": 783,
+              "end": 802
+            }
+          }
+        },
+        {
+          "name": "patient_name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "WaitlistEntry",
+            "part": "field:patient_name",
+            "span": {
+              "start": 802,
+              "end": 825
+            }
+          }
+        },
+        {
+          "name": "clinic",
+          "ty": {
+            "Named": "Clinic"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "WaitlistEntry",
+            "part": "field:clinic",
+            "span": {
+              "start": 825,
+              "end": 842
+            }
+          }
+        },
+        {
+          "name": "preferred_provider_id",
+          "ty": {
+            "Optional": {
+              "Named": "UUID"
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "WaitlistEntry",
+            "part": "field:preferred_provider_id",
+            "span": {
+              "start": 842,
+              "end": 870
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "WaitlistEntry",
+            "part": "field:reason",
+            "span": {
+              "start": 873,
+              "end": 890
+            }
+          }
+        },
+        {
+          "name": "priority",
+          "ty": {
+            "Union": [
+              "Urgent",
+              "Routine",
+              "FollowUp"
+            ]
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "WaitlistEntry",
+            "part": "field:priority",
+            "span": {
+              "start": 890,
+              "end": 930
+            }
+          }
+        },
+        {
+          "name": "requested_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "WaitlistEntry",
+            "part": "field:requested_at",
+            "span": {
+              "start": 930,
+              "end": 955
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Waiting",
+              "Offered",
+              "Accepted",
+              "Expired"
+            ]
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "WaitlistEntry",
+            "part": "field:status",
+            "span": {
+              "start": 955,
+              "end": 1002
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "WaitlistEntry",
+        "part": "entity",
+        "span": {
+          "start": 747,
+          "end": 1003
+        }
+      }
+    },
+    {
+      "name": "AppointmentReminder",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "AppointmentReminder",
+            "part": "field:id",
+            "span": {
+              "start": 1036,
+              "end": 1047
+            }
+          }
+        },
+        {
+          "name": "appointment",
+          "ty": {
+            "Named": "Appointment"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "AppointmentReminder",
+            "part": "field:appointment",
+            "span": {
+              "start": 1047,
+              "end": 1074
+            }
+          }
+        },
+        {
+          "name": "reminder_type",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "AppointmentReminder",
+            "part": "field:reminder_type",
+            "span": {
+              "start": 1074,
+              "end": 1098
+            }
+          }
+        },
+        {
+          "name": "sent_at",
+          "ty": {
+            "Optional": {
+              "Named": "DateTime"
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "AppointmentReminder",
+            "part": "field:sent_at",
+            "span": {
+              "start": 1098,
+              "end": 1116
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Pending",
+              "Sent",
+              "Failed"
+            ]
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "AppointmentReminder",
+            "part": "field:status",
+            "span": {
+              "start": 1119,
+              "end": 1151
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "AppointmentReminder",
+        "part": "entity",
+        "span": {
+          "start": 1005,
+          "end": 1152
+        }
+      }
+    }
+  ],
+  "functions": [
+    {
+      "name": "BookAppointment",
+      "params": [
+        {
+          "name": "patient_id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BookAppointment",
+            "part": "param:patient_id",
+            "span": {
+              "start": 1247,
+              "end": 1266
+            }
+          }
+        },
+        {
+          "name": "patient_name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BookAppointment",
+            "part": "param:patient_name",
+            "span": {
+              "start": 1266,
+              "end": 1289
+            }
+          }
+        },
+        {
+          "name": "time_slot",
+          "ty": {
+            "Named": "TimeSlot"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BookAppointment",
+            "part": "param:time_slot",
+            "span": {
+              "start": 1289,
+              "end": 1311
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BookAppointment",
+            "part": "param:reason",
+            "span": {
+              "start": 1311,
+              "end": 1328
+            }
+          }
+        },
+        {
+          "name": "appointment_type",
+          "ty": {
+            "Union": [
+              "InPerson",
+              "Telehealth"
+            ]
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BookAppointment",
+            "part": "param:appointment_type",
+            "span": {
+              "start": 1328,
+              "end": 1371
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "time_slot"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Available"
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BookAppointment",
+            "part": "requires",
+            "span": {
+              "start": 1386,
+              "end": 1420
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "time_slot"
+                      },
+                      "field": "clinic"
+                    }
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Open"
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BookAppointment",
+            "part": "requires",
+            "span": {
+              "start": 1420,
+              "end": 1456
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "reason"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BookAppointment",
+            "part": "requires",
+            "span": {
+              "start": 1456,
+              "end": 1473
+            }
+          }
+        },
+        {
+          "expr": {
+            "Not": {
+              "Exists": {
+                "binding": "a",
+                "ty": "Appointment",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "a"
+                                },
+                                "field": "patient_id"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "patient_id"
+                            }
+                          }
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "a"
+                                },
+                                "field": "time_slot"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "time_slot"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "a"
+                            },
+                            "field": "status"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "Scheduled"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BookAppointment",
+            "part": "requires",
+            "span": {
+              "start": 1473,
+              "end": 1601
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "time_slot"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Booked"
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "BookAppointment",
+              "part": "ensures",
+              "span": {
+                "start": 1620,
+                "end": 1651
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "a",
+                "ty": "Appointment",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "And": [
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "a"
+                                    },
+                                    "field": "patient_id"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "patient_id"
+                                }
+                              }
+                            },
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "a"
+                                    },
+                                    "field": "time_slot"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "time_slot"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "a"
+                                },
+                                "field": "reason"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "reason"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "a"
+                            },
+                            "field": "status"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "Scheduled"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "BookAppointment",
+              "part": "ensures",
+              "span": {
+                "start": 1651,
+                "end": 1804
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "atomic",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BookAppointment",
+            "part": "property:atomic",
+            "span": {
+              "start": 1826,
+              "end": 1838
+            }
+          }
+        },
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BookAppointment",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1843,
+              "end": 1861
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "BookAppointment",
+        "part": "action",
+        "span": {
+          "start": 1154,
+          "end": 1867
+        }
+      }
+    },
+    {
+      "name": "CheckIn",
+      "params": [
+        {
+          "name": "appointment",
+          "ty": {
+            "Named": "Appointment"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CheckIn",
+            "part": "param:appointment",
+            "span": {
+              "start": 1946,
+              "end": 1974
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "appointment"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Scheduled"
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CheckIn",
+            "part": "requires",
+            "span": {
+              "start": 1989,
+              "end": 2023
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "appointment"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "CheckedIn"
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "CheckIn",
+              "part": "ensures",
+              "span": {
+                "start": 2042,
+                "end": 2076
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CheckIn",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 2098,
+              "end": 2116
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "CheckIn",
+        "part": "action",
+        "span": {
+          "start": 1869,
+          "end": 2122
+        }
+      }
+    },
+    {
+      "name": "StartAppointment",
+      "params": [
+        {
+          "name": "appointment",
+          "ty": {
+            "Named": "Appointment"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "StartAppointment",
+            "part": "param:appointment",
+            "span": {
+              "start": 2188,
+              "end": 2216
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "appointment"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "CheckedIn"
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "StartAppointment",
+            "part": "requires",
+            "span": {
+              "start": 2231,
+              "end": 2265
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "appointment"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "InProgress"
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "StartAppointment",
+              "part": "ensures",
+              "span": {
+                "start": 2284,
+                "end": 2319
+              }
+            }
+          }
+        }
+      ],
+      "properties": [],
+      "trace": {
+        "module": "Appointments",
+        "item": "StartAppointment",
+        "part": "action",
+        "span": {
+          "start": 2124,
+          "end": 2322
+        }
+      }
+    },
+    {
+      "name": "CompleteAppointment",
+      "params": [
+        {
+          "name": "appointment",
+          "ty": {
+            "Named": "Appointment"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CompleteAppointment",
+            "part": "param:appointment",
+            "span": {
+              "start": 2402,
+              "end": 2429
+            }
+          }
+        },
+        {
+          "name": "notes",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CompleteAppointment",
+            "part": "param:notes",
+            "span": {
+              "start": 2429,
+              "end": 2446
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "appointment"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "InProgress"
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CompleteAppointment",
+            "part": "requires",
+            "span": {
+              "start": 2461,
+              "end": 2498
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "notes"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CompleteAppointment",
+            "part": "requires",
+            "span": {
+              "start": 2498,
+              "end": 2512
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "appointment"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Completed"
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "CompleteAppointment",
+              "part": "ensures",
+              "span": {
+                "start": 2531,
+                "end": 2567
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "appointment"
+                    },
+                    "field": "notes"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "notes"
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "CompleteAppointment",
+              "part": "ensures",
+              "span": {
+                "start": 2567,
+                "end": 2596
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CompleteAppointment",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 2618,
+              "end": 2636
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "CompleteAppointment",
+        "part": "action",
+        "span": {
+          "start": 2324,
+          "end": 2642
+        }
+      }
+    },
+    {
+      "name": "CancelAppointment",
+      "params": [
+        {
+          "name": "appointment",
+          "ty": {
+            "Named": "Appointment"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CancelAppointment",
+            "part": "param:appointment",
+            "span": {
+              "start": 2729,
+              "end": 2756
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CancelAppointment",
+            "part": "param:reason",
+            "span": {
+              "start": 2756,
+              "end": 2774
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "appointment"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Scheduled"
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CancelAppointment",
+            "part": "requires",
+            "span": {
+              "start": 2789,
+              "end": 2825
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "reason"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CancelAppointment",
+            "part": "requires",
+            "span": {
+              "start": 2825,
+              "end": 2840
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "appointment"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Cancelled"
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "CancelAppointment",
+              "part": "ensures",
+              "span": {
+                "start": 2859,
+                "end": 2895
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "appointment"
+                    },
+                    "field": "cancellation_reason"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "reason"
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "CancelAppointment",
+              "part": "ensures",
+              "span": {
+                "start": 2895,
+                "end": 2941
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "FieldAccess": {
+                        "root": {
+                          "Var": "appointment"
+                        },
+                        "field": "time_slot"
+                      }
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Available"
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "CancelAppointment",
+              "part": "ensures",
+              "span": {
+                "start": 2941,
+                "end": 2985
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "CancelAppointment",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 3007,
+              "end": 3025
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "CancelAppointment",
+        "part": "action",
+        "span": {
+          "start": 2644,
+          "end": 3031
+        }
+      }
+    },
+    {
+      "name": "MarkNoShow",
+      "params": [
+        {
+          "name": "appointment",
+          "ty": {
+            "Named": "Appointment"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "MarkNoShow",
+            "part": "param:appointment",
+            "span": {
+              "start": 3100,
+              "end": 3128
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "appointment"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Scheduled"
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "MarkNoShow",
+            "part": "requires",
+            "span": {
+              "start": 3143,
+              "end": 3177
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "appointment"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "NoShow"
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "MarkNoShow",
+              "part": "ensures",
+              "span": {
+                "start": 3196,
+                "end": 3227
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "MarkNoShow",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 3249,
+              "end": 3267
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "MarkNoShow",
+        "part": "action",
+        "span": {
+          "start": 3033,
+          "end": 3273
+        }
+      }
+    },
+    {
+      "name": "JoinWaitlist",
+      "params": [
+        {
+          "name": "patient_id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "JoinWaitlist",
+            "part": "param:patient_id",
+            "span": {
+              "start": 3349,
+              "end": 3368
+            }
+          }
+        },
+        {
+          "name": "patient_name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "JoinWaitlist",
+            "part": "param:patient_name",
+            "span": {
+              "start": 3368,
+              "end": 3391
+            }
+          }
+        },
+        {
+          "name": "clinic",
+          "ty": {
+            "Named": "Clinic"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "JoinWaitlist",
+            "part": "param:clinic",
+            "span": {
+              "start": 3391,
+              "end": 3408
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "JoinWaitlist",
+            "part": "param:reason",
+            "span": {
+              "start": 3408,
+              "end": 3425
+            }
+          }
+        },
+        {
+          "name": "priority",
+          "ty": {
+            "Union": [
+              "Urgent",
+              "Routine",
+              "FollowUp"
+            ]
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "JoinWaitlist",
+            "part": "param:priority",
+            "span": {
+              "start": 3425,
+              "end": 3466
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "clinic"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Open"
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "JoinWaitlist",
+            "part": "requires",
+            "span": {
+              "start": 3481,
+              "end": 3507
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "reason"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "JoinWaitlist",
+            "part": "requires",
+            "span": {
+              "start": 3507,
+              "end": 3522
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "w",
+                "ty": "WaitlistEntry",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "And": [
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "w"
+                                    },
+                                    "field": "patient_id"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "patient_id"
+                                }
+                              }
+                            },
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "w"
+                                    },
+                                    "field": "clinic"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "clinic"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "w"
+                                },
+                                "field": "priority"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "priority"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "w"
+                            },
+                            "field": "status"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "Waiting"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "JoinWaitlist",
+              "part": "ensures",
+              "span": {
+                "start": 3541,
+                "end": 3692
+              }
+            }
+          }
+        }
+      ],
+      "properties": [],
+      "trace": {
+        "module": "Appointments",
+        "item": "JoinWaitlist",
+        "part": "action",
+        "span": {
+          "start": 3275,
+          "end": 3695
+        }
+      }
+    },
+    {
+      "name": "OfferSlot",
+      "params": [
+        {
+          "name": "entry",
+          "ty": {
+            "Named": "WaitlistEntry"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "OfferSlot",
+            "part": "param:entry",
+            "span": {
+              "start": 3780,
+              "end": 3803
+            }
+          }
+        },
+        {
+          "name": "time_slot",
+          "ty": {
+            "Named": "TimeSlot"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "OfferSlot",
+            "part": "param:time_slot",
+            "span": {
+              "start": 3803,
+              "end": 3826
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "entry"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Waiting"
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "OfferSlot",
+            "part": "requires",
+            "span": {
+              "start": 3841,
+              "end": 3869
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "time_slot"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Available"
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "OfferSlot",
+            "part": "requires",
+            "span": {
+              "start": 3869,
+              "end": 3903
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "time_slot"
+                  },
+                  "field": "clinic"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "entry"
+                  },
+                  "field": "clinic"
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "OfferSlot",
+            "part": "requires",
+            "span": {
+              "start": 3903,
+              "end": 3938
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "entry"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Offered"
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "OfferSlot",
+              "part": "ensures",
+              "span": {
+                "start": 3957,
+                "end": 3983
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "OfferSlot",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 4005,
+              "end": 4023
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "OfferSlot",
+        "part": "action",
+        "span": {
+          "start": 3697,
+          "end": 4029
+        }
+      }
+    },
+    {
+      "name": "BlockSlot",
+      "params": [
+        {
+          "name": "time_slot",
+          "ty": {
+            "Named": "TimeSlot"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BlockSlot",
+            "part": "param:time_slot",
+            "span": {
+              "start": 4106,
+              "end": 4128
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BlockSlot",
+            "part": "param:reason",
+            "span": {
+              "start": 4128,
+              "end": 4146
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "time_slot"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Available"
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BlockSlot",
+            "part": "requires",
+            "span": {
+              "start": 4161,
+              "end": 4195
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "reason"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Appointments",
+            "item": "BlockSlot",
+            "part": "requires",
+            "span": {
+              "start": 4195,
+              "end": 4210
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "time_slot"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Blocked"
+                }
+              }
+            },
+            "trace": {
+              "module": "Appointments",
+              "item": "BlockSlot",
+              "part": "ensures",
+              "span": {
+                "start": 4229,
+                "end": 4259
+              }
+            }
+          }
+        }
+      ],
+      "properties": [],
+      "trace": {
+        "module": "Appointments",
+        "item": "BlockSlot",
+        "part": "action",
+        "span": {
+          "start": 4031,
+          "end": 4262
+        }
+      }
+    }
+  ],
+  "invariants": [
+    {
+      "name": "BookedSlotHasAppointment",
+      "expr": {
+        "Forall": {
+          "binding": "ts",
+          "ty": "TimeSlot",
+          "body": {
+            "Implies": [
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "ts"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Booked"
+                  }
+                }
+              },
+              {
+                "Exists": {
+                  "binding": "a",
+                  "ty": "Appointment",
+                  "body": {
+                    "And": [
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "a"
+                              },
+                              "field": "time_slot"
+                            }
+                          },
+                          "op": "Eq",
+                          "right": {
+                            "Var": "ts"
+                          }
+                        }
+                      },
+                      {
+                        "Or": [
+                          {
+                            "Or": [
+                              {
+                                "Compare": {
+                                  "left": {
+                                    "FieldAccess": {
+                                      "root": {
+                                        "Var": "a"
+                                      },
+                                      "field": "status"
+                                    }
+                                  },
+                                  "op": "Eq",
+                                  "right": {
+                                    "Var": "Scheduled"
+                                  }
+                                }
+                              },
+                              {
+                                "Compare": {
+                                  "left": {
+                                    "FieldAccess": {
+                                      "root": {
+                                        "Var": "a"
+                                      },
+                                      "field": "status"
+                                    }
+                                  },
+                                  "op": "Eq",
+                                  "right": {
+                                    "Var": "CheckedIn"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "Compare": {
+                              "left": {
+                                "FieldAccess": {
+                                  "root": {
+                                    "Var": "a"
+                                  },
+                                  "field": "status"
+                                }
+                              },
+                              "op": "Eq",
+                              "right": {
+                                "Var": "InProgress"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "module": "Appointments",
+        "item": "BookedSlotHasAppointment",
+        "part": "invariant",
+        "span": {
+          "start": 4264,
+          "end": 4594
+        }
+      }
+    },
+    {
+      "name": "NoDoubleBooking",
+      "expr": {
+        "Forall": {
+          "binding": "a1",
+          "ty": "Appointment",
+          "body": {
+            "Forall": {
+              "binding": "a2",
+              "ty": "Appointment",
+              "body": {
+                "Implies": [
+                  {
+                    "And": [
+                      {
+                        "And": [
+                          {
+                            "And": [
+                              {
+                                "And": [
+                                  {
+                                    "Compare": {
+                                      "left": {
+                                        "FieldAccess": {
+                                          "root": {
+                                            "Var": "a1"
+                                          },
+                                          "field": "time_slot"
+                                        }
+                                      },
+                                      "op": "Eq",
+                                      "right": {
+                                        "FieldAccess": {
+                                          "root": {
+                                            "Var": "a2"
+                                          },
+                                          "field": "time_slot"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "Compare": {
+                                      "left": {
+                                        "FieldAccess": {
+                                          "root": {
+                                            "Var": "a1"
+                                          },
+                                          "field": "status"
+                                        }
+                                      },
+                                      "op": "Ne",
+                                      "right": {
+                                        "Var": "Cancelled"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "Compare": {
+                                  "left": {
+                                    "FieldAccess": {
+                                      "root": {
+                                        "Var": "a1"
+                                      },
+                                      "field": "status"
+                                    }
+                                  },
+                                  "op": "Ne",
+                                  "right": {
+                                    "Var": "NoShow"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "Compare": {
+                              "left": {
+                                "FieldAccess": {
+                                  "root": {
+                                    "Var": "a2"
+                                  },
+                                  "field": "status"
+                                }
+                              },
+                              "op": "Ne",
+                              "right": {
+                                "Var": "Cancelled"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "a2"
+                              },
+                              "field": "status"
+                            }
+                          },
+                          "op": "Ne",
+                          "right": {
+                            "Var": "NoShow"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "Var": "a1"
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "a2"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "Appointments",
+        "item": "NoDoubleBooking",
+        "part": "invariant",
+        "span": {
+          "start": 4596,
+          "end": 4926
+        }
+      }
+    },
+    {
+      "name": "CancelledSlotFreed",
+      "expr": {
+        "Forall": {
+          "binding": "a",
+          "ty": "Appointment",
+          "body": {
+            "Implies": [
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "a"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Cancelled"
+                  }
+                }
+              },
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "a"
+                          },
+                          "field": "time_slot"
+                        }
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Available"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "module": "Appointments",
+        "item": "CancelledSlotFreed",
+        "part": "invariant",
+        "span": {
+          "start": 4928,
+          "end": 5111
+        }
+      }
+    }
+  ],
+  "edge_guards": [
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "time_slot"
+                  },
+                  "field": "clinic"
+                }
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Closed"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Clinic is closed"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 5128,
+          "end": 5196
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "time_slot"
+                  },
+                  "field": "clinic"
+                }
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Renovating"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Clinic is temporarily closed for renovation"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 5199,
+          "end": 5298
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "time_slot"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Blocked"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "This time slot is blocked"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Appointments",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 5301,
+          "end": 5372
+        }
+      }
+    }
+  ]
+}

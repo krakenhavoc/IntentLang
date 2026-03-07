@@ -1,0 +1,167 @@
+module Payments
+
+--- Payment processing with multiple methods, refunds,
+--- and reconciliation tracking.
+
+entity PaymentMethod {
+  id: UUID
+  customer_id: UUID
+  method_type: CreditCard | DebitCard | BankTransfer | Wallet
+  last_four: String
+  is_default: Bool
+  status: Active | Expired | Revoked
+}
+
+entity Payment {
+  id: UUID
+  order_id: UUID
+  payment_method: PaymentMethod
+  amount: Decimal(precision: 2)
+  currency: CurrencyCode
+  status: Pending | Authorized | Captured | Failed | Refunded
+  idempotency_key: UUID
+  gateway_ref: String?
+  created_at: DateTime
+  captured_at: DateTime?
+}
+
+entity Refund {
+  id: UUID
+  payment: Payment
+  amount: Decimal(precision: 2)
+  reason: String
+  status: Pending | Processed | Failed
+  processed_at: DateTime?
+}
+
+entity ReconciliationEntry {
+  id: UUID
+  payment: Payment
+  expected_amount: Decimal(precision: 2)
+  actual_amount: Decimal(precision: 2)
+  matched: Bool
+  checked_at: DateTime
+}
+
+action AuthorizePayment {
+  --- Authorize a payment against the customer's payment method.
+  order_id: UUID
+  payment_method: PaymentMethod
+  amount: Decimal(precision: 2)
+  currency: CurrencyCode
+  idempotency_key: UUID
+
+  requires {
+    payment_method.status == Active
+    amount > 0
+  }
+
+  ensures {
+    exists p: Payment =>
+      p.order_id == order_id &&
+      p.payment_method == payment_method &&
+      p.amount == amount &&
+      p.status == Authorized &&
+      p.idempotency_key == idempotency_key
+  }
+
+  properties {
+    idempotent: true
+    idempotency_key: idempotency_key
+    atomic: true
+    audit_logged: true
+    max_latency_ms: 3000
+  }
+}
+
+action CapturePayment {
+  --- Capture a previously authorized payment.
+  payment: Payment
+
+  requires {
+    payment.status == Authorized
+  }
+
+  ensures {
+    payment.status == Captured
+  }
+
+  properties {
+    atomic: true
+    audit_logged: true
+  }
+}
+
+action RefundPayment {
+  --- Issue a full or partial refund for a captured payment.
+  payment: Payment
+  amount: Decimal(precision: 2)
+  reason: String
+
+  requires {
+    payment.status == Captured
+    amount > 0
+    amount <= payment.amount
+    reason != ""
+  }
+
+  ensures {
+    exists r: Refund =>
+      r.payment == payment &&
+      r.amount == amount &&
+      r.reason == reason &&
+      r.status == Pending
+  }
+
+  properties {
+    audit_logged: true
+    requires_role: "finance"
+  }
+}
+
+action ReconcilePayment {
+  --- Check a payment against the gateway's records.
+  payment: Payment
+  actual_amount: Decimal(precision: 2)
+
+  requires {
+    payment.status == Captured || payment.status == Refunded
+  }
+
+  ensures {
+    exists entry: ReconciliationEntry =>
+      entry.payment == payment &&
+      entry.expected_amount == payment.amount &&
+      entry.actual_amount == actual_amount &&
+      entry.matched == (payment.amount == actual_amount)
+  }
+
+  properties {
+    idempotent: true
+    audit_logged: true
+  }
+}
+
+invariant PaymentPositive {
+  --- All payments must have a positive amount.
+  forall p: Payment => p.amount > 0
+}
+
+invariant RefundNotExceedPayment {
+  --- A refund cannot exceed the original payment amount.
+  forall r: Refund =>
+    r.amount <= r.payment.amount
+}
+
+invariant CapturedBeforeRefund {
+  --- Only captured payments can be refunded.
+  forall r: Refund =>
+    r.status == Processed =>
+      r.payment.status == Captured || r.payment.status == Refunded
+}
+
+edge_cases {
+  when payment_method.status == Expired => reject("Payment method has expired")
+  when payment_method.status == Revoked => reject("Payment method has been revoked")
+  when payment.status == Failed => reject("Cannot operate on a failed payment")
+}

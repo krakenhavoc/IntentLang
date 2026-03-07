@@ -1,0 +1,176 @@
+module Deployment
+
+--- A deployment pipeline system demonstrating multi-agent collaboration.
+--- Multiple agents can claim different spec items to work on in parallel,
+--- preventing conflicts and tracking who owns what.
+
+entity Service {
+  id: UUID
+  name: String
+  version: String
+  status: Healthy | Degraded | Down
+  replicas: Int
+  min_replicas: Int
+}
+
+entity Environment {
+  id: UUID
+  name: String
+  tier: Development | Staging | Production
+  services: List<Service>
+  locked: Bool
+}
+
+entity Release {
+  id: UUID
+  service: Service
+  version: String
+  target_env: Environment
+  status: Pending | Deploying | Deployed | RolledBack | Failed
+  approved_by: String?
+  deployed_at: DateTime?
+}
+
+entity HealthCheck {
+  id: UUID
+  service: Service
+  endpoint: URL
+  status: Passing | Failing
+  last_checked: DateTime
+}
+
+action CreateRelease {
+  --- Package a new version for deployment.
+  service: Service
+  version: String
+  target_env: Environment
+
+  requires {
+    target_env.locked == false
+    version != service.version
+  }
+
+  ensures {
+    exists r: Release =>
+      r.service == service &&
+      r.version == version &&
+      r.target_env == target_env &&
+      r.status == Pending
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action ApproveRelease {
+  --- Approve a release for deployment to production.
+  release: Release
+  approver: String
+
+  requires {
+    release.status == Pending
+    release.target_env.tier == Production
+    approver != ""
+  }
+
+  ensures {
+    release.approved_by == approver
+  }
+
+  properties {
+    audit_logged: true
+    requires_role: "release_manager"
+  }
+}
+
+action Deploy {
+  --- Execute a deployment to the target environment.
+  release: Release
+
+  requires {
+    release.status == Pending
+    release.target_env.locked == false
+  }
+
+  ensures {
+    release.status == Deploying
+    release.target_env.locked == true
+  }
+
+  properties {
+    atomic: true
+    audit_logged: true
+  }
+}
+
+action Rollback {
+  --- Roll back a failed deployment.
+  release: Release
+  reason: String
+
+  requires {
+    release.status == Deploying || release.status == Deployed
+    reason != ""
+  }
+
+  ensures {
+    release.status == RolledBack
+    release.target_env.locked == false
+  }
+
+  properties {
+    atomic: true
+    audit_logged: true
+  }
+}
+
+action ConfirmHealthy {
+  --- Confirm all health checks pass after deployment.
+  release: Release
+
+  requires {
+    release.status == Deploying
+    forall hc: HealthCheck =>
+      hc.service == release.service =>
+        hc.status == Passing
+  }
+
+  ensures {
+    release.status == Deployed
+    release.target_env.locked == false
+    release.service.version == release.version
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+invariant MinimumReplicas {
+  --- A service must never have fewer replicas than its minimum.
+  forall s: Service => s.replicas >= s.min_replicas
+}
+
+invariant ProductionRequiresApproval {
+  --- Deployed production releases must have an approver.
+  forall r: Release =>
+    r.target_env.tier == Production &&
+    r.status == Deployed =>
+      r.approved_by != ""
+}
+
+invariant SingleActiveDeployment {
+  --- Only one release may be in Deploying state per environment.
+  forall r1: Release =>
+    forall r2: Release =>
+      r1.target_env == r2.target_env &&
+      r1.status == Deploying &&
+      r2.status == Deploying =>
+        r1 == r2
+}
+
+edge_cases {
+  when release.target_env.locked == true => reject("Environment is locked by an active deployment")
+  when release.target_env.tier == Production && release.approved_by == "" => reject("Production releases require approval")
+}

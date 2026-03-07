@@ -13,11 +13,14 @@ The toolchain proves the implementation satisfies the contract.
 
 ## Why IntentLang?
 
-As AI agents write more code, the bottleneck shifts from *writing* to *verifying*. IntentLang addresses this with three layers:
+As AI agents write more code, the bottleneck shifts from *writing* to *verifying*. IntentLang addresses this with four layers:
 
-1. **Intent Layer** — Humans write declarative specs: entities, actions, pre/postconditions, invariants. Readable by anyone on the team, formally parseable by machines.
+0. **Natural Language** — Describe what you want in plain English. An AI agent generates a formal spec from your description. The lowest-barrier entry point.
+1. **Intent Layer** — Write or refine declarative specs directly: entities, actions, pre/postconditions, invariants. Readable by anyone on the team, formally parseable by machines.
 2. **Agent IR** — Agents generate a dense, typed intermediate representation from specs. Optimized for machine generation, not human authoring.
 3. **Audit Bridge** — Tooling maps every IR construct back to a spec requirement. Orphan code (implementation without spec justification) is a first-class error.
+
+Layers 0 and 1 are both human-facing — the system meets you where you are. A PM can describe an idea in English; an engineer can write the spec directly. Either way, humans own the *what*.
 
 ## Example
 
@@ -123,7 +126,23 @@ intent status <file>                   Show lock status for all spec items
 intent fmt <file>                      Format a spec file (--write to overwrite, --check to verify)
 intent init                            Scaffold a new .intent file (--name, -o)
 intent completions <shell>             Generate shell completions (bash, zsh, fish, etc.)
+intent generate "description"          Generate a spec from natural language (Layer 0)
+intent generate --interactive "desc"   Interactive mode with clarifying questions
+intent generate --edit <file> "desc"   Modify an existing spec from natural language
 ```
+
+### Natural Language Generation (Layer 0)
+
+`intent generate` translates plain English into validated `.intent` specs:
+
+```bash
+intent generate "I want a task tracker with priorities and assignments"
+intent generate --confidence 2 "patient records system"
+intent generate --edit cart.intent "add discount codes"
+intent generate --model gpt-4o --out hello.intent "greeting service"
+```
+
+Configure via environment variables: `AI_API_KEY`, `AI_API_BASE` (endpoint URL), `AI_MODEL` (default model). Works with any OpenAI-compatible API provider.
 
 ### Semantic Analysis
 
@@ -211,29 +230,21 @@ intent render-html examples/transfer.intent > transfer.html
 
 ## Project Status
 
-**Current release: [v0.4.0-alpha.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.4.0-alpha.1)** — Phase 4 complete.
+**Current release: [v0.4.0-alpha.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.4.0-alpha.1)** — Phase 5 in progress.
 
-Phase 1 (complete):
-- PEG grammar via [pest](https://pest.rs/) with typed AST and source spans
-- Six-pass semantic checker with diagnostic error reporting
-- Markdown and self-contained HTML renderers
+Phase 1 (complete): PEG grammar, typed AST, six-pass semantic checker, Markdown/HTML renderers.
 
-Phase 2 (complete):
-- AST → Agent IR lowering with `SourceTrace` on every node
-- Structural verification and coherence analysis (verification obligations)
-- CLI: `compile`, `verify`
+Phase 2 (complete): AST → Agent IR lowering, structural verification, coherence analysis.
 
-Phase 3 (complete):
-- Audit trace maps: spec items → IR constructs with source lines
-- Coverage summaries and spec-level diffs between versions
-- CLI: `audit`, `coverage`, `diff`
+Phase 3 (complete): Audit trace maps, coverage summaries, spec-level diffs.
 
-Phase 4 (complete):
-- Agent API: JSON output (`--output json`), structured queries (`query`)
-- Incremental verification with per-item caching (`verify --incremental`)
-- Multi-agent collaboration: spec-item locking (`lock`, `unlock`, `status`)
+Phase 4 (complete): Agent API, incremental verification, multi-agent collaboration.
 
-112 tests across parser, checker, and IR modules.
+Phase 5 (in progress):
+- Language polish: `fmt`, `init`, `completions`
+- Natural language generation: `intent generate` — translate plain English to validated `.intent` specs (Layer 0)
+
+116 tests across parser, checker, and IR modules.
 
 Long-term: IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. See the [self-hosting roadmap](CLAUDE.md) for details.
 
@@ -244,10 +255,11 @@ intent-cli ──→ intent-parser ←── grammar/intent.pest
     │              ↑
     ├──→ intent-check
     ├──→ intent-render
-    └──→ intent-ir (lowering, verification, audit)
+    ├──→ intent-ir (lowering, verification, audit)
+    └──→ intent-gen (NL → .intent, Layer 0)
 ```
 
-Five crates in a Cargo workspace. The parser produces a typed AST; the checker validates it; the renderer formats it; the IR crate lowers to a typed intermediate representation with verification, coherence analysis, and audit bridge. The CLI wires them together. See [`AGENTS.md`](AGENTS.md) for architecture details and [`docs/SPEC.md`](docs/SPEC.md) for the full language design.
+Six crates in a Cargo workspace. The parser produces a typed AST; the checker validates it; the renderer formats it; the IR crate lowers to a typed intermediate representation with verification, coherence analysis, and audit bridge; the gen crate translates natural language to `.intent` specs via LLM. The CLI wires them together. See [`AGENTS.md`](AGENTS.md) for architecture details and [`docs/SPEC.md`](docs/SPEC.md) for the full language design.
 
 ## Examples
 
