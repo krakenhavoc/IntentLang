@@ -1,0 +1,19 @@
+[package]
+name = "intent-runtime"
+description = "Expression evaluator and stateless runtime for IntentLang specifications"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+intent-ir = { path = "../intent-ir", version = "0.4.0-alpha.1" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tiny_http = "0.12"
+
+[dev-dependencies]
+intent-parser = { path = "../intent-parser", version = "0.4.0-alpha.1" }
