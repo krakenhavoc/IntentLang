@@ -50,6 +50,9 @@ pub fn check_file(file: &ast::File) -> Vec<CheckError> {
     // Pass 5: Check field access on known entity types.
     check_field_access(file, &env, &mut errors);
 
+    // Pass 6: Constraint validation (old() placement, tautological comparisons).
+    errors.extend(crate::constraints::check_constraints(file));
+
     errors
 }
 
