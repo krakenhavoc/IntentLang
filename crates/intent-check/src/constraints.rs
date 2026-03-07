@@ -52,42 +52,10 @@ pub fn check_constraints(file: &ast::File) -> Vec<CheckError> {
 
 /// Walk an expression tree looking for `old()` calls in requires context.
 fn walk_for_old_in_requires(expr: &ast::Expr, errors: &mut Vec<CheckError>) {
-    match &expr.kind {
-        ExprKind::Old(inner) => {
-            errors.push(CheckError::old_in_requires(expr.span));
-            walk_for_old_in_requires(inner, errors);
-        }
-        ExprKind::Implies(a, b)
-        | ExprKind::Or(a, b)
-        | ExprKind::And(a, b)
-        | ExprKind::Compare { left: a, right: b, .. }
-        | ExprKind::Arithmetic { left: a, right: b, .. } => {
-            walk_for_old_in_requires(a, errors);
-            walk_for_old_in_requires(b, errors);
-        }
-        ExprKind::Not(inner) => {
-            walk_for_old_in_requires(inner, errors);
-        }
-        ExprKind::Call { args, .. } => {
-            for arg in args {
-                match arg {
-                    ast::CallArg::Named { value, .. } => {
-                        walk_for_old_in_requires(value, errors);
-                    }
-                    ast::CallArg::Positional(e) => {
-                        walk_for_old_in_requires(e, errors);
-                    }
-                }
-            }
-        }
-        ExprKind::FieldAccess { root, .. } => {
-            walk_for_old_in_requires(root, errors);
-        }
-        ExprKind::Quantifier { body, .. } => {
-            walk_for_old_in_requires(body, errors);
-        }
-        ExprKind::Ident(_) | ExprKind::Literal(_) => {}
+    if matches!(&expr.kind, ExprKind::Old(_)) {
+        errors.push(CheckError::old_in_requires(expr.span));
     }
+    expr.for_each_child(|child| walk_for_old_in_requires(child, errors));
 }
 
 /// Extract a path from a simple expression (ident or field access chain).
@@ -106,53 +74,19 @@ fn expr_to_path(expr: &ast::Expr) -> Option<Vec<String>> {
 
 /// Walk an expression tree looking for tautological self-comparisons.
 fn walk_for_tautological(expr: &ast::Expr, errors: &mut Vec<CheckError>) {
-    match &expr.kind {
-        ExprKind::Compare { left, op, right } => {
-            if let (Some(left_path), Some(right_path)) =
-                (expr_to_path(left), expr_to_path(right))
-            {
-                if left_path == right_path {
-                    let path_str = left_path.join(".");
-                    let result = match op {
-                        CmpOp::Eq | CmpOp::Le | CmpOp::Ge => "true",
-                        CmpOp::Ne | CmpOp::Lt | CmpOp::Gt => "false",
-                    };
-                    errors.push(CheckError::tautological_comparison(
-                        &path_str, result, expr.span,
-                    ));
-                }
-            }
-            walk_for_tautological(left, errors);
-            walk_for_tautological(right, errors);
-        }
-        ExprKind::Implies(a, b)
-        | ExprKind::Or(a, b)
-        | ExprKind::And(a, b)
-        | ExprKind::Arithmetic { left: a, right: b, .. } => {
-            walk_for_tautological(a, errors);
-            walk_for_tautological(b, errors);
-        }
-        ExprKind::Not(inner) | ExprKind::Old(inner) => {
-            walk_for_tautological(inner, errors);
-        }
-        ExprKind::Call { args, .. } => {
-            for arg in args {
-                match arg {
-                    ast::CallArg::Named { value, .. } => {
-                        walk_for_tautological(value, errors);
-                    }
-                    ast::CallArg::Positional(e) => {
-                        walk_for_tautological(e, errors);
-                    }
-                }
-            }
-        }
-        ExprKind::FieldAccess { root, .. } => {
-            walk_for_tautological(root, errors);
-        }
-        ExprKind::Quantifier { body, .. } => {
-            walk_for_tautological(body, errors);
-        }
-        ExprKind::Ident(_) | ExprKind::Literal(_) => {}
+    if let ExprKind::Compare { left, op, right } = &expr.kind
+        && let (Some(left_path), Some(right_path)) =
+            (expr_to_path(left), expr_to_path(right))
+        && left_path == right_path
+    {
+        let path_str = left_path.join(".");
+        let result = match op {
+            CmpOp::Eq | CmpOp::Le | CmpOp::Ge => "true",
+            CmpOp::Ne | CmpOp::Lt | CmpOp::Gt => "false",
+        };
+        errors.push(CheckError::tautological_comparison(
+            &path_str, result, expr.span,
+        ));
     }
+    expr.for_each_child(|child| walk_for_tautological(child, errors));
 }

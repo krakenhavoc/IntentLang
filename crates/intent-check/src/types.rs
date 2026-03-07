@@ -248,7 +248,7 @@ fn check_edge_case_actions(file: &ast::File, env: &TypeEnv, errors: &mut Vec<Che
                 let is_defined_action_name = name
                     .chars()
                     .next()
-                    .map_or(false, |c| c.is_uppercase());
+                    .is_some_and(|c| c.is_uppercase());
                 if is_defined_action_name && !env.actions.contains_key(name) {
                     errors.push(CheckError::undefined_edge_action(
                         name,
@@ -269,10 +269,10 @@ fn check_field_access(file: &ast::File, env: &TypeEnv, errors: &mut Vec<CheckErr
             // Build param -> entity type map for this action
             let mut param_types: HashMap<String, String> = HashMap::new();
             for param in &action.params {
-                if let ast::TypeKind::Simple(type_name) = &param.ty.ty {
-                    if env.entities.contains_key(type_name) {
-                        param_types.insert(param.name.clone(), type_name.clone());
-                    }
+                if let ast::TypeKind::Simple(type_name) = &param.ty.ty
+                    && env.entities.contains_key(type_name)
+                {
+                    param_types.insert(param.name.clone(), type_name.clone());
                 }
             }
             if param_types.is_empty() {
@@ -309,99 +309,31 @@ fn walk_expr_field_access(
     env: &TypeEnv,
     errors: &mut Vec<CheckError>,
 ) {
-    match &expr.kind {
-        ast::ExprKind::FieldAccess { root, fields } => {
-            // Check if root is an ident that maps to a known entity param
-            if let ast::ExprKind::Ident(name) = &root.kind {
-                if let Some(entity_name) = param_types.get(name) {
-                    if let Some((_, entity_fields)) = env.entities.get(entity_name) {
-                        // Check the first field in the access chain
-                        if let Some(first_field) = fields.first() {
-                            let known: Vec<&str> =
-                                entity_fields.iter().map(|(n, _)| n.as_str()).collect();
-                            if !known.contains(&first_field.as_str()) {
-                                errors.push(CheckError::unknown_field(
-                                    first_field,
-                                    entity_name,
-                                    expr.span,
-                                ));
-                            }
-                        }
-                    }
-                }
-            }
-            // Also recurse into root in case it's a complex expression
-            walk_expr_field_access(root, param_types, env, errors);
+    if let ast::ExprKind::FieldAccess { root, fields } = &expr.kind
+        && let ast::ExprKind::Ident(name) = &root.kind
+        && let Some(entity_name) = param_types.get(name)
+        && let Some((_, entity_fields)) = env.entities.get(entity_name)
+        && let Some(first_field) = fields.first()
+    {
+        let known = entity_fields.iter().any(|(n, _)| n == first_field);
+        if !known {
+            errors.push(CheckError::unknown_field(
+                first_field,
+                entity_name,
+                expr.span,
+            ));
         }
-        ast::ExprKind::Old(inner) => {
-            walk_expr_field_access(inner, param_types, env, errors);
-        }
-        ast::ExprKind::Implies(a, b)
-        | ast::ExprKind::Or(a, b)
-        | ast::ExprKind::And(a, b)
-        | ast::ExprKind::Compare { left: a, right: b, .. }
-        | ast::ExprKind::Arithmetic { left: a, right: b, .. } => {
-            walk_expr_field_access(a, param_types, env, errors);
-            walk_expr_field_access(b, param_types, env, errors);
-        }
-        ast::ExprKind::Not(inner) => {
-            walk_expr_field_access(inner, param_types, env, errors);
-        }
-        ast::ExprKind::Call { args, .. } => {
-            for arg in args {
-                match arg {
-                    ast::CallArg::Named { value, .. } => {
-                        walk_expr_field_access(value, param_types, env, errors);
-                    }
-                    ast::CallArg::Positional(e) => {
-                        walk_expr_field_access(e, param_types, env, errors);
-                    }
-                }
-            }
-        }
-        ast::ExprKind::Quantifier { body, .. } => {
-            walk_expr_field_access(body, param_types, env, errors);
-        }
-        ast::ExprKind::Ident(_) | ast::ExprKind::Literal(_) => {}
     }
+    expr.for_each_child(|child| walk_expr_field_access(child, param_types, env, errors));
 }
 
 /// Recursively walk an expression tree checking quantifier binding types.
 fn walk_expr_quantifiers(expr: &ast::Expr, env: &TypeEnv, errors: &mut Vec<CheckError>) {
-    match &expr.kind {
-        ast::ExprKind::Quantifier { ty, body, .. } => {
-            // The type in `forall x: T` must be an entity or action name.
-            if !env.entities.contains_key(ty.as_str())
-                && !env.actions.contains_key(ty.as_str())
-            {
-                errors.push(CheckError::undefined_quantifier_type(ty, expr.span));
-            }
-            walk_expr_quantifiers(body, env, errors);
-        }
-        ast::ExprKind::Implies(a, b)
-        | ast::ExprKind::Or(a, b)
-        | ast::ExprKind::And(a, b)
-        | ast::ExprKind::Compare { left: a, right: b, .. }
-        | ast::ExprKind::Arithmetic { left: a, right: b, .. } => {
-            walk_expr_quantifiers(a, env, errors);
-            walk_expr_quantifiers(b, env, errors);
-        }
-        ast::ExprKind::Not(inner) | ast::ExprKind::Old(inner) => {
-            walk_expr_quantifiers(inner, env, errors);
-        }
-        ast::ExprKind::Call { args, .. } => {
-            for arg in args {
-                match arg {
-                    ast::CallArg::Named { value, .. } => {
-                        walk_expr_quantifiers(value, env, errors);
-                    }
-                    ast::CallArg::Positional(e) => walk_expr_quantifiers(e, env, errors),
-                }
-            }
-        }
-        ast::ExprKind::FieldAccess { root, .. } => {
-            walk_expr_quantifiers(root, env, errors);
-        }
-        ast::ExprKind::Ident(_) | ast::ExprKind::Literal(_) => {}
+    if let ast::ExprKind::Quantifier { ty, .. } = &expr.kind
+        && !env.entities.contains_key(ty.as_str())
+        && !env.actions.contains_key(ty.as_str())
+    {
+        errors.push(CheckError::undefined_quantifier_type(ty, expr.span));
     }
+    expr.for_each_child(|child| walk_expr_quantifiers(child, env, errors));
 }

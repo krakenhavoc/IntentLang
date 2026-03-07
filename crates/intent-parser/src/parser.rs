@@ -128,7 +128,7 @@ fn humanize_expected_rules(rules: &[Rule]) -> (String, String, Option<String>) {
 pub fn parse_file(source: &str) -> Result<File, ParseError> {
     let pairs = IntentParser::parse(Rule::file, source)?;
     let pair = pairs.into_iter().next().unwrap();
-    Ok(build_file(pair, source))
+    Ok(build_file(pair))
 }
 
 // ── Builders ─────────────────────────────────────────────────
@@ -142,7 +142,7 @@ fn span_of(pair: &pest::iterators::Pair<'_, Rule>) -> Span {
     }
 }
 
-fn build_file(pair: pest::iterators::Pair<'_, Rule>, _source: &str) -> File {
+fn build_file(pair: pest::iterators::Pair<'_, Rule>) -> File {
     let span = span_of(&pair);
     let mut inner = pair.into_inner();
 
@@ -183,17 +183,11 @@ fn build_doc_block(pair: pest::iterators::Pair<'_, Rule>) -> DocBlock {
         .into_inner()
         .map(|p| {
             let text = p.as_str();
-            // Strip leading "---" and trailing newline, trim leading space
-            text.strip_prefix("---")
+            let content = text
+                .strip_prefix("---")
                 .unwrap_or(text)
-                .trim_end_matches('\n')
-                .strip_prefix(' ')
-                .unwrap_or(
-                    text.strip_prefix("---")
-                        .unwrap_or(text)
-                        .trim_end_matches('\n'),
-                )
-                .to_string()
+                .trim_end_matches('\n');
+            content.strip_prefix(' ').unwrap_or(content).to_string()
         })
         .collect();
     DocBlock { lines, span }
@@ -243,7 +237,7 @@ fn build_action_decl(pair: pest::iterators::Pair<'_, Rule>) -> ActionDecl {
         match p.as_rule() {
             Rule::doc_block => doc = Some(build_doc_block(p)),
             Rule::type_ident => name = p.as_str().to_string(),
-            Rule::param_decl => params.push(build_field_decl_from_param(p)),
+            Rule::param_decl => params.push(build_field_decl(p)),
             Rule::requires_block => requires = Some(build_requires_block(p)),
             Rule::ensures_block => ensures = Some(build_ensures_block(p)),
             Rule::properties_block => properties = Some(build_properties_block(p)),
@@ -260,14 +254,6 @@ fn build_action_decl(pair: pest::iterators::Pair<'_, Rule>) -> ActionDecl {
         properties,
         span,
     }
-}
-
-fn build_field_decl_from_param(pair: pest::iterators::Pair<'_, Rule>) -> FieldDecl {
-    let span = span_of(&pair);
-    let mut inner = pair.into_inner();
-    let name = inner.next().unwrap().as_str().to_string();
-    let ty = build_type_expr(inner.next().unwrap());
-    FieldDecl { name, ty, span }
 }
 
 fn build_requires_block(pair: pest::iterators::Pair<'_, Rule>) -> RequiresBlock {
@@ -485,7 +471,6 @@ fn build_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
 }
 
 fn build_implies_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
-    let span = span_of(&pair);
     let mut parts: Vec<pest::iterators::Pair<'_, Rule>> = Vec::new();
 
     for p in pair.into_inner() {
@@ -507,14 +492,7 @@ fn build_implies_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
             span: new_span,
         };
     }
-    if result.span.start == 0 && result.span.end == 0 {
-        Expr {
-            kind: result.kind,
-            span,
-        }
-    } else {
-        result
-    }
+    result
 }
 
 fn build_or_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
@@ -547,14 +525,7 @@ fn build_or_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
             span: new_span,
         };
     }
-    if result.span.start == 0 && result.span.end == 0 {
-        Expr {
-            kind: result.kind,
-            span,
-        }
-    } else {
-        result
-    }
+    result
 }
 
 fn build_and_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
@@ -587,14 +558,7 @@ fn build_and_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
             span: new_span,
         };
     }
-    if result.span.start == 0 && result.span.end == 0 {
-        Expr {
-            kind: result.kind,
-            span,
-        }
-    } else {
-        result
-    }
+    result
 }
 
 fn build_not_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
@@ -651,7 +615,6 @@ fn build_cmp_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
 }
 
 fn build_add_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
-    let span = span_of(&pair);
     let mut children: Vec<pest::iterators::Pair<'_, Rule>> = pair.into_inner().collect();
 
     if children.len() == 1 {
@@ -683,14 +646,7 @@ fn build_add_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
         };
     }
 
-    if result.span.start == 0 && result.span.end == 0 {
-        Expr {
-            kind: result.kind,
-            span,
-        }
-    } else {
-        result
-    }
+    result
 }
 
 fn build_primary(pair: pest::iterators::Pair<'_, Rule>) -> Expr {

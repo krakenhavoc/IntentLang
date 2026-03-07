@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
 
 use clap::{Parser, Subcommand};
@@ -31,7 +31,7 @@ enum Commands {
     },
 }
 
-fn read_source(file: &PathBuf) -> String {
+fn read_source(file: &Path) -> String {
     match fs::read_to_string(file) {
         Ok(s) => s,
         Err(e) => {
@@ -41,7 +41,7 @@ fn read_source(file: &PathBuf) -> String {
     }
 }
 
-fn parse_or_exit(source: &str, file: &PathBuf) -> intent_parser::ast::File {
+fn parse_or_exit(source: &str, file: &Path) -> intent_parser::ast::File {
     match intent_parser::parse_file(source) {
         Ok(ast) => ast,
         Err(e) => {
