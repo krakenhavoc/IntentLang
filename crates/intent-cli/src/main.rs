@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::process;
 
 use clap::{Parser, Subcommand};
+use miette::{GraphicalReportHandler, GraphicalTheme};
 
 #[derive(Parser)]
 #[command(name = "intent", version, about = "IntentLang specification toolchain")]
@@ -30,26 +31,38 @@ enum Commands {
     },
 }
 
+fn read_source(file: &PathBuf) -> String {
+    match fs::read_to_string(file) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("error: could not read {}: {}", file.display(), e);
+            process::exit(1);
+        }
+    }
+}
+
+fn parse_or_exit(source: &str, file: &PathBuf) -> intent_parser::ast::File {
+    match intent_parser::parse_file(source) {
+        Ok(ast) => ast,
+        Err(e) => {
+            let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
+            let mut buf = String::new();
+            let report = miette::Report::new(e).with_source_code(source.to_string());
+            handler.render_report(&mut buf, report.as_ref()).ok();
+            eprint!("{buf}");
+            eprintln!("1 error(s) in {}", file.display());
+            process::exit(1);
+        }
+    }
+}
+
 fn main() {
     let cli = Cli::parse();
 
     match cli.command {
         Commands::Check { file } => {
-            let source = match fs::read_to_string(&file) {
-                Ok(s) => s,
-                Err(e) => {
-                    eprintln!("error: could not read {}: {}", file.display(), e);
-                    process::exit(1);
-                }
-            };
-
-            let ast = match intent_parser::parse_file(&source) {
-                Ok(ast) => ast,
-                Err(e) => {
-                    eprintln!("{}", e);
-                    process::exit(1);
-                }
-            };
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
 
             let errors = intent_check::check_file(&ast);
             if errors.is_empty() {
@@ -59,7 +72,6 @@ fn main() {
                     ast.items.len()
                 );
             } else {
-                use miette::{GraphicalReportHandler, GraphicalTheme};
                 let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
                 for err in &errors {
                     let mut buf = String::new();
@@ -77,44 +89,16 @@ fn main() {
             }
         }
         Commands::Render { file } => {
-            let source = match fs::read_to_string(&file) {
-                Ok(s) => s,
-                Err(e) => {
-                    eprintln!("error: could not read {}: {}", file.display(), e);
-                    process::exit(1);
-                }
-            };
-
-            match intent_parser::parse_file(&source) {
-                Ok(ast) => {
-                    let md = intent_render::markdown::render(&ast);
-                    print!("{}", md);
-                }
-                Err(e) => {
-                    eprintln!("{}", e);
-                    process::exit(1);
-                }
-            }
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+            let md = intent_render::markdown::render(&ast);
+            print!("{}", md);
         }
         Commands::RenderHtml { file } => {
-            let source = match fs::read_to_string(&file) {
-                Ok(s) => s,
-                Err(e) => {
-                    eprintln!("error: could not read {}: {}", file.display(), e);
-                    process::exit(1);
-                }
-            };
-
-            match intent_parser::parse_file(&source) {
-                Ok(ast) => {
-                    let html = intent_render::html::render(&ast);
-                    print!("{}", html);
-                }
-                Err(e) => {
-                    eprintln!("{}", e);
-                    process::exit(1);
-                }
-            }
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+            let html = intent_render::html::render(&ast);
+            print!("{}", html);
         }
     }
 }

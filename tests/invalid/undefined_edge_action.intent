@@ -1,0 +1,19 @@
+module Test
+
+entity Account {
+  id: UUID
+  balance: Decimal(precision: 2)
+}
+
+action Transfer {
+  from: Account
+  amount: Decimal(precision: 2)
+
+  requires {
+    amount > 0
+  }
+}
+
+edge_cases {
+  when amount > 10000 => RequireApproval(level: "manager")
+}

@@ -14,11 +14,114 @@ use crate::ast::*;
 #[grammar = "../../grammar/intent.pest"]
 pub struct IntentParser;
 
-/// Parse error type wrapping pest's error with our span information.
-#[derive(Debug, thiserror::Error)]
-pub enum ParseError {
-    #[error("{0}")]
-    Grammar(#[from] pest::error::Error<Rule>),
+/// Parse error with human-readable message and source location.
+#[derive(Debug, thiserror::Error, miette::Diagnostic, Clone)]
+#[error("{message}")]
+#[diagnostic(code(intent::parse::syntax_error))]
+pub struct ParseError {
+    pub message: String,
+    #[label("{label}")]
+    pub span: miette::SourceSpan,
+    pub label: String,
+    #[help]
+    pub help: Option<String>,
+}
+
+impl From<pest::error::Error<Rule>> for ParseError {
+    fn from(err: pest::error::Error<Rule>) -> Self {
+        humanize_pest_error(err)
+    }
+}
+
+/// Convert a pest error into a human-readable ParseError with helpful messages.
+fn humanize_pest_error(err: pest::error::Error<Rule>) -> ParseError {
+    let (offset, len) = match err.location {
+        pest::error::InputLocation::Pos(p) => (p, 1),
+        pest::error::InputLocation::Span((s, e)) => (s, e - s),
+    };
+    let span: miette::SourceSpan = (offset, len).into();
+
+    // Extract the expected rules from the pest error variant
+    let (message, label, help) = match &err.variant {
+        pest::error::ErrorVariant::ParsingError { positives, .. } => {
+            humanize_expected_rules(positives)
+        }
+        pest::error::ErrorVariant::CustomError { message } => {
+            (message.clone(), "here".to_string(), None)
+        }
+    };
+
+    ParseError {
+        message,
+        span,
+        label,
+        help,
+    }
+}
+
+/// Map pest rule names to human-readable error messages.
+fn humanize_expected_rules(rules: &[Rule]) -> (String, String, Option<String>) {
+    // Check for common patterns in what was expected
+    let rule_set: std::collections::HashSet<&Rule> = rules.iter().collect();
+
+    if rule_set.contains(&Rule::module_decl) {
+        return (
+            "missing module declaration".to_string(),
+            "expected `module ModuleName`".to_string(),
+            Some("every .intent file must start with `module ModuleName`".to_string()),
+        );
+    }
+
+    if rule_set.contains(&Rule::union_type) || rule_set.contains(&Rule::simple_type) {
+        return (
+            "invalid type".to_string(),
+            "expected a type".to_string(),
+            Some("types must start with an uppercase letter (e.g., String, UUID, MyEntity)".to_string()),
+        );
+    }
+
+    if rule_set.contains(&Rule::optional_marker) && rule_set.contains(&Rule::ident) {
+        return (
+            "unexpected end of block".to_string(),
+            "expected a field declaration or `}`".to_string(),
+            Some("check for unclosed braces or missing field declarations".to_string()),
+        );
+    }
+
+    if rule_set.contains(&Rule::field_decl) || rule_set.contains(&Rule::param_decl) {
+        return (
+            "expected a field or parameter declaration".to_string(),
+            "expected `name: Type`".to_string(),
+            Some("fields are declared as `name: Type` (e.g., `email: String`)".to_string()),
+        );
+    }
+
+    if rule_set.contains(&Rule::EOI) {
+        return (
+            "unexpected content after end of file".to_string(),
+            "unexpected token".to_string(),
+            Some("check for extra text or unclosed blocks".to_string()),
+        );
+    }
+
+    // Fallback: format the rule names
+    let names: Vec<String> = rules
+        .iter()
+        .filter(|r| !matches!(r, Rule::WHITESPACE | Rule::COMMENT | Rule::EOI))
+        .map(|r| format!("`{:?}`", r))
+        .collect();
+
+    let msg = if names.is_empty() {
+        "syntax error".to_string()
+    } else {
+        format!("expected {}", names.join(" or "))
+    };
+
+    (
+        "syntax error".to_string(),
+        msg,
+        None,
+    )
 }
 
 /// Parse a complete `.intent` source string into an AST [`File`].

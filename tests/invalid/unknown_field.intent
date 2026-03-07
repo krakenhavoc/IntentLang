@@ -1,0 +1,16 @@
+module Test
+
+entity Account {
+  id: UUID
+  balance: Decimal(precision: 2)
+  status: Active | Frozen
+}
+
+action Transfer {
+  from: Account
+  amount: Decimal(precision: 2)
+
+  requires {
+    from.credit_limit > amount
+  }
+}

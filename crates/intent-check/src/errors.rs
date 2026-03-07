@@ -80,6 +80,29 @@ pub enum CheckError {
         #[label("used here")]
         span: SourceSpan,
     },
+
+    #[error("undefined action `{name}` in edge case")]
+    #[diagnostic(
+        code(intent::check::undefined_edge_action),
+        help("define an action named `{name}`, or use the name of an existing action")
+    )]
+    UndefinedEdgeAction {
+        name: String,
+        #[label("called here")]
+        span: SourceSpan,
+    },
+
+    #[error("unknown field `{field}` on entity `{entity}`")]
+    #[diagnostic(
+        code(intent::check::unknown_field),
+        help("`{entity}` has no field named `{field}`")
+    )]
+    UnknownField {
+        field: String,
+        entity: String,
+        #[label("accessed here")]
+        span: SourceSpan,
+    },
 }
 
 impl CheckError {
@@ -126,6 +149,21 @@ impl CheckError {
     pub fn undefined_quantifier_type(name: &str, span: Span) -> Self {
         Self::UndefinedQuantifierType {
             name: name.to_string(),
+            span: to_source_span(span),
+        }
+    }
+
+    pub fn undefined_edge_action(name: &str, span: Span) -> Self {
+        Self::UndefinedEdgeAction {
+            name: name.to_string(),
+            span: to_source_span(span),
+        }
+    }
+
+    pub fn unknown_field(field: &str, entity: &str, span: Span) -> Self {
+        Self::UnknownField {
+            field: field.to_string(),
+            entity: entity.to_string(),
             span: to_source_span(span),
         }
     }
