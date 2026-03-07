@@ -119,6 +119,29 @@ enum Commands {
         /// Shell to generate completions for
         shell: Shell,
     },
+    /// Generate an .intent spec from a natural language description
+    Generate {
+        /// Natural language description of the spec to generate
+        description: String,
+        /// Confidence level 1-5 (higher = agent assumes more)
+        #[arg(long, default_value = "3")]
+        confidence: u8,
+        /// Maximum validation retries
+        #[arg(long, default_value = "2")]
+        max_retries: u32,
+        /// LLM model override (default: AI_MODEL env var or gpt-4o)
+        #[arg(long)]
+        model: Option<String>,
+        /// Write output to file instead of stdout
+        #[arg(short = 'o', long = "out")]
+        out: Option<PathBuf>,
+        /// Edit an existing spec file with the given description
+        #[arg(long)]
+        edit: Option<PathBuf>,
+        /// Show diff when editing (instead of full output)
+        #[arg(long)]
+        diff: bool,
+    },
     /// Initialize a new .intent spec file
     Init {
         /// Module name (defaults to directory name)
@@ -638,6 +661,77 @@ fn main() {
         Commands::Completions { shell } => {
             clap_complete::generate(shell, &mut Cli::command(), "intent", &mut std::io::stdout());
         }
+        Commands::Generate {
+            description,
+            confidence,
+            max_retries,
+            model,
+            out,
+            edit,
+            diff,
+        } => {
+            let client = match intent_gen::LlmClient::from_env() {
+                Ok(c) => c,
+                Err(e) => {
+                    eprintln!("error: {e}");
+                    eprintln!(
+                        "hint: set AI_API_KEY (and optionally AI_API_BASE, AI_MODEL) environment variables"
+                    );
+                    process::exit(1);
+                }
+            };
+            let client = if let Some(m) = model {
+                client.with_model(m)
+            } else {
+                client
+            };
+
+            let mut options = intent_gen::GenerateOptions {
+                max_retries,
+                confidence,
+                ..Default::default()
+            };
+
+            if let Some(edit_path) = &edit {
+                let existing = read_source(edit_path);
+                options.existing_spec = Some(existing.clone());
+                options.edit_instruction = Some(description.clone());
+
+                match intent_gen::generate(&client, &description, &options) {
+                    Ok(spec) => {
+                        if diff {
+                            print_diff(&existing, &spec);
+                        } else if let Some(out_path) = out {
+                            write_or_exit(&out_path, &spec);
+                            println!("Generated spec written to {}", out_path.display());
+                        } else {
+                            // Write back to the edited file
+                            write_or_exit(edit_path, &spec);
+                            println!("Updated {}", edit_path.display());
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("error: {e}");
+                        process::exit(1);
+                    }
+                }
+            } else {
+                match intent_gen::generate(&client, &description, &options) {
+                    Ok(spec) => {
+                        if let Some(out_path) = out {
+                            write_or_exit(&out_path, &spec);
+                            println!("Generated spec written to {}", out_path.display());
+                        } else {
+                            print!("{}", spec);
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("error: {e}");
+                        process::exit(1);
+                    }
+                }
+            }
+        }
         Commands::Init { name, out } => {
             let module_name = name.unwrap_or_else(|| {
                 std::env::current_dir()
@@ -747,6 +841,25 @@ fn capitalize(s: &str) -> String {
     match chars.next() {
         None => String::new(),
         Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
+    }
+}
+
+fn write_or_exit(path: &Path, content: &str) {
+    if let Err(e) = fs::write(path, content) {
+        eprintln!("error: could not write {}: {}", path.display(), e);
+        process::exit(1);
+    }
+}
+
+fn print_diff(old: &str, new: &str) {
+    use similar::{ChangeTag, TextDiff};
+    let diff = TextDiff::from_lines(old, new);
+    for change in diff.iter_all_changes() {
+        match change.tag() {
+            ChangeTag::Delete => print!("-{change}"),
+            ChangeTag::Insert => print!("+{change}"),
+            ChangeTag::Equal => print!(" {change}"),
+        }
     }
 }
 
