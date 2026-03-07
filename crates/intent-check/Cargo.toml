@@ -9,6 +9,6 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-intent-parser = { path = "../intent-parser" }
+intent-parser = { path = "../intent-parser", version = "0.1.0" }
 miette.workspace = true
 thiserror.workspace = true

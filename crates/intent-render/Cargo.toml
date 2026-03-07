@@ -9,4 +9,4 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-intent-parser = { path = "../intent-parser" }
+intent-parser = { path = "../intent-parser", version = "0.1.0" }

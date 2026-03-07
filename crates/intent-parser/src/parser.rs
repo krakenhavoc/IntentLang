@@ -11,7 +11,7 @@ use crate::ast::*;
 /// The pest-generated parser. Grammar is loaded at compile time from the
 /// workspace-relative path.
 #[derive(Parser)]
-#[grammar = "../../grammar/intent.pest"]
+#[grammar = "src/intent.pest"]
 pub struct IntentParser;
 
 /// Parse error with human-readable message and source location.

@@ -13,10 +13,10 @@ name = "intent"
 path = "src/main.rs"
 
 [dependencies]
-intent-parser = { path = "../intent-parser" }
-intent-check = { path = "../intent-check" }
-intent-render = { path = "../intent-render" }
-intent-ir = { path = "../intent-ir" }
+intent-parser = { path = "../intent-parser", version = "0.1.0" }
+intent-check = { path = "../intent-check", version = "0.1.0" }
+intent-render = { path = "../intent-render", version = "0.1.0" }
+intent-ir = { path = "../intent-ir", version = "0.1.0" }
 serde_json.workspace = true
 clap.workspace = true
 miette = { workspace = true, features = ["fancy"] }

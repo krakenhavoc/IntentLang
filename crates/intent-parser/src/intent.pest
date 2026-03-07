@@ -1,0 +1,307 @@
+// intent.pest — PEG grammar for the IntentLang specification language.
+//
+// See docs/SPEC.md § Layer 1 for the full language description.
+// See examples/ for real-world usage of every construct below.
+//
+// Conventions:
+//   - Rules are ordered top-down: file → declarations → types → expressions → atoms.
+//   - Every grammar rule has a comment linking to the SPEC section it implements.
+//   - Silent rules (_{ }) are used for whitespace/comments so they never appear in the AST.
+//   - Atomic rules (@{ }) are used for tokens that must not contain implicit whitespace.
+
+// ─────────────────────────────────────────────────────────────
+// Whitespace & Comments (implicitly inserted between tokens)
+// ─────────────────────────────────────────────────────────────
+
+/// Whitespace: spaces, tabs, carriage returns, newlines.
+/// Pest silently consumes these between every pair of tokens in non-atomic rules.
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+
+/// Single-line comments: // to end of line.
+COMMENT = _{ "//" ~ (!NEWLINE ~ ANY)* }
+
+// ─────────────────────────────────────────────────────────────
+// Top-level structure (SPEC.md § Layer 1: Intent Language)
+// ─────────────────────────────────────────────────────────────
+
+/// A complete `.intent` file: one module declaration, an optional doc block,
+/// and zero or more top-level items.
+file = { SOI ~ module_decl ~ doc_block? ~ top_level_item* ~ EOI }
+
+/// Module declaration — every file begins with `module ModuleName`.
+/// (SPEC.md § Composable Contracts)
+module_decl = { "module" ~ type_ident }
+
+/// A documentation block: one or more `---` lines of natural language.
+/// (SPEC.md § Natural language descriptions via `---` doc blocks)
+doc_block = { doc_line+ }
+
+/// A single doc line. Atomic so whitespace handling doesn't eat the content.
+doc_line = @{ "---" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
+
+/// Any top-level declaration that may appear after the module header.
+top_level_item = _{ entity_decl | action_decl | invariant_decl | edge_cases_decl }
+
+// ─────────────────────────────────────────────────────────────
+// Entity declarations (SPEC.md § entity)
+// ─────────────────────────────────────────────────────────────
+
+/// `entity EntityName { field* }`
+/// Defines a domain object with typed fields.
+entity_decl = { doc_block? ~ "entity" ~ type_ident ~ "{" ~ field_decl* ~ "}" }
+
+/// `field_name: TypeExpr` — a named, typed field within an entity.
+field_decl = { ident ~ ":" ~ type_expr }
+
+// ─────────────────────────────────────────────────────────────
+// Action declarations (SPEC.md § action, requires, ensures, properties)
+// ─────────────────────────────────────────────────────────────
+
+/// `action ActionName { doc? param* requires? ensures? properties? }`
+/// Defines a behavioral operation with pre/postconditions.
+action_decl = {
+    doc_block? ~ "action" ~ type_ident ~ "{"
+    ~ action_doc?
+    ~ param_decl*
+    ~ requires_block?
+    ~ ensures_block?
+    ~ properties_block?
+    ~ "}"
+}
+
+/// Optional doc block inside an action (appears before params).
+action_doc = _{ doc_block }
+
+/// Action parameter — same shape as a field declaration.
+param_decl = { ident ~ ":" ~ type_expr }
+
+/// `requires { condition* }` — preconditions that must hold before execution.
+/// (SPEC.md § requires / ensures — Pre/postcondition blocks)
+requires_block = { "requires" ~ "{" ~ expr* ~ "}" }
+
+/// `ensures { postcondition* }` — postconditions that must hold after execution.
+/// Items can be plain expressions or `when condition => consequence`.
+/// (SPEC.md § requires / ensures, old() references)
+ensures_block = { "ensures" ~ "{" ~ ensures_item* ~ "}" }
+
+/// A single postcondition: either a conditional `when` clause or a bare expression.
+ensures_item = _{ when_clause | expr }
+
+/// `when condition => consequence` — conditional postcondition.
+/// The condition is parsed as `or_expr` (stops before `=>`), so the `=>`
+/// is unambiguously the when-separator, not the implies operator.
+when_clause = { "when" ~ or_expr ~ "=>" ~ expr }
+
+/// `properties { entry* }` — declarative behavioral annotations.
+/// (SPEC.md § properties — Declarative behavioral annotations)
+properties_block = { "properties" ~ "{" ~ prop_entry* ~ "}" }
+
+/// `key: value` within a properties block.
+prop_entry = { ident ~ ":" ~ prop_value }
+
+/// A property value: an object literal, list literal, string, number, bool, or identifier.
+prop_value = _{ obj_literal | list_literal | string_literal | number_literal | bool_literal | ident }
+
+// ─────────────────────────────────────────────────────────────
+// Invariant declarations (SPEC.md § invariant)
+// ─────────────────────────────────────────────────────────────
+
+/// `invariant InvariantName { doc? expr }`
+/// System-wide constraint that must always hold.
+invariant_decl = {
+    doc_block? ~ "invariant" ~ type_ident ~ "{"
+    ~ doc_block?
+    ~ expr
+    ~ "}"
+}
+
+// ─────────────────────────────────────────────────────────────
+// Edge cases block (SPEC.md § edge_cases)
+// ─────────────────────────────────────────────────────────────
+
+/// `edge_cases { rule* }` — explicit handling of boundary conditions.
+edge_cases_decl = { "edge_cases" ~ "{" ~ edge_rule* ~ "}" }
+
+/// `when condition => action(args)` — a single edge case rule.
+/// Like `when_clause`, the condition stops at `or_expr` to avoid `=>` ambiguity.
+edge_rule = { "when" ~ or_expr ~ "=>" ~ edge_action }
+
+/// The right-hand side of an edge rule: a function call like `reject(...)` or `allow(...)`.
+edge_action = { ident ~ "(" ~ call_args? ~ ")" }
+
+// ─────────────────────────────────────────────────────────────
+// Type expressions (SPEC.md § Types)
+// ─────────────────────────────────────────────────────────────
+
+/// Full type expression: a union type optionally followed by `?` for optional.
+/// Examples: `String`, `Active | Frozen | Closed`, `DateTime?`, `List<T>?`
+type_expr = { union_type ~ optional_marker? }
+
+/// `?` suffix marking a type as optional.
+optional_marker = { "?" }
+
+/// One or more base types separated by `|`.
+/// `A | B | C` is a union/enum type.
+union_type = { base_type ~ ("|" ~ base_type)* }
+
+/// A single type: collection generic, parameterized type, or simple named type.
+base_type = _{ list_type | set_type | map_type | parameterized_type | simple_type }
+
+/// `List<T>` — ordered collection.
+list_type = { "List" ~ "<" ~ type_expr ~ ">" }
+
+/// `Set<T>` — unique collection.
+set_type = { "Set" ~ "<" ~ type_expr ~ ">" }
+
+/// `Map<K, V>` — key-value collection.
+map_type = { "Map" ~ "<" ~ type_expr ~ "," ~ type_expr ~ ">" }
+
+/// `TypeName(param: value, ...)` — parameterized type, e.g. `Decimal(precision: 2)`.
+parameterized_type = { type_ident ~ "(" ~ type_param ~ ("," ~ type_param)* ~ ")" }
+
+/// `name: literal` inside a parameterized type.
+type_param = { ident ~ ":" ~ number_literal }
+
+/// A plain named type: `UUID`, `String`, `Int`, `Bool`, `DateTime`, `Email`,
+/// `CurrencyCode`, `URL`, or any user-defined PascalCase type.
+/// Also matches enum variant names like `Active`, `Frozen`, `Completed`.
+simple_type = { type_ident }
+
+// ─────────────────────────────────────────────────────────────
+// Expressions — Operator precedence (lowest → highest)
+//
+//   implies   =>      (right-to-left in quantifier bodies)
+//   or        ||
+//   and       &&
+//   not       !
+//   compare   ==  !=  <  >  <=  >=
+//   additive  +  -
+//   primary   literals, paths, calls, old(), quantifiers, parens
+//
+// (SPEC.md § Operators)
+// ─────────────────────────────────────────────────────────────
+
+/// Top-level expression — starts at the implies precedence level.
+expr = { implies_expr }
+
+/// `a => b` — logical implication. Parsed as `or_expr ("=>" or_expr)*`.
+/// (SPEC.md § Operators — Logical: =>)
+implies_expr = { or_expr ~ (implies_op ~ or_expr)* }
+implies_op   = { "=>" }
+
+/// `a || b` — logical OR.
+or_expr = { and_expr ~ (or_op ~ and_expr)* }
+or_op   = { "||" }
+
+/// `a && b` — logical AND. Can span multiple lines (see auth.intent ensures block).
+and_expr = { not_expr ~ (and_op ~ not_expr)* }
+and_op   = { "&&" }
+
+/// `!a` — logical NOT (prefix). Can be chained: `!!x`.
+/// Falls through to `cmp_expr` for non-negated expressions.
+not_expr = { not_op ~ not_expr | cmp_expr }
+not_op   = { "!" }
+
+/// `a == b`, `a != b`, `a > b`, etc. — comparison (non-associative, at most one operator).
+/// (SPEC.md § Operators — Comparison)
+cmp_expr = { add_expr ~ (cmp_op ~ add_expr)? }
+cmp_op   = { "==" | "!=" | ">=" | "<=" | ">" | "<" }
+
+/// `a + b`, `a - b` — additive arithmetic.
+/// Used in postconditions like `from.balance == old(from.balance) - amount`.
+add_expr = { primary ~ (add_op ~ primary)* }
+add_op   = { "+" | "-" }
+
+// ─────────────────────────────────────────────────────────────
+// Primary expressions
+// ─────────────────────────────────────────────────────────────
+
+/// A primary expression, optionally followed by `.field` access chains.
+/// Putting field access here lets `lookup(User, email).status` work naturally.
+primary = { atom ~ ("." ~ ident)* }
+
+/// The core of a primary expression — ordered so keywords are tried before ident.
+atom = _{
+    old_expr
+    | quantifier_expr
+    | null_literal
+    | bool_literal
+    | number_literal
+    | string_literal
+    | list_literal
+    | paren_expr
+    | call_or_ident
+}
+
+/// `old(expr)` — reference to pre-execution state.
+/// (SPEC.md § old() references)
+old_expr = { "old" ~ "(" ~ expr ~ ")" }
+
+/// `forall x: Type => body` or `exists x: Type => body` — quantified expressions.
+/// The body is a full `expr`, so the quantifier binds everything to its right.
+/// (SPEC.md § Quantifiers: forall, exists)
+quantifier_expr = { quantifier_kw ~ ident ~ ":" ~ type_ident ~ "=>" ~ expr }
+quantifier_kw   = { "forall" | "exists" }
+
+/// Parenthesized sub-expression for explicit grouping.
+paren_expr = { "(" ~ expr ~ ")" }
+
+/// Either a function call `name(args)` or a plain identifier `name`.
+/// The optional `(` disambiguates: if present, it's a call; otherwise, an ident reference.
+/// Examples: `now()`, `lookup(User, email)`, `amount`, `Active`.
+call_or_ident = { ident ~ ("(" ~ call_args? ~ ")")? }
+
+/// Comma-separated call arguments (positional or named).
+call_args = { call_arg ~ ("," ~ call_arg)* }
+
+/// A single argument: either `name: expr` (named) or `expr` (positional).
+/// Named form is tried first; on failure, falls back to positional.
+call_arg = { named_arg | expr }
+
+/// `name: expr` — a named/keyword argument.
+named_arg = { ident ~ ":" ~ expr }
+
+// ─────────────────────────────────────────────────────────────
+// Literals
+// ─────────────────────────────────────────────────────────────
+
+/// `null` — the null/absent value.
+null_literal = @{ "null" ~ !ASCII_ALPHANUMERIC }
+
+/// `true` or `false`.
+bool_literal = @{ ("true" | "false") ~ !ASCII_ALPHANUMERIC }
+
+/// Numeric literal: integer or decimal. Atomic to prevent whitespace insertion.
+/// Examples: `0`, `42`, `10000.00`, `-1`.
+number_literal = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+
+/// String literal: `"..."`. Compound-atomic so inner content is captured.
+string_literal = ${ "\"" ~ string_inner ~ "\"" }
+
+/// The content between string quotes. Supports escaped quotes via `\"`.
+string_inner = @{ (escape_seq | !("\"" | "\\") ~ ANY)* }
+
+/// Escape sequences within strings.
+escape_seq = @{ "\\" ~ ANY }
+
+/// List literal: `[a, b, c]`.
+list_literal = { "[" ~ (expr ~ ("," ~ expr)*)? ~ "]" }
+
+/// Object literal: `{ key: value, ... }`. Used in property values.
+obj_literal = { "{" ~ (obj_field ~ ("," ~ obj_field)*)? ~ "}" }
+
+/// `key: value` inside an object literal.
+obj_field = { ident ~ ":" ~ expr }
+
+// ─────────────────────────────────────────────────────────────
+// Identifiers
+// ─────────────────────────────────────────────────────────────
+
+/// A general identifier: `snake_case`, `camelCase`, or `PascalCase`.
+/// Keywords are context-sensitive in PEG — they are matched by literal strings
+/// in the grammar rules above, so `ident` never needs to exclude them explicitly.
+ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+
+/// A type-position identifier: must start with an uppercase letter.
+/// Used for module names, entity names, action names, type references.
+type_ident = @{ ASCII_ALPHA_UPPER ~ (ASCII_ALPHANUMERIC | "_")* }
