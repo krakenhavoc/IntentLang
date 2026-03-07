@@ -52,12 +52,27 @@ pub(crate) fn generate_with_retry(
     let mut last_errors = Vec::new();
 
     for attempt in 0..=options.max_retries {
+        if attempt == 0 {
+            eprintln!("Generating spec from LLM...");
+        } else {
+            eprintln!(
+                "Retry {}/{}: feeding errors back to LLM...",
+                attempt, options.max_retries
+            );
+        }
         let raw = client.chat(&messages)?;
         let spec = strip_fences(&raw);
 
+        eprintln!("Validating generated spec...");
         match validate_spec(&spec) {
-            Ok(()) => return Ok(spec),
+            Ok(()) => {
+                eprintln!("Validation passed.");
+                return Ok(spec);
+            }
             Err(errors) => {
+                for e in &errors {
+                    eprintln!("  {e}");
+                }
                 last_errors = errors.clone();
 
                 if attempt < options.max_retries {
