@@ -22,6 +22,8 @@ pub struct GenerateOptions {
     pub existing_spec: Option<String>,
     /// Edit instruction (used with existing_spec).
     pub edit_instruction: Option<String>,
+    /// Print raw LLM responses to stderr for debugging.
+    pub debug: bool,
 }
 
 impl Default for GenerateOptions {
@@ -31,6 +33,7 @@ impl Default for GenerateOptions {
             confidence: 3,
             existing_spec: None,
             edit_instruction: None,
+            debug: false,
         }
     }
 }

@@ -61,6 +61,11 @@ pub(crate) fn generate_with_retry(
             );
         }
         let raw = client.chat(&messages)?;
+        if options.debug {
+            eprintln!("--- RAW LLM RESPONSE ---");
+            eprintln!("{raw}");
+            eprintln!("--- END RAW RESPONSE ---");
+        }
         let spec = strip_fences(&raw);
 
         eprintln!("Validating generated spec...");

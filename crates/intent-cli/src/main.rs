@@ -141,6 +141,9 @@ enum Commands {
         /// Show diff when editing (instead of full output)
         #[arg(long)]
         diff: bool,
+        /// Print raw LLM responses to stderr for debugging
+        #[arg(long)]
+        debug: bool,
     },
     /// Serve a spec as a REST API (stateless runtime)
     Serve {
@@ -677,6 +680,7 @@ fn main() {
             out,
             edit,
             diff,
+            debug,
         } => {
             let client = match intent_gen::LlmClient::from_env() {
                 Ok(c) => c,
@@ -697,6 +701,7 @@ fn main() {
             let mut options = intent_gen::GenerateOptions {
                 max_retries,
                 confidence,
+                debug,
                 ..Default::default()
             };
 
