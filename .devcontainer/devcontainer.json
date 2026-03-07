@@ -1,0 +1,21 @@
+{
+  "name": "IntentLang",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": []
+    }
+  },
+  "postCreateCommand": "echo 'IntentLang devcontainer ready.'",
+  "remoteUser": "vscode",
+  "remoteEnv": {
+    "CLAUDE_LOCAL_CONFIG": "${containerWorkspaceFolder}/.claude"
+  }
+}
