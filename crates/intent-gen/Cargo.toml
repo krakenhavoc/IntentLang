@@ -10,8 +10,8 @@ categories = ["development-tools", "compilers"]
 readme = "README.md"
 
 [dependencies]
-intent-parser = { path = "../intent-parser", version = "0.4.0-alpha.1" }
-intent-check = { path = "../intent-check", version = "0.4.0-alpha.1" }
+intent-parser = { path = "../intent-parser", version = "0.5.0-alpha.1" }
+intent-check = { path = "../intent-check", version = "0.5.0-alpha.1" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
