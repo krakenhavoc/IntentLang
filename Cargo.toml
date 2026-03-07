@@ -6,6 +6,7 @@ members = [
     "crates/intent-render",
     "crates/intent-ir",
     "crates/intent-gen",
+    "crates/intent-runtime",
     "crates/intent-cli",
 ]
 

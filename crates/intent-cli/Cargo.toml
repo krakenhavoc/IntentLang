@@ -19,6 +19,7 @@ intent-check = { path = "../intent-check", version = "0.4.0-alpha.1" }
 intent-render = { path = "../intent-render", version = "0.4.0-alpha.1" }
 intent-ir = { path = "../intent-ir", version = "0.4.0-alpha.1" }
 intent-gen = { path = "../intent-gen", version = "0.4.0-alpha.1" }
+intent-runtime = { path = "../intent-runtime", version = "0.4.0-alpha.1" }
 serde.workspace = true
 serde_json.workspace = true
 clap.workspace = true

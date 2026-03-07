@@ -142,6 +142,14 @@ enum Commands {
         #[arg(long)]
         diff: bool,
     },
+    /// Serve a spec as a REST API (stateless runtime)
+    Serve {
+        /// Path to the .intent file
+        file: PathBuf,
+        /// Address to bind to (default: 127.0.0.1:3000)
+        #[arg(long, default_value = "127.0.0.1:3000")]
+        addr: String,
+    },
     /// Initialize a new .intent spec file
     Init {
         /// Module name (defaults to directory name)
@@ -730,6 +738,33 @@ fn main() {
                         process::exit(1);
                     }
                 }
+            }
+        }
+        Commands::Serve { file, addr } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+
+            let check_errors = intent_check::check_file(&ast);
+            if !check_errors.is_empty() {
+                let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
+                for err in &check_errors {
+                    let mut buf = String::new();
+                    let report = miette::Report::new(err.clone()).with_source_code(source.clone());
+                    handler.render_report(&mut buf, report.as_ref()).ok();
+                    eprint!("{buf}");
+                }
+                eprintln!(
+                    "{} error(s) in {} — fix before serving",
+                    check_errors.len(),
+                    file.display()
+                );
+                process::exit(1);
+            }
+
+            let ir = intent_ir::lower_file(&ast);
+            if let Err(e) = intent_runtime::serve(ir, &addr) {
+                eprintln!("error: {e}");
+                process::exit(1);
             }
         }
         Commands::Init { name, out } => {
