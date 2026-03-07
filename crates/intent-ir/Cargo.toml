@@ -1,0 +1,8 @@
+[package]
+name = "intent-ir"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+intent-parser = { path = "../intent-parser" }
+serde.workspace = true

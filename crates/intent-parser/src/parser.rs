@@ -738,10 +738,17 @@ fn build_atom(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
             build_expr(inner)
         }
         Rule::call_or_ident => {
+            // When call_args is empty (e.g., `now()`), pest produces no inner
+            // pairs for the parens. Check the raw text for `(` to distinguish
+            // zero-arg calls from plain identifiers.
+            let text = pair.as_str();
             let mut inner = pair.into_inner();
             let name = inner.next().unwrap().as_str().to_string();
-            if let Some(args_pair) = inner.next() {
-                let args = args_pair.into_inner().map(build_call_arg).collect();
+            if text.contains('(') {
+                let args = inner
+                    .next()
+                    .map(|args_pair| args_pair.into_inner().map(build_call_arg).collect())
+                    .unwrap_or_default();
                 Expr {
                     kind: ExprKind::Call { name, args },
                     span,
