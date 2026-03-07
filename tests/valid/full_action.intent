@@ -1,0 +1,38 @@
+module FullAction
+
+entity Account {
+  id: UUID
+  balance: Decimal(precision: 2)
+  status: Active | Frozen
+}
+
+action Withdraw {
+  --- Withdraw funds from an account.
+  account: Account
+  amount: Decimal(precision: 2)
+
+  requires {
+    account.status == Active
+    amount > 0
+    account.balance >= amount
+  }
+
+  ensures {
+    account.balance == old(account.balance) - amount
+  }
+
+  properties {
+    atomic: true
+    audit_logged: true
+    max_latency_ms: 200
+  }
+}
+
+invariant NoOverdraft {
+  forall a: Account => a.balance >= 0
+}
+
+edge_cases {
+  when account.status == Frozen => reject("Account is frozen")
+  when amount > 50000.00 => require_approval(level: "senior_manager")
+}

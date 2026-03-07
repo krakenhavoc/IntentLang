@@ -1,0 +1,869 @@
+//! Pest-based parser that converts `.intent` source text into a typed AST.
+//!
+//! The grammar is defined in `grammar/intent.pest`. This module wraps the
+//! generated pest parser and transforms pest `Pairs` into [`ast`] nodes.
+
+use pest::Parser;
+use pest_derive::Parser;
+
+use crate::ast::*;
+
+/// The pest-generated parser. Grammar is loaded at compile time from the
+/// workspace-relative path.
+#[derive(Parser)]
+#[grammar = "../../grammar/intent.pest"]
+pub struct IntentParser;
+
+/// Parse error type wrapping pest's error with our span information.
+#[derive(Debug, thiserror::Error)]
+pub enum ParseError {
+    #[error("{0}")]
+    Grammar(#[from] pest::error::Error<Rule>),
+}
+
+/// Parse a complete `.intent` source string into an AST [`File`].
+pub fn parse_file(source: &str) -> Result<File, ParseError> {
+    let pairs = IntentParser::parse(Rule::file, source)?;
+    let pair = pairs.into_iter().next().unwrap();
+    Ok(build_file(pair, source))
+}
+
+// ── Builders ─────────────────────────────────────────────────
+// Each `build_*` function consumes a pest `Pair` and returns an AST node.
+
+fn span_of(pair: &pest::iterators::Pair<'_, Rule>) -> Span {
+    let s = pair.as_span();
+    Span {
+        start: s.start(),
+        end: s.end(),
+    }
+}
+
+fn build_file(pair: pest::iterators::Pair<'_, Rule>, _source: &str) -> File {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+
+    let module = build_module_decl(inner.next().unwrap());
+
+    let mut doc = None;
+    let mut items = Vec::new();
+
+    for p in inner {
+        match p.as_rule() {
+            Rule::doc_block => doc = Some(build_doc_block(p)),
+            Rule::entity_decl => items.push(TopLevelItem::Entity(build_entity_decl(p))),
+            Rule::action_decl => items.push(TopLevelItem::Action(build_action_decl(p))),
+            Rule::invariant_decl => items.push(TopLevelItem::Invariant(build_invariant_decl(p))),
+            Rule::edge_cases_decl => items.push(TopLevelItem::EdgeCases(build_edge_cases_decl(p))),
+            Rule::EOI => {}
+            _ => {}
+        }
+    }
+
+    File {
+        module,
+        doc,
+        items,
+        span,
+    }
+}
+
+fn build_module_decl(pair: pest::iterators::Pair<'_, Rule>) -> ModuleDecl {
+    let span = span_of(&pair);
+    let name = pair.into_inner().next().unwrap().as_str().to_string();
+    ModuleDecl { name, span }
+}
+
+fn build_doc_block(pair: pest::iterators::Pair<'_, Rule>) -> DocBlock {
+    let span = span_of(&pair);
+    let lines = pair
+        .into_inner()
+        .map(|p| {
+            let text = p.as_str();
+            // Strip leading "---" and trailing newline, trim leading space
+            text.strip_prefix("---")
+                .unwrap_or(text)
+                .trim_end_matches('\n')
+                .strip_prefix(' ')
+                .unwrap_or(
+                    text.strip_prefix("---")
+                        .unwrap_or(text)
+                        .trim_end_matches('\n'),
+                )
+                .to_string()
+        })
+        .collect();
+    DocBlock { lines, span }
+}
+
+fn build_entity_decl(pair: pest::iterators::Pair<'_, Rule>) -> EntityDecl {
+    let span = span_of(&pair);
+    let mut doc = None;
+    let mut name = String::new();
+    let mut fields = Vec::new();
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::doc_block => doc = Some(build_doc_block(p)),
+            Rule::type_ident => name = p.as_str().to_string(),
+            Rule::field_decl => fields.push(build_field_decl(p)),
+            _ => {}
+        }
+    }
+
+    EntityDecl {
+        doc,
+        name,
+        fields,
+        span,
+    }
+}
+
+fn build_field_decl(pair: pest::iterators::Pair<'_, Rule>) -> FieldDecl {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let name = inner.next().unwrap().as_str().to_string();
+    let ty = build_type_expr(inner.next().unwrap());
+    FieldDecl { name, ty, span }
+}
+
+fn build_action_decl(pair: pest::iterators::Pair<'_, Rule>) -> ActionDecl {
+    let span = span_of(&pair);
+    let mut doc = None;
+    let mut name = String::new();
+    let mut params = Vec::new();
+    let mut requires = None;
+    let mut ensures = None;
+    let mut properties = None;
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::doc_block => doc = Some(build_doc_block(p)),
+            Rule::type_ident => name = p.as_str().to_string(),
+            Rule::param_decl => params.push(build_field_decl_from_param(p)),
+            Rule::requires_block => requires = Some(build_requires_block(p)),
+            Rule::ensures_block => ensures = Some(build_ensures_block(p)),
+            Rule::properties_block => properties = Some(build_properties_block(p)),
+            _ => {}
+        }
+    }
+
+    ActionDecl {
+        doc,
+        name,
+        params,
+        requires,
+        ensures,
+        properties,
+        span,
+    }
+}
+
+fn build_field_decl_from_param(pair: pest::iterators::Pair<'_, Rule>) -> FieldDecl {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let name = inner.next().unwrap().as_str().to_string();
+    let ty = build_type_expr(inner.next().unwrap());
+    FieldDecl { name, ty, span }
+}
+
+fn build_requires_block(pair: pest::iterators::Pair<'_, Rule>) -> RequiresBlock {
+    let span = span_of(&pair);
+    let conditions = pair.into_inner().map(build_expr).collect();
+    RequiresBlock { conditions, span }
+}
+
+fn build_ensures_block(pair: pest::iterators::Pair<'_, Rule>) -> EnsuresBlock {
+    let span = span_of(&pair);
+    let items = pair
+        .into_inner()
+        .map(|p| match p.as_rule() {
+            Rule::when_clause => EnsuresItem::When(build_when_clause(p)),
+            _ => EnsuresItem::Expr(build_expr(p)),
+        })
+        .collect();
+    EnsuresBlock { items, span }
+}
+
+fn build_when_clause(pair: pest::iterators::Pair<'_, Rule>) -> WhenClause {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let condition = build_or_expr(inner.next().unwrap());
+    let consequence = build_expr(inner.next().unwrap());
+    WhenClause {
+        condition,
+        consequence,
+        span,
+    }
+}
+
+fn build_properties_block(pair: pest::iterators::Pair<'_, Rule>) -> PropertiesBlock {
+    let span = span_of(&pair);
+    let entries = pair.into_inner().map(build_prop_entry).collect();
+    PropertiesBlock { entries, span }
+}
+
+fn build_prop_entry(pair: pest::iterators::Pair<'_, Rule>) -> PropEntry {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let key = inner.next().unwrap().as_str().to_string();
+    let value = build_prop_value(inner.next().unwrap());
+    PropEntry { key, value, span }
+}
+
+fn build_prop_value(pair: pest::iterators::Pair<'_, Rule>) -> PropValue {
+    match pair.as_rule() {
+        Rule::obj_literal => {
+            let fields = pair
+                .into_inner()
+                .map(|f| {
+                    let mut inner = f.into_inner();
+                    let key = inner.next().unwrap().as_str().to_string();
+                    let value = build_prop_value(inner.next().unwrap());
+                    (key, value)
+                })
+                .collect();
+            PropValue::Object(fields)
+        }
+        Rule::list_literal => {
+            let items = pair.into_inner().map(build_prop_value).collect();
+            PropValue::List(items)
+        }
+        Rule::string_literal => {
+            let s = extract_string(pair);
+            PropValue::Literal(Literal::String(s))
+        }
+        Rule::number_literal => PropValue::Literal(parse_number_literal(pair.as_str())),
+        Rule::bool_literal => PropValue::Literal(Literal::Bool(pair.as_str() == "true")),
+        Rule::ident => PropValue::Ident(pair.as_str().to_string()),
+        // For expressions nested in prop value contexts, try to extract
+        Rule::expr | Rule::implies_expr => {
+            // Recurse into inner pairs
+            let inner = pair.into_inner().next().unwrap();
+            build_prop_value(inner)
+        }
+        _ => PropValue::Ident(pair.as_str().to_string()),
+    }
+}
+
+fn build_invariant_decl(pair: pest::iterators::Pair<'_, Rule>) -> InvariantDecl {
+    let span = span_of(&pair);
+    let mut doc = None;
+    let mut name = String::new();
+    let mut body = None;
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::doc_block => doc = Some(build_doc_block(p)),
+            Rule::type_ident => name = p.as_str().to_string(),
+            Rule::expr => body = Some(build_expr(p)),
+            _ => {}
+        }
+    }
+
+    InvariantDecl {
+        doc,
+        name,
+        body: body.expect("invariant must have a body expression"),
+        span,
+    }
+}
+
+fn build_edge_cases_decl(pair: pest::iterators::Pair<'_, Rule>) -> EdgeCasesDecl {
+    let span = span_of(&pair);
+    let rules = pair.into_inner().map(build_edge_rule).collect();
+    EdgeCasesDecl { rules, span }
+}
+
+fn build_edge_rule(pair: pest::iterators::Pair<'_, Rule>) -> EdgeRule {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let condition = build_or_expr(inner.next().unwrap());
+    let action = build_action_call(inner.next().unwrap());
+    EdgeRule {
+        condition,
+        action,
+        span,
+    }
+}
+
+fn build_action_call(pair: pest::iterators::Pair<'_, Rule>) -> ActionCall {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let name = inner.next().unwrap().as_str().to_string();
+    let args = inner
+        .next()
+        .map(|p| p.into_inner().map(build_call_arg).collect())
+        .unwrap_or_default();
+    ActionCall { name, args, span }
+}
+
+// ── Type expression builders ─────────────────────────────────
+
+fn build_type_expr(pair: pest::iterators::Pair<'_, Rule>) -> TypeExpr {
+    let span = span_of(&pair);
+    let mut optional = false;
+    let mut ty_kind = None;
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::union_type => ty_kind = Some(build_union_type(p)),
+            Rule::optional_marker => optional = true,
+            _ => {}
+        }
+    }
+
+    TypeExpr {
+        ty: ty_kind.unwrap(),
+        optional,
+        span,
+    }
+}
+
+fn build_union_type(pair: pest::iterators::Pair<'_, Rule>) -> TypeKind {
+    let variants: Vec<TypeKind> = pair.into_inner().map(build_base_type).collect();
+    if variants.len() == 1 {
+        variants.into_iter().next().unwrap()
+    } else {
+        TypeKind::Union(variants)
+    }
+}
+
+fn build_base_type(pair: pest::iterators::Pair<'_, Rule>) -> TypeKind {
+    match pair.as_rule() {
+        Rule::list_type => {
+            let inner = pair.into_inner().next().unwrap();
+            TypeKind::List(Box::new(build_type_expr(inner)))
+        }
+        Rule::set_type => {
+            let inner = pair.into_inner().next().unwrap();
+            TypeKind::Set(Box::new(build_type_expr(inner)))
+        }
+        Rule::map_type => {
+            let mut inner = pair.into_inner();
+            let key = build_type_expr(inner.next().unwrap());
+            let value = build_type_expr(inner.next().unwrap());
+            TypeKind::Map(Box::new(key), Box::new(value))
+        }
+        Rule::parameterized_type => {
+            let mut inner = pair.into_inner();
+            let name = inner.next().unwrap().as_str().to_string();
+            let params = inner.map(build_type_param).collect();
+            TypeKind::Parameterized { name, params }
+        }
+        Rule::simple_type => {
+            let name = pair.into_inner().next().unwrap().as_str().to_string();
+            TypeKind::Simple(name)
+        }
+        _ => TypeKind::Simple(pair.as_str().to_string()),
+    }
+}
+
+fn build_type_param(pair: pest::iterators::Pair<'_, Rule>) -> TypeParam {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let name = inner.next().unwrap().as_str().to_string();
+    let value = parse_number_literal(inner.next().unwrap().as_str());
+    TypeParam { name, value, span }
+}
+
+// ── Expression builders ──────────────────────────────────────
+
+fn build_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
+    let span = span_of(&pair);
+    let inner = pair.into_inner().next().unwrap();
+    match inner.as_rule() {
+        Rule::implies_expr => build_implies_expr(inner),
+        _ => {
+            let kind = build_expr_kind(inner);
+            Expr { kind, span }
+        }
+    }
+}
+
+fn build_implies_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
+    let span = span_of(&pair);
+    let mut parts: Vec<pest::iterators::Pair<'_, Rule>> = Vec::new();
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::implies_op => {}
+            _ => parts.push(p),
+        }
+    }
+
+    let mut result = build_or_expr(parts.remove(0));
+    for part in parts {
+        let right = build_or_expr(part);
+        let new_span = Span {
+            start: result.span.start,
+            end: right.span.end,
+        };
+        result = Expr {
+            kind: ExprKind::Implies(Box::new(result), Box::new(right)),
+            span: new_span,
+        };
+    }
+    if result.span.start == 0 && result.span.end == 0 {
+        Expr {
+            kind: result.kind,
+            span,
+        }
+    } else {
+        result
+    }
+}
+
+fn build_or_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
+    let span = span_of(&pair);
+    let mut parts: Vec<pest::iterators::Pair<'_, Rule>> = Vec::new();
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::or_op => {}
+            _ => parts.push(p),
+        }
+    }
+
+    if parts.is_empty() {
+        return Expr {
+            kind: ExprKind::Literal(Literal::Null),
+            span,
+        };
+    }
+
+    let mut result = build_and_expr(parts.remove(0));
+    for part in parts {
+        let right = build_and_expr(part);
+        let new_span = Span {
+            start: result.span.start,
+            end: right.span.end,
+        };
+        result = Expr {
+            kind: ExprKind::Or(Box::new(result), Box::new(right)),
+            span: new_span,
+        };
+    }
+    if result.span.start == 0 && result.span.end == 0 {
+        Expr {
+            kind: result.kind,
+            span,
+        }
+    } else {
+        result
+    }
+}
+
+fn build_and_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
+    let span = span_of(&pair);
+    let mut parts: Vec<pest::iterators::Pair<'_, Rule>> = Vec::new();
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::and_op => {}
+            _ => parts.push(p),
+        }
+    }
+
+    if parts.is_empty() {
+        return Expr {
+            kind: ExprKind::Literal(Literal::Null),
+            span,
+        };
+    }
+
+    let mut result = build_not_expr(parts.remove(0));
+    for part in parts {
+        let right = build_not_expr(part);
+        let new_span = Span {
+            start: result.span.start,
+            end: right.span.end,
+        };
+        result = Expr {
+            kind: ExprKind::And(Box::new(result), Box::new(right)),
+            span: new_span,
+        };
+    }
+    if result.span.start == 0 && result.span.end == 0 {
+        Expr {
+            kind: result.kind,
+            span,
+        }
+    } else {
+        result
+    }
+}
+
+fn build_not_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let first = inner.next().unwrap();
+
+    match first.as_rule() {
+        Rule::not_op => {
+            let operand = build_not_expr(inner.next().unwrap());
+            Expr {
+                kind: ExprKind::Not(Box::new(operand)),
+                span,
+            }
+        }
+        Rule::cmp_expr => build_cmp_expr(first),
+        _ => {
+            let kind = build_expr_kind(first);
+            Expr { kind, span }
+        }
+    }
+}
+
+fn build_cmp_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let left = build_add_expr(inner.next().unwrap());
+
+    if let Some(op_pair) = inner.next() {
+        let op = match op_pair.as_str() {
+            "==" => CmpOp::Eq,
+            "!=" => CmpOp::Ne,
+            "<" => CmpOp::Lt,
+            ">" => CmpOp::Gt,
+            "<=" => CmpOp::Le,
+            ">=" => CmpOp::Ge,
+            _ => unreachable!("unknown cmp op: {}", op_pair.as_str()),
+        };
+        let right = build_add_expr(inner.next().unwrap());
+        Expr {
+            kind: ExprKind::Compare {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+            },
+            span,
+        }
+    } else {
+        Expr {
+            kind: left.kind,
+            span,
+        }
+    }
+}
+
+fn build_add_expr(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
+    let span = span_of(&pair);
+    let mut children: Vec<pest::iterators::Pair<'_, Rule>> = pair.into_inner().collect();
+
+    if children.len() == 1 {
+        return build_primary(children.remove(0));
+    }
+
+    // Interleaved: primary, op, primary, op, primary, ...
+    let mut iter = children.into_iter();
+    let mut result = build_primary(iter.next().unwrap());
+
+    while let Some(op_pair) = iter.next() {
+        let op = match op_pair.as_str() {
+            "+" => ArithOp::Add,
+            "-" => ArithOp::Sub,
+            _ => unreachable!("unknown add op"),
+        };
+        let right = build_primary(iter.next().unwrap());
+        let new_span = Span {
+            start: result.span.start,
+            end: right.span.end,
+        };
+        result = Expr {
+            kind: ExprKind::Arithmetic {
+                left: Box::new(result),
+                op,
+                right: Box::new(right),
+            },
+            span: new_span,
+        };
+    }
+
+    if result.span.start == 0 && result.span.end == 0 {
+        Expr {
+            kind: result.kind,
+            span,
+        }
+    } else {
+        result
+    }
+}
+
+fn build_primary(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
+    let span = span_of(&pair);
+    let mut inner: Vec<pest::iterators::Pair<'_, Rule>> = pair.into_inner().collect();
+
+    // First child is the atom, rest are `.ident` field accesses
+    let atom_pair = inner.remove(0);
+    let base = build_atom(atom_pair);
+
+    if inner.is_empty() {
+        return Expr {
+            kind: base.kind,
+            span,
+        };
+    }
+
+    let fields: Vec<String> = inner
+        .into_iter()
+        .map(|p| p.as_str().to_string())
+        .collect();
+
+    Expr {
+        kind: ExprKind::FieldAccess {
+            root: Box::new(base),
+            fields,
+        },
+        span,
+    }
+}
+
+fn build_atom(pair: pest::iterators::Pair<'_, Rule>) -> Expr {
+    let span = span_of(&pair);
+    match pair.as_rule() {
+        Rule::old_expr => {
+            let inner = pair.into_inner().next().unwrap();
+            let expr = build_expr(inner);
+            Expr {
+                kind: ExprKind::Old(Box::new(expr)),
+                span,
+            }
+        }
+        Rule::quantifier_expr => {
+            let mut inner = pair.into_inner();
+            let kw = inner.next().unwrap();
+            let kind = match kw.as_str() {
+                "forall" => QuantifierKind::Forall,
+                "exists" => QuantifierKind::Exists,
+                _ => unreachable!(),
+            };
+            let binding = inner.next().unwrap().as_str().to_string();
+            let ty = inner.next().unwrap().as_str().to_string();
+            let body = build_expr(inner.next().unwrap());
+            Expr {
+                kind: ExprKind::Quantifier {
+                    kind,
+                    binding,
+                    ty,
+                    body: Box::new(body),
+                },
+                span,
+            }
+        }
+        Rule::null_literal => Expr {
+            kind: ExprKind::Literal(Literal::Null),
+            span,
+        },
+        Rule::bool_literal => Expr {
+            kind: ExprKind::Literal(Literal::Bool(pair.as_str() == "true")),
+            span,
+        },
+        Rule::number_literal => Expr {
+            kind: ExprKind::Literal(parse_number_literal(pair.as_str())),
+            span,
+        },
+        Rule::string_literal => Expr {
+            kind: ExprKind::Literal(Literal::String(extract_string(pair))),
+            span,
+        },
+        Rule::list_literal => {
+            // TODO: build list expression
+            Expr {
+                kind: ExprKind::Literal(Literal::Null),
+                span,
+            }
+        }
+        Rule::paren_expr => {
+            let inner = pair.into_inner().next().unwrap();
+            build_expr(inner)
+        }
+        Rule::call_or_ident => {
+            let mut inner = pair.into_inner();
+            let name = inner.next().unwrap().as_str().to_string();
+            if let Some(args_pair) = inner.next() {
+                let args = args_pair.into_inner().map(build_call_arg).collect();
+                Expr {
+                    kind: ExprKind::Call { name, args },
+                    span,
+                }
+            } else {
+                Expr {
+                    kind: ExprKind::Ident(name),
+                    span,
+                }
+            }
+        }
+        _ => Expr {
+            kind: ExprKind::Ident(pair.as_str().to_string()),
+            span,
+        },
+    }
+}
+
+fn build_call_arg(pair: pest::iterators::Pair<'_, Rule>) -> CallArg {
+    let mut inner = pair.into_inner();
+    let first = inner.next().unwrap();
+
+    match first.as_rule() {
+        Rule::named_arg => {
+            let span = span_of(&first);
+            let mut named_inner = first.into_inner();
+            let key = named_inner.next().unwrap().as_str().to_string();
+            let value = build_expr(named_inner.next().unwrap());
+            CallArg::Named { key, value, span }
+        }
+        _ => CallArg::Positional(build_expr(first)),
+    }
+}
+
+fn build_expr_kind(pair: pest::iterators::Pair<'_, Rule>) -> ExprKind {
+    match pair.as_rule() {
+        Rule::implies_expr => build_implies_expr(pair).kind,
+        Rule::or_expr => build_or_expr(pair).kind,
+        Rule::and_expr => build_and_expr(pair).kind,
+        Rule::not_expr => build_not_expr(pair).kind,
+        Rule::cmp_expr => build_cmp_expr(pair).kind,
+        Rule::add_expr => build_add_expr(pair).kind,
+        Rule::primary => build_primary(pair).kind,
+        _ => build_atom(pair).kind,
+    }
+}
+
+// ── Helpers ──────────────────────────────────────────────────
+
+fn parse_number_literal(s: &str) -> Literal {
+    if s.contains('.') {
+        Literal::Decimal(s.to_string())
+    } else {
+        Literal::Int(s.parse().unwrap_or(0))
+    }
+}
+
+fn extract_string(pair: pest::iterators::Pair<'_, Rule>) -> String {
+    pair.into_inner()
+        .next()
+        .map(|p| p.as_str().to_string())
+        .unwrap_or_default()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_minimal_module() {
+        let src = "module Foo\n";
+        let file = parse_file(src).unwrap();
+        assert_eq!(file.module.name, "Foo");
+        assert!(file.items.is_empty());
+    }
+
+    #[test]
+    fn parse_entity() {
+        let src = r#"module Test
+
+entity Account {
+  id: UUID
+  balance: Decimal(precision: 2)
+  status: Active | Frozen | Closed
+  notes: String?
+}
+"#;
+        let file = parse_file(src).unwrap();
+        assert_eq!(file.items.len(), 1);
+        if let TopLevelItem::Entity(e) = &file.items[0] {
+            assert_eq!(e.name, "Account");
+            assert_eq!(e.fields.len(), 4);
+            assert_eq!(e.fields[0].name, "id");
+            assert!(e.fields[2].ty.optional == false);
+            assert!(e.fields[3].ty.optional == true);
+        } else {
+            panic!("expected entity");
+        }
+    }
+
+    #[test]
+    fn parse_action_with_requires_ensures() {
+        let src = r#"module Test
+
+action Transfer {
+  from: Account
+  amount: Decimal(precision: 2)
+
+  requires {
+    from.status == Active
+    amount > 0
+  }
+
+  ensures {
+    from.balance == old(from.balance) - amount
+  }
+}
+"#;
+        let file = parse_file(src).unwrap();
+        assert_eq!(file.items.len(), 1);
+        if let TopLevelItem::Action(a) = &file.items[0] {
+            assert_eq!(a.name, "Transfer");
+            assert_eq!(a.params.len(), 2);
+            assert_eq!(a.requires.as_ref().unwrap().conditions.len(), 2);
+            assert_eq!(a.ensures.as_ref().unwrap().items.len(), 1);
+        } else {
+            panic!("expected action");
+        }
+    }
+
+    #[test]
+    fn parse_invariant() {
+        let src = r#"module Test
+
+invariant NoNegativeBalances {
+  forall a: Account => a.balance >= 0
+}
+"#;
+        let file = parse_file(src).unwrap();
+        if let TopLevelItem::Invariant(inv) = &file.items[0] {
+            assert_eq!(inv.name, "NoNegativeBalances");
+            assert!(matches!(inv.body.kind, ExprKind::Quantifier { .. }));
+        } else {
+            panic!("expected invariant");
+        }
+    }
+
+    #[test]
+    fn parse_edge_cases() {
+        let src = r#"module Test
+
+edge_cases {
+  when amount > 10000.00 => require_approval(level: "manager")
+  when from == to => reject("Cannot transfer to same account")
+}
+"#;
+        let file = parse_file(src).unwrap();
+        if let TopLevelItem::EdgeCases(ec) = &file.items[0] {
+            assert_eq!(ec.rules.len(), 2);
+            assert_eq!(ec.rules[0].action.name, "require_approval");
+            assert_eq!(ec.rules[1].action.name, "reject");
+        } else {
+            panic!("expected edge_cases");
+        }
+    }
+
+    #[test]
+    fn parse_transfer_example() {
+        let src = include_str!("../../../examples/transfer.intent");
+        let file = parse_file(src).unwrap();
+        assert_eq!(file.module.name, "TransferFunds");
+        // 2 entities + 2 actions + 2 invariants + 1 edge_cases = 7 items
+        assert_eq!(file.items.len(), 7);
+    }
+
+    #[test]
+    fn parse_auth_example() {
+        let src = include_str!("../../../examples/auth.intent");
+        let file = parse_file(src).unwrap();
+        assert_eq!(file.module.name, "Authentication");
+        // 2 entities + 2 actions + 2 invariants + 1 edge_cases = 7 items
+        assert_eq!(file.items.len(), 7);
+    }
+}

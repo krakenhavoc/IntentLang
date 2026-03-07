@@ -1,0 +1,5 @@
+module BadType
+
+entity Thing {
+  name: lowercase_type
+}

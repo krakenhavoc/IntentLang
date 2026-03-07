@@ -1,0 +1,6 @@
+module Broken
+
+entity User {
+  id: UUID
+  name: String
+
