@@ -882,7 +882,7 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 
 **IR (intent-ir)**: Lowers AST to a typed intermediate representation (structs, functions, invariants, edge guards). Every IR node carries a `SourceTrace { module, item, part, span }` for audit tracing. Modules: `lower` (AST->IR), `verify` (structural + coherence), `audit` (trace maps + coverage), `diff` (spec-level diffs), `incremental` (cached per-item verification), `lock` (multi-agent spec-item claiming).
 
-**Generator (intent-gen)**: Translates natural language to `.intent` specs via LLM. Uses OpenAI-compatible chat completions API (configurable base URL + model). Includes a generate-check-retry loop: generates spec, validates via parser/checker, feeds errors back to LLM for correction (max 2 retries). Supports `--interactive` mode, `--confidence 1-5` levels, `--edit` for modifying existing specs, and `--diff` for patch output. Config: `AI_API_KEY`, `AI_API_BASE`, `AI_MODEL` env vars.
+**Generator (intent-gen)**: Translates natural language to `.intent` specs via LLM. Uses OpenAI-compatible chat completions API via `ureq` (configurable base URL + model). Includes a generate-check-retry loop: generates spec, validates via parser/checker, feeds errors back to LLM for correction (max 2 retries). Supports `--confidence 1-5` levels, `--edit` for modifying existing specs, and `--diff` for patch output. Config: `AI_API_KEY`, `AI_API_BASE`, `AI_MODEL` env vars.
 
 **CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`, `generate`. Global `--output json` flag for agent consumption.
 
@@ -896,8 +896,8 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 | clap | 4.x | CLI argument parsing |
 | serde | 1.x | AST/IR serialization |
 | serde_json | 1.x | IR JSON output |
-| reqwest | latest | HTTP client for LLM API calls (intent-gen) |
-| tokio | 1.x | Async runtime for LLM API calls (intent-gen) |
+| ureq | 2.x | HTTP client for LLM API calls (intent-gen) |
+| similar | 2.x | Diff output for edit mode (intent-cli) |
 
 ## Conventions
 
@@ -907,11 +907,12 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage (116 total)
+## Current Test Coverage (122 total)
 
 - 26 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files)
 - 16 parser tests (9 unit + 7 insta snapshot tests for all fixtures and examples)
 - 74 IR tests: 13 lowering + 11 verification + 6 coherence + 9 audit + 13 diff + 11 incremental + 11 lock
+- 6 intent-gen tests: 3 strip_fences + 3 validate_spec
 - Fixtures: 4 valid, 9 invalid + 6 example files
 
 ## Current Phase & Status

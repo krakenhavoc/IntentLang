@@ -1,0 +1,18 @@
+[package]
+name = "intent-gen"
+description = "Natural language to IntentLang spec generation via LLM (Layer 0)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["specification", "code-generation", "natural-language", "llm", "dsl"]
+categories = ["development-tools", "compilers"]
+readme = "README.md"
+
+[dependencies]
+intent-parser = { path = "../intent-parser", version = "0.4.0-alpha.1" }
+intent-check = { path = "../intent-check", version = "0.4.0-alpha.1" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+ureq = { version = "2", features = ["json"] }
