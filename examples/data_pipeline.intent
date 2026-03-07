@@ -1,0 +1,167 @@
+module DataPipeline
+
+--- A data pipeline system with staged processing, validation,
+--- retry logic, and dead-letter handling for failed records.
+
+entity Record {
+  id: UUID
+  payload: String
+  source: String
+  stage: Ingested | Validated | Transformed | Loaded | Failed
+  retry_count: Int
+  error_message: String?
+  created_at: DateTime
+  updated_at: DateTime
+}
+
+entity Pipeline {
+  id: UUID
+  name: String
+  status: Running | Paused | Failed
+  records_processed: Int
+  records_failed: Int
+  started_at: DateTime
+}
+
+entity DeadLetterEntry {
+  record: Record
+  pipeline: Pipeline
+  failure_reason: String
+  failed_at: DateTime
+}
+
+action IngestRecord {
+  --- Accept a new record into the pipeline.
+  pipeline: Pipeline
+  payload: String
+  source: String
+
+  requires {
+    pipeline.status == Running
+  }
+
+  ensures {
+    exists r: Record =>
+      r.payload == payload &&
+      r.source == source &&
+      r.stage == Ingested &&
+      r.retry_count == 0
+  }
+
+  properties {
+    idempotent: false
+    audit_logged: true
+  }
+}
+
+action ValidateRecord {
+  --- Run validation rules on an ingested record.
+  record: Record
+
+  requires {
+    record.stage == Ingested
+  }
+
+  ensures {
+    record.stage == Validated
+  }
+}
+
+action TransformRecord {
+  --- Apply transformations to a validated record.
+  record: Record
+
+  requires {
+    record.stage == Validated
+  }
+
+  ensures {
+    record.stage == Transformed
+  }
+}
+
+action LoadRecord {
+  --- Load a transformed record into the target system.
+  record: Record
+  pipeline: Pipeline
+
+  requires {
+    record.stage == Transformed
+    pipeline.status == Running
+  }
+
+  ensures {
+    record.stage == Loaded
+    pipeline.records_processed == old(pipeline.records_processed) + 1
+  }
+
+  properties {
+    atomic: true
+    audit_logged: true
+  }
+}
+
+action FailRecord {
+  --- Mark a record as failed and optionally send to dead letter queue.
+  record: Record
+  pipeline: Pipeline
+  reason: String
+
+  requires {
+    record.stage != Failed
+    record.stage != Loaded
+  }
+
+  ensures {
+    record.stage == Failed
+    record.error_message == reason
+    pipeline.records_failed == old(pipeline.records_failed) + 1
+    exists d: DeadLetterEntry =>
+      d.record == record &&
+      d.failure_reason == reason
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action RetryRecord {
+  --- Retry a failed record from its last successful stage.
+  record: Record
+
+  requires {
+    record.stage == Failed
+    record.retry_count < 3
+  }
+
+  ensures {
+    record.stage == Ingested
+    record.retry_count == old(record.retry_count) + 1
+    record.error_message == null
+  }
+}
+
+invariant MaxRetries {
+  --- No record may be retried more than 3 times.
+  forall r: Record => r.retry_count <= 3
+}
+
+invariant FailedRecordsTracked {
+  --- Every failed record must have a dead letter entry.
+  forall r: Record =>
+    r.stage == Failed =>
+      exists d: DeadLetterEntry => d.record == r
+}
+
+invariant PipelineConsistency {
+  --- Processed + failed counts must not exceed total records.
+  forall p: Pipeline =>
+    p.records_processed >= 0 && p.records_failed >= 0
+}
+
+edge_cases {
+  when pipeline.status == Paused => reject("Pipeline is paused")
+  when pipeline.status == Failed => reject("Pipeline has failed. Investigate before resuming.")
+  when record.retry_count >= 3 => reject("Max retries exceeded. Record sent to dead letter queue.")
+}

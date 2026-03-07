@@ -1,0 +1,122 @@
+module RoleBasedAccessControl
+
+--- Role-based access control system with hierarchical permissions.
+--- Users are assigned roles, roles contain permissions, and access
+--- decisions are made by checking the user's effective permission set.
+
+entity User {
+  id: UUID
+  email: Email
+  name: String
+  status: Active | Suspended | Deactivated
+  created_at: DateTime
+}
+
+entity Role {
+  id: UUID
+  name: String
+  permissions: Set<Permission>
+  parent: Role?
+  created_at: DateTime
+}
+
+entity Permission {
+  resource: String
+  action: String
+}
+
+entity RoleAssignment {
+  user: User
+  role: Role
+  granted_by: User
+  granted_at: DateTime
+  expires_at: DateTime?
+}
+
+action AssignRole {
+  --- Grant a role to a user.
+  user: User
+  role: Role
+  granted_by: User
+
+  requires {
+    user.status == Active
+    granted_by.status == Active
+    !(exists a: RoleAssignment =>
+      a.user == user && a.role == role)
+  }
+
+  ensures {
+    exists a: RoleAssignment =>
+      a.user == user &&
+      a.role == role &&
+      a.granted_by == granted_by
+  }
+
+  properties {
+    audit_logged: true
+    requires_permission: { resource: "roles", action: "assign" }
+  }
+}
+
+action RevokeRole {
+  --- Remove a role from a user.
+  user: User
+  role: Role
+
+  requires {
+    exists a: RoleAssignment =>
+      a.user == user && a.role == role
+  }
+
+  ensures {
+    !(exists a: RoleAssignment =>
+      a.user == user && a.role == role)
+  }
+
+  properties {
+    audit_logged: true
+    requires_permission: { resource: "roles", action: "revoke" }
+  }
+}
+
+action CheckAccess {
+  --- Determine whether a user has a specific permission.
+  user: User
+  permission: Permission
+
+  requires {
+    user.status == Active
+  }
+
+  ensures {
+    exists a: RoleAssignment =>
+      a.user == user &&
+      exists p: Permission =>
+        p.resource == permission.resource &&
+        p.action == permission.action
+  }
+
+  properties {
+    idempotent: true
+    max_latency_ms: 50
+  }
+}
+
+invariant ActiveUsersOnly {
+  --- Only active users may hold role assignments.
+  forall a: RoleAssignment => a.user.status == Active
+}
+
+invariant NoDuplicateAssignments {
+  --- A user cannot be assigned the same role twice.
+  forall a1: RoleAssignment =>
+    forall a2: RoleAssignment =>
+      a1.user == a2.user && a1.role == a2.role => a1 == a2
+}
+
+edge_cases {
+  when user.status == Suspended => reject("Suspended users cannot be granted roles")
+  when user.status == Deactivated => reject("Deactivated users cannot be granted roles")
+  when role == granted_by_role => reject("Cannot self-assign roles")
+}

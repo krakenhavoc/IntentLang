@@ -1,7 +1,12 @@
 [package]
 name = "intent-render"
+description = "Markdown and HTML renderer for IntentLang specifications"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 intent-parser = { path = "../intent-parser" }
