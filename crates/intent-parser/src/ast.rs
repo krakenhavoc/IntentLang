@@ -271,6 +271,37 @@ pub enum ExprKind {
     Literal(Literal),
 }
 
+impl Expr {
+    /// Call `f` for each immediate child expression.
+    ///
+    /// Handles all `ExprKind` variants so callers don't need to duplicate
+    /// the recursive descent boilerplate.
+    pub fn for_each_child(&self, mut f: impl FnMut(&Expr)) {
+        match &self.kind {
+            ExprKind::Implies(a, b)
+            | ExprKind::Or(a, b)
+            | ExprKind::And(a, b)
+            | ExprKind::Compare { left: a, right: b, .. }
+            | ExprKind::Arithmetic { left: a, right: b, .. } => {
+                f(a);
+                f(b);
+            }
+            ExprKind::Not(inner) | ExprKind::Old(inner) => f(inner),
+            ExprKind::Call { args, .. } => {
+                for arg in args {
+                    match arg {
+                        CallArg::Named { value, .. } => f(value),
+                        CallArg::Positional(e) => f(e),
+                    }
+                }
+            }
+            ExprKind::FieldAccess { root, .. } => f(root),
+            ExprKind::Quantifier { body, .. } => f(body),
+            ExprKind::Ident(_) | ExprKind::Literal(_) => {}
+        }
+    }
+}
+
 /// Comparison operators.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum CmpOp {
