@@ -232,19 +232,25 @@ intent render-html examples/transfer.intent > transfer.html
 
 **Current release: [v0.4.0-alpha.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.4.0-alpha.1)** — Phase 5 in progress.
 
-Phase 1 (complete): PEG grammar, typed AST, six-pass semantic checker, Markdown/HTML renderers.
+| Phase | Status | What shipped |
+|-------|--------|-------------|
+| Phase 1 | Complete | PEG grammar, typed AST, six-pass semantic checker, Markdown/HTML renderers |
+| Phase 2 | Complete | AST → Agent IR lowering, structural verification, coherence analysis |
+| Phase 3 | Complete | Audit trace maps, coverage summaries, spec-level diffs |
+| Phase 4 | Complete | Agent API, incremental verification, multi-agent collaboration |
+| Phase 5 | In progress | Language polish (`fmt`, `init`, `completions`), NL generation (`intent generate`) |
+| Phase 6 | Planned | Stateless runtime — `intent serve`, expression evaluator, REST API from specs |
+| Phase 7 | Planned | Module imports (`use`), multi-file composition |
 
-Phase 2 (complete): AST → Agent IR lowering, structural verification, coherence analysis.
+### Roadmap to v1.0
 
-Phase 3 (complete): Audit trace maps, coverage summaries, spec-level diffs.
+- **Alpha** (current) — core toolchain working, adding NL generation and runtime
+- **Beta** — a small real-world system runs end-to-end with module imports
+- **Preview** — post-feedback hardening (if needed)
+- **Stable (v1.0)** — production-ready runtime, stable API
+- **Long-term** — self-hosting: IntentLang compiles itself (compiler spec in `.intent`, agents generate implementation)
 
-Phase 4 (complete): Agent API, incremental verification, multi-agent collaboration.
-
-Phase 5 (in progress):
-- Language polish: `fmt`, `init`, `completions`
-- Natural language generation: `intent generate` — translate plain English to validated `.intent` specs (Layer 0)
-
-116 tests across parser, checker, and IR modules.
+122 tests across parser, checker, IR, and gen modules.
 
 Long-term: IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. See the [self-hosting roadmap](CLAUDE.md) for details.
 
@@ -256,10 +262,11 @@ intent-cli ──→ intent-parser ←── grammar/intent.pest
     ├──→ intent-check
     ├──→ intent-render
     ├──→ intent-ir (lowering, verification, audit)
-    └──→ intent-gen (NL → .intent, Layer 0)
+    ├──→ intent-gen (NL → .intent, Layer 0)
+    └──→ intent-runtime (stateless execution, HTTP server) [planned]
 ```
 
-Six crates in a Cargo workspace. The parser produces a typed AST; the checker validates it; the renderer formats it; the IR crate lowers to a typed intermediate representation with verification, coherence analysis, and audit bridge; the gen crate translates natural language to `.intent` specs via LLM. The CLI wires them together. See [`AGENTS.md`](AGENTS.md) for architecture details and [`docs/SPEC.md`](docs/SPEC.md) for the full language design.
+Six crates in a Cargo workspace (seven when `intent-runtime` ships). The parser produces a typed AST; the checker validates it; the renderer formats it; the IR crate lowers to a typed intermediate representation with verification, coherence analysis, and audit bridge; the gen crate translates natural language to `.intent` specs via LLM; the runtime crate (Phase 6) will provide a stateless HTTP server that executes specs natively. The CLI wires them together. See [`AGENTS.md`](AGENTS.md) for architecture details and [`docs/SPEC.md`](docs/SPEC.md) for the full language design.
 
 ## Examples
 
