@@ -106,12 +106,13 @@ edge_cases {
 
 **Parser (intent-parser)**: PEG grammar via `pest`. Every AST node carries a `Span { start, end }` for source locations. The grammar uses `or_expr` (not `expr`) for `when`/`edge_rule` conditions to avoid ambiguity with the `=>` operator. Union variants like `Active | Frozen` are treated as enum-like labels, not type references.
 
-**Checker (intent-check)**: Five-pass semantic analysis:
+**Checker (intent-check)**: Six-pass semantic analysis:
 1. Collect definitions + detect duplicates (entities, actions, invariants, fields)
 2. Resolve type references (verify all types exist as builtins or defined entities)
 3. Validate quantifier bindings (forall/exists variable types must be entities or actions)
 4. Validate edge case action references (uppercase names must be defined actions)
 5. Validate field access on entity-typed parameters (e.g., `from.balance` checks `balance` exists on the entity)
+6. Constraint validation (`old()` not in requires, tautological self-comparisons)
 
 Both parse and check errors use `miette` diagnostics with source spans, labels, and help text.
 
@@ -137,20 +138,21 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage (36 total)
+## Current Test Coverage (40 total)
 
-- 22 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, valid files)
+- 26 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files)
 - 7 parser unit tests (all language constructs)
 - 7 insta snapshot tests (JSON AST for all fixtures and examples)
-- Fixtures: 4 valid, 7 invalid + 3 example files
+- Fixtures: 4 valid, 9 invalid + 3 example files
 
 ## Current Phase & Status
 
-Phase 1 MVP. Parser, five-pass semantic checker, Markdown/HTML renderers, and CLI are functional.
+Phase 1 MVP. Parser, six-pass semantic checker, Markdown/HTML renderers, and CLI are functional.
 
 Completed:
 - PEG grammar, typed AST with spans, snapshot tests (insta)
-- Semantic analysis: duplicates, type resolution, quantifiers, edge actions, field access
+- Semantic analysis: duplicates, type resolution, quantifiers, edge actions, field access, constraint validation
+- Constraint validation: `old()` placement checks, tautological self-comparison detection
 - Markdown and HTML renderers (self-contained styled HTML)
 - CLI: `check`, `render`, `render-html` subcommands
 - Human-readable parse errors with miette diagnostics
