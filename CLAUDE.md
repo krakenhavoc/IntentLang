@@ -2,11 +2,14 @@
 
 ## Project Overview
 
-IntentLang is a three-layer programming system for human-agent collaboration:
+IntentLang is a four-layer programming system for human-agent collaboration:
 
-1. **Intent Layer** — A declarative spec language where humans define *what* and *what constraints*, not *how*.
+0. **Natural Language** — A natural language interface where humans describe what they want in plain English. An AI agent translates the description into a formal intent spec. Meets users at the lowest barrier to entry.
+1. **Intent Layer** — A declarative spec language where humans define *what* and *what constraints*, not *how*. Humans can author directly or refine specs generated from Layer 0.
 2. **Agent IR** — A dense, formally verifiable intermediate representation that agents generate and maintain.
 3. **Audit Bridge** — Tooling that maps between layers so humans can review agent work at the spec level.
+
+Layers 0 and 1 are both human-facing. Layer 0 is for anyone who can describe an idea in English. Layer 1 is for those who want to write or refine formal specs directly.
 
 The full design spec is in `docs/SPEC.md`. Read it before making architectural decisions.
 
@@ -63,6 +66,13 @@ intentlang/
 │   │   │   ├── lib.rs
 │   │   │   ├── markdown.rs
 │   │   │   └── html.rs
+│   │   └── Cargo.toml
+│   ├── intent-gen/        ← Natural language → .intent (Layer 0)
+│   │   ├── src/
+│   │   │   ├── lib.rs     ← Public API: generate(prompt) -> Result<String>
+│   │   │   ├── prompt.rs  ← System prompt construction (syntax ref, examples)
+│   │   │   ├── client.rs  ← LLM API client (OpenAI-compatible, model-agnostic)
+│   │   │   └── validate.rs ← Generate-check-retry loop
 │   │   └── Cargo.toml
 │   └── intent-cli/        ← CLI entry point
 │       ├── src/
@@ -168,12 +178,36 @@ edge_cases {
 | Workspace | Cargo workspaces | Modular crate structure |
 | Error handling | `miette` crate | Beautiful diagnostic errors with source spans |
 | CLI framework | `clap` (derive) | Standard, well-maintained |
+| NL generation API | OpenAI-compatible | Model-agnostic, supports any provider |
+| NL generation crate | `intent-gen` | Separated from core toolchain, optional dependency |
 
-## Future Phases (don't build yet, but design with these in mind)
+## Completed Phases
 
-- **Phase 2**: Agent IR — the intent language compiles to a typed IR that agents can manipulate. The AST should be designed with this compilation step in mind.
-- **Phase 3**: Audit Bridge — trace maps from IR back to spec. The AST should carry enough source location info to support this.
-- **Phase 4**: Agent API — agents read specs and produce IR via an API. The parser should be embeddable as a library.
+- **Phase 1**: Intent Language MVP — PEG grammar, typed AST, six-pass semantic analysis, Markdown/HTML renderers. CLI: `check`, `render`, `render-html`.
+- **Phase 2**: Agent IR — AST → IR lowering, structural verification, coherence analysis. CLI: `compile`, `verify`.
+- **Phase 3**: Audit Bridge — Trace maps, coverage summaries, spec-level diffs. CLI: `audit`, `coverage`, `diff`.
+- **Phase 4**: Agent Integration — JSON output, structured queries, incremental verification, multi-agent collaboration. CLI: `query`, `lock`, `unlock`, `status`.
+
+## Current Phase: Phase 5 — Language Polish & Natural Language Generation
+
+### Language Polish (in progress)
+- `intent fmt` — auto-formatter for canonical `.intent` source
+- `intent init` — scaffold new spec files
+- `intent completions` — shell completions (bash, zsh, fish)
+- List literal expressions, type parameter rendering fix
+
+### Natural Language Generation (planned)
+- New crate: `intent-gen` — translates natural language to `.intent` specs
+- CLI command: `intent generate "description"` (single-shot by default)
+- `--interactive` mode for conversational refinement
+- `--confidence 1-5` controls how much the agent asks vs. assumes
+- `--edit <file> "changes"` modifies existing specs from NL descriptions (`--diff` for patch view)
+- `--model <model>` selects the LLM model
+- `--out <file>` writes to file (stdout by default)
+- `--max-retries N` configures validation retry budget (default: 2)
+- Model-agnostic via OpenAI-compatible API (`AI_API_KEY`, `AI_API_BASE`, `AI_MODEL` env vars)
+- Generate-check-retry loop: auto-validates output via parser/checker, feeds errors back to LLM
+- Prompt preservation: original NL prompt stored in VCS alongside the generated `.intent` file
 
 ---
 

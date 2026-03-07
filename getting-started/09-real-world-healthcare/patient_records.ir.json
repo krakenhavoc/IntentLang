@@ -1,0 +1,3115 @@
+{
+  "name": "PatientRecords",
+  "structs": [
+    {
+      "name": "Patient",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Patient",
+            "part": "field:id",
+            "span": {
+              "start": 225,
+              "end": 236
+            }
+          }
+        },
+        {
+          "name": "medical_record_number",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Patient",
+            "part": "field:medical_record_number",
+            "span": {
+              "start": 236,
+              "end": 268
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Patient",
+            "part": "field:name",
+            "span": {
+              "start": 268,
+              "end": 283
+            }
+          }
+        },
+        {
+          "name": "date_of_birth",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Patient",
+            "part": "field:date_of_birth",
+            "span": {
+              "start": 283,
+              "end": 307
+            }
+          }
+        },
+        {
+          "name": "email",
+          "ty": {
+            "Optional": {
+              "Named": "Email"
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Patient",
+            "part": "field:email",
+            "span": {
+              "start": 307,
+              "end": 320
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Active",
+              "Inactive",
+              "Deceased"
+            ]
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Patient",
+            "part": "field:status",
+            "span": {
+              "start": 323,
+              "end": 362
+            }
+          }
+        },
+        {
+          "name": "primary_provider",
+          "ty": {
+            "Optional": {
+              "Named": "Provider"
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Patient",
+            "part": "field:primary_provider",
+            "span": {
+              "start": 362,
+              "end": 389
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Patient",
+            "part": "field:created_at",
+            "span": {
+              "start": 392,
+              "end": 413
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "Patient",
+        "part": "entity",
+        "span": {
+          "start": 206,
+          "end": 414
+        }
+      }
+    },
+    {
+      "name": "Provider",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Provider",
+            "part": "field:id",
+            "span": {
+              "start": 436,
+              "end": 447
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Provider",
+            "part": "field:name",
+            "span": {
+              "start": 447,
+              "end": 462
+            }
+          }
+        },
+        {
+          "name": "license_number",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Provider",
+            "part": "field:license_number",
+            "span": {
+              "start": 462,
+              "end": 487
+            }
+          }
+        },
+        {
+          "name": "specialty",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Provider",
+            "part": "field:specialty",
+            "span": {
+              "start": 487,
+              "end": 507
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Active",
+              "Suspended",
+              "Revoked"
+            ]
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Provider",
+            "part": "field:status",
+            "span": {
+              "start": 507,
+              "end": 544
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "Provider",
+        "part": "entity",
+        "span": {
+          "start": 416,
+          "end": 545
+        }
+      }
+    },
+    {
+      "name": "CareTeam",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "CareTeam",
+            "part": "field:id",
+            "span": {
+              "start": 567,
+              "end": 578
+            }
+          }
+        },
+        {
+          "name": "patient",
+          "ty": {
+            "Named": "Patient"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "CareTeam",
+            "part": "field:patient",
+            "span": {
+              "start": 578,
+              "end": 597
+            }
+          }
+        },
+        {
+          "name": "members",
+          "ty": {
+            "List": {
+              "Named": "Provider"
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "CareTeam",
+            "part": "field:members",
+            "span": {
+              "start": 597,
+              "end": 621
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "CareTeam",
+        "part": "entity",
+        "span": {
+          "start": 547,
+          "end": 622
+        }
+      }
+    },
+    {
+      "name": "Consent",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Consent",
+            "part": "field:id",
+            "span": {
+              "start": 643,
+              "end": 654
+            }
+          }
+        },
+        {
+          "name": "patient",
+          "ty": {
+            "Named": "Patient"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Consent",
+            "part": "field:patient",
+            "span": {
+              "start": 654,
+              "end": 673
+            }
+          }
+        },
+        {
+          "name": "purpose",
+          "ty": {
+            "Union": [
+              "Treatment",
+              "Research",
+              "Billing",
+              "DataSharing"
+            ]
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Consent",
+            "part": "field:purpose",
+            "span": {
+              "start": 673,
+              "end": 729
+            }
+          }
+        },
+        {
+          "name": "granted_to",
+          "ty": {
+            "Optional": {
+              "Named": "Provider"
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Consent",
+            "part": "field:granted_to",
+            "span": {
+              "start": 729,
+              "end": 750
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Active",
+              "Revoked",
+              "Expired"
+            ]
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Consent",
+            "part": "field:status",
+            "span": {
+              "start": 753,
+              "end": 790
+            }
+          }
+        },
+        {
+          "name": "granted_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Consent",
+            "part": "field:granted_at",
+            "span": {
+              "start": 790,
+              "end": 813
+            }
+          }
+        },
+        {
+          "name": "expires_at",
+          "ty": {
+            "Optional": {
+              "Named": "DateTime"
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Consent",
+            "part": "field:expires_at",
+            "span": {
+              "start": 813,
+              "end": 834
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "Consent",
+        "part": "entity",
+        "span": {
+          "start": 624,
+          "end": 836
+        }
+      }
+    },
+    {
+      "name": "MedicalRecord",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "MedicalRecord",
+            "part": "field:id",
+            "span": {
+              "start": 863,
+              "end": 874
+            }
+          }
+        },
+        {
+          "name": "patient",
+          "ty": {
+            "Named": "Patient"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "MedicalRecord",
+            "part": "field:patient",
+            "span": {
+              "start": 874,
+              "end": 893
+            }
+          }
+        },
+        {
+          "name": "record_type",
+          "ty": {
+            "Union": [
+              "LabResult",
+              "Diagnosis",
+              "Prescription",
+              "Note",
+              "Imaging"
+            ]
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "MedicalRecord",
+            "part": "field:record_type",
+            "span": {
+              "start": 893,
+              "end": 962
+            }
+          }
+        },
+        {
+          "name": "title",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "MedicalRecord",
+            "part": "field:title",
+            "span": {
+              "start": 962,
+              "end": 978
+            }
+          }
+        },
+        {
+          "name": "content",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "MedicalRecord",
+            "part": "field:content",
+            "span": {
+              "start": 978,
+              "end": 996
+            }
+          }
+        },
+        {
+          "name": "author",
+          "ty": {
+            "Named": "Provider"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "MedicalRecord",
+            "part": "field:author",
+            "span": {
+              "start": 996,
+              "end": 1015
+            }
+          }
+        },
+        {
+          "name": "sensitivity",
+          "ty": {
+            "Union": [
+              "Normal",
+              "Restricted",
+              "HighlyRestricted"
+            ]
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "MedicalRecord",
+            "part": "field:sensitivity",
+            "span": {
+              "start": 1015,
+              "end": 1069
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "MedicalRecord",
+            "part": "field:created_at",
+            "span": {
+              "start": 1069,
+              "end": 1092
+            }
+          }
+        },
+        {
+          "name": "updated_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "MedicalRecord",
+            "part": "field:updated_at",
+            "span": {
+              "start": 1092,
+              "end": 1113
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "MedicalRecord",
+        "part": "entity",
+        "span": {
+          "start": 838,
+          "end": 1114
+        }
+      }
+    },
+    {
+      "name": "AccessLog",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AccessLog",
+            "part": "field:id",
+            "span": {
+              "start": 1137,
+              "end": 1148
+            }
+          }
+        },
+        {
+          "name": "record",
+          "ty": {
+            "Named": "MedicalRecord"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AccessLog",
+            "part": "field:record",
+            "span": {
+              "start": 1148,
+              "end": 1172
+            }
+          }
+        },
+        {
+          "name": "accessor",
+          "ty": {
+            "Named": "Provider"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AccessLog",
+            "part": "field:accessor",
+            "span": {
+              "start": 1172,
+              "end": 1193
+            }
+          }
+        },
+        {
+          "name": "action",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AccessLog",
+            "part": "field:action",
+            "span": {
+              "start": 1193,
+              "end": 1210
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AccessLog",
+            "part": "field:reason",
+            "span": {
+              "start": 1210,
+              "end": 1227
+            }
+          }
+        },
+        {
+          "name": "timestamp",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AccessLog",
+            "part": "field:timestamp",
+            "span": {
+              "start": 1227,
+              "end": 1247
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "AccessLog",
+        "part": "entity",
+        "span": {
+          "start": 1116,
+          "end": 1248
+        }
+      }
+    },
+    {
+      "name": "Medication",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Medication",
+            "part": "field:id",
+            "span": {
+              "start": 1272,
+              "end": 1283
+            }
+          }
+        },
+        {
+          "name": "patient",
+          "ty": {
+            "Named": "Patient"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Medication",
+            "part": "field:patient",
+            "span": {
+              "start": 1283,
+              "end": 1302
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Medication",
+            "part": "field:name",
+            "span": {
+              "start": 1302,
+              "end": 1317
+            }
+          }
+        },
+        {
+          "name": "dosage",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Medication",
+            "part": "field:dosage",
+            "span": {
+              "start": 1317,
+              "end": 1334
+            }
+          }
+        },
+        {
+          "name": "frequency",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Medication",
+            "part": "field:frequency",
+            "span": {
+              "start": 1334,
+              "end": 1354
+            }
+          }
+        },
+        {
+          "name": "prescriber",
+          "ty": {
+            "Named": "Provider"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Medication",
+            "part": "field:prescriber",
+            "span": {
+              "start": 1354,
+              "end": 1377
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Active",
+              "Discontinued",
+              "Completed"
+            ]
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Medication",
+            "part": "field:status",
+            "span": {
+              "start": 1377,
+              "end": 1421
+            }
+          }
+        },
+        {
+          "name": "start_date",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Medication",
+            "part": "field:start_date",
+            "span": {
+              "start": 1421,
+              "end": 1444
+            }
+          }
+        },
+        {
+          "name": "end_date",
+          "ty": {
+            "Optional": {
+              "Named": "DateTime"
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "Medication",
+            "part": "field:end_date",
+            "span": {
+              "start": 1444,
+              "end": 1463
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "Medication",
+        "part": "entity",
+        "span": {
+          "start": 1250,
+          "end": 1465
+        }
+      }
+    }
+  ],
+  "functions": [
+    {
+      "name": "CreatePatient",
+      "params": [
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "CreatePatient",
+            "part": "param:name",
+            "span": {
+              "start": 1536,
+              "end": 1551
+            }
+          }
+        },
+        {
+          "name": "date_of_birth",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "CreatePatient",
+            "part": "param:date_of_birth",
+            "span": {
+              "start": 1551,
+              "end": 1575
+            }
+          }
+        },
+        {
+          "name": "medical_record_number",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "CreatePatient",
+            "part": "param:medical_record_number",
+            "span": {
+              "start": 1575,
+              "end": 1608
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "name"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "CreatePatient",
+            "part": "requires",
+            "span": {
+              "start": 1623,
+              "end": 1638
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "date_of_birth"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "CreatePatient",
+            "part": "requires",
+            "span": {
+              "start": 1638,
+              "end": 1662
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "medical_record_number"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "CreatePatient",
+            "part": "requires",
+            "span": {
+              "start": 1662,
+              "end": 1694
+            }
+          }
+        },
+        {
+          "expr": {
+            "Not": {
+              "Exists": {
+                "binding": "p",
+                "ty": "Patient",
+                "body": {
+                  "Compare": {
+                    "left": {
+                      "FieldAccess": {
+                        "root": {
+                          "Var": "p"
+                        },
+                        "field": "medical_record_number"
+                      }
+                    },
+                    "op": "Eq",
+                    "right": {
+                      "Var": "medical_record_number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "CreatePatient",
+            "part": "requires",
+            "span": {
+              "start": 1694,
+              "end": 1775
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "p",
+                "ty": "Patient",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "And": [
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "p"
+                                    },
+                                    "field": "name"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "name"
+                                }
+                              }
+                            },
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "p"
+                                    },
+                                    "field": "date_of_birth"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "date_of_birth"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "p"
+                                },
+                                "field": "medical_record_number"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "medical_record_number"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "p"
+                            },
+                            "field": "status"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "Active"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "PatientRecords",
+              "item": "CreatePatient",
+              "part": "ensures",
+              "span": {
+                "start": 1794,
+                "end": 1966
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "CreatePatient",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1988,
+              "end": 2006
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "CreatePatient",
+        "part": "action",
+        "span": {
+          "start": 1467,
+          "end": 2012
+        }
+      }
+    },
+    {
+      "name": "AddToRecord",
+      "params": [
+        {
+          "name": "patient",
+          "ty": {
+            "Named": "Patient"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AddToRecord",
+            "part": "param:patient",
+            "span": {
+              "start": 2092,
+              "end": 2111
+            }
+          }
+        },
+        {
+          "name": "record_type",
+          "ty": {
+            "Union": [
+              "LabResult",
+              "Diagnosis",
+              "Prescription",
+              "Note",
+              "Imaging"
+            ]
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AddToRecord",
+            "part": "param:record_type",
+            "span": {
+              "start": 2111,
+              "end": 2180
+            }
+          }
+        },
+        {
+          "name": "title",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AddToRecord",
+            "part": "param:title",
+            "span": {
+              "start": 2180,
+              "end": 2196
+            }
+          }
+        },
+        {
+          "name": "content",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AddToRecord",
+            "part": "param:content",
+            "span": {
+              "start": 2196,
+              "end": 2214
+            }
+          }
+        },
+        {
+          "name": "author",
+          "ty": {
+            "Named": "Provider"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AddToRecord",
+            "part": "param:author",
+            "span": {
+              "start": 2214,
+              "end": 2233
+            }
+          }
+        },
+        {
+          "name": "sensitivity",
+          "ty": {
+            "Union": [
+              "Normal",
+              "Restricted",
+              "HighlyRestricted"
+            ]
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AddToRecord",
+            "part": "param:sensitivity",
+            "span": {
+              "start": 2233,
+              "end": 2288
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "patient"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AddToRecord",
+            "part": "requires",
+            "span": {
+              "start": 2303,
+              "end": 2332
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "author"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AddToRecord",
+            "part": "requires",
+            "span": {
+              "start": 2332,
+              "end": 2360
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "title"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AddToRecord",
+            "part": "requires",
+            "span": {
+              "start": 2360,
+              "end": 2376
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "content"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AddToRecord",
+            "part": "requires",
+            "span": {
+              "start": 2376,
+              "end": 2394
+            }
+          }
+        },
+        {
+          "expr": {
+            "Exists": {
+              "binding": "consent",
+              "ty": "Consent",
+              "body": {
+                "And": [
+                  {
+                    "And": [
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "consent"
+                              },
+                              "field": "patient"
+                            }
+                          },
+                          "op": "Eq",
+                          "right": {
+                            "Var": "patient"
+                          }
+                        }
+                      },
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "consent"
+                              },
+                              "field": "purpose"
+                            }
+                          },
+                          "op": "Eq",
+                          "right": {
+                            "Var": "Treatment"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "consent"
+                          },
+                          "field": "status"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "Active"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AddToRecord",
+            "part": "requires",
+            "span": {
+              "start": 2394,
+              "end": 2528
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "r",
+                "ty": "MedicalRecord",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "And": [
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "r"
+                                    },
+                                    "field": "patient"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "patient"
+                                }
+                              }
+                            },
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "r"
+                                    },
+                                    "field": "record_type"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "record_type"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "r"
+                                },
+                                "field": "author"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "author"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "r"
+                            },
+                            "field": "sensitivity"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "sensitivity"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "PatientRecords",
+              "item": "AddToRecord",
+              "part": "ensures",
+              "span": {
+                "start": 2547,
+                "end": 2709
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "log",
+                "ty": "AccessLog",
+                "body": {
+                  "And": [
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "log"
+                            },
+                            "field": "accessor"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "author"
+                        }
+                      }
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "log"
+                            },
+                            "field": "action"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Literal": {
+                            "String": "create"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "PatientRecords",
+              "item": "AddToRecord",
+              "part": "ensures",
+              "span": {
+                "start": 2709,
+                "end": 2797
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "AddToRecord",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 2819,
+              "end": 2837
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "AddToRecord",
+        "part": "action",
+        "span": {
+          "start": 2014,
+          "end": 2843
+        }
+      }
+    },
+    {
+      "name": "ViewRecord",
+      "params": [
+        {
+          "name": "record",
+          "ty": {
+            "Named": "MedicalRecord"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "ViewRecord",
+            "part": "param:record",
+            "span": {
+              "start": 2930,
+              "end": 2954
+            }
+          }
+        },
+        {
+          "name": "accessor",
+          "ty": {
+            "Named": "Provider"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "ViewRecord",
+            "part": "param:accessor",
+            "span": {
+              "start": 2954,
+              "end": 2975
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "ViewRecord",
+            "part": "param:reason",
+            "span": {
+              "start": 2975,
+              "end": 2993
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "accessor"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "ViewRecord",
+            "part": "requires",
+            "span": {
+              "start": 3008,
+              "end": 3038
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "reason"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "ViewRecord",
+            "part": "requires",
+            "span": {
+              "start": 3038,
+              "end": 3055
+            }
+          }
+        },
+        {
+          "expr": {
+            "Exists": {
+              "binding": "consent",
+              "ty": "Consent",
+              "body": {
+                "And": [
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "consent"
+                          },
+                          "field": "patient"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "record"
+                          },
+                          "field": "patient"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "consent"
+                          },
+                          "field": "status"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "Active"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "ViewRecord",
+            "part": "requires",
+            "span": {
+              "start": 3055,
+              "end": 3158
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "log",
+                "ty": "AccessLog",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "log"
+                                },
+                                "field": "record"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "record"
+                            }
+                          }
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "log"
+                                },
+                                "field": "accessor"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "accessor"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "log"
+                            },
+                            "field": "reason"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "reason"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "PatientRecords",
+              "item": "ViewRecord",
+              "part": "ensures",
+              "span": {
+                "start": 3177,
+                "end": 3295
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "ViewRecord",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 3317,
+              "end": 3335
+            }
+          }
+        },
+        {
+          "key": "max_latency_ms",
+          "value": {
+            "Int": 500
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "ViewRecord",
+            "part": "property:max_latency_ms",
+            "span": {
+              "start": 3340,
+              "end": 3359
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "ViewRecord",
+        "part": "action",
+        "span": {
+          "start": 2845,
+          "end": 3365
+        }
+      }
+    },
+    {
+      "name": "PrescribeMedication",
+      "params": [
+        {
+          "name": "patient",
+          "ty": {
+            "Named": "Patient"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "PrescribeMedication",
+            "part": "param:patient",
+            "span": {
+              "start": 3442,
+              "end": 3461
+            }
+          }
+        },
+        {
+          "name": "prescriber",
+          "ty": {
+            "Named": "Provider"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "PrescribeMedication",
+            "part": "param:prescriber",
+            "span": {
+              "start": 3461,
+              "end": 3484
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "PrescribeMedication",
+            "part": "param:name",
+            "span": {
+              "start": 3484,
+              "end": 3499
+            }
+          }
+        },
+        {
+          "name": "dosage",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "PrescribeMedication",
+            "part": "param:dosage",
+            "span": {
+              "start": 3499,
+              "end": 3516
+            }
+          }
+        },
+        {
+          "name": "frequency",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "PrescribeMedication",
+            "part": "param:frequency",
+            "span": {
+              "start": 3516,
+              "end": 3537
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "patient"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "PrescribeMedication",
+            "part": "requires",
+            "span": {
+              "start": 3552,
+              "end": 3581
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "prescriber"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "PrescribeMedication",
+            "part": "requires",
+            "span": {
+              "start": 3581,
+              "end": 3613
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "name"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "PrescribeMedication",
+            "part": "requires",
+            "span": {
+              "start": 3613,
+              "end": 3628
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "dosage"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "PrescribeMedication",
+            "part": "requires",
+            "span": {
+              "start": 3628,
+              "end": 3645
+            }
+          }
+        },
+        {
+          "expr": {
+            "Exists": {
+              "binding": "consent",
+              "ty": "Consent",
+              "body": {
+                "And": [
+                  {
+                    "And": [
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "consent"
+                              },
+                              "field": "patient"
+                            }
+                          },
+                          "op": "Eq",
+                          "right": {
+                            "Var": "patient"
+                          }
+                        }
+                      },
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "consent"
+                              },
+                              "field": "purpose"
+                            }
+                          },
+                          "op": "Eq",
+                          "right": {
+                            "Var": "Treatment"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "consent"
+                          },
+                          "field": "status"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "Active"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "PrescribeMedication",
+            "part": "requires",
+            "span": {
+              "start": 3645,
+              "end": 3779
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "med",
+                "ty": "Medication",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "And": [
+                            {
+                              "And": [
+                                {
+                                  "Compare": {
+                                    "left": {
+                                      "FieldAccess": {
+                                        "root": {
+                                          "Var": "med"
+                                        },
+                                        "field": "patient"
+                                      }
+                                    },
+                                    "op": "Eq",
+                                    "right": {
+                                      "Var": "patient"
+                                    }
+                                  }
+                                },
+                                {
+                                  "Compare": {
+                                    "left": {
+                                      "FieldAccess": {
+                                        "root": {
+                                          "Var": "med"
+                                        },
+                                        "field": "prescriber"
+                                      }
+                                    },
+                                    "op": "Eq",
+                                    "right": {
+                                      "Var": "prescriber"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "med"
+                                    },
+                                    "field": "name"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "name"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "med"
+                                },
+                                "field": "dosage"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "dosage"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "med"
+                            },
+                            "field": "status"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "Active"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "PatientRecords",
+              "item": "PrescribeMedication",
+              "part": "ensures",
+              "span": {
+                "start": 3798,
+                "end": 3979
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "PrescribeMedication",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 4001,
+              "end": 4019
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "PrescribeMedication",
+        "part": "action",
+        "span": {
+          "start": 3367,
+          "end": 4025
+        }
+      }
+    },
+    {
+      "name": "DiscontinueMedication",
+      "params": [
+        {
+          "name": "medication",
+          "ty": {
+            "Named": "Medication"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "DiscontinueMedication",
+            "part": "param:medication",
+            "span": {
+              "start": 4093,
+              "end": 4118
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "DiscontinueMedication",
+            "part": "param:reason",
+            "span": {
+              "start": 4118,
+              "end": 4136
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "medication"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "DiscontinueMedication",
+            "part": "requires",
+            "span": {
+              "start": 4151,
+              "end": 4183
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "reason"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "DiscontinueMedication",
+            "part": "requires",
+            "span": {
+              "start": 4183,
+              "end": 4198
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "medication"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Discontinued"
+                }
+              }
+            },
+            "trace": {
+              "module": "PatientRecords",
+              "item": "DiscontinueMedication",
+              "part": "ensures",
+              "span": {
+                "start": 4217,
+                "end": 4253
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "DiscontinueMedication",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 4275,
+              "end": 4293
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "DiscontinueMedication",
+        "part": "action",
+        "span": {
+          "start": 4027,
+          "end": 4299
+        }
+      }
+    },
+    {
+      "name": "GrantConsent",
+      "params": [
+        {
+          "name": "patient",
+          "ty": {
+            "Named": "Patient"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "GrantConsent",
+            "part": "param:patient",
+            "span": {
+              "start": 4378,
+              "end": 4397
+            }
+          }
+        },
+        {
+          "name": "purpose",
+          "ty": {
+            "Union": [
+              "Treatment",
+              "Research",
+              "Billing",
+              "DataSharing"
+            ]
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "GrantConsent",
+            "part": "param:purpose",
+            "span": {
+              "start": 4397,
+              "end": 4453
+            }
+          }
+        },
+        {
+          "name": "granted_to",
+          "ty": {
+            "Optional": {
+              "Named": "Provider"
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "GrantConsent",
+            "part": "param:granted_to",
+            "span": {
+              "start": 4453,
+              "end": 4474
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "patient"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "GrantConsent",
+            "part": "requires",
+            "span": {
+              "start": 4493,
+              "end": 4520
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "c",
+                "ty": "Consent",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "c"
+                                },
+                                "field": "patient"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "patient"
+                            }
+                          }
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "c"
+                                },
+                                "field": "purpose"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "purpose"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "c"
+                            },
+                            "field": "status"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "Active"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "PatientRecords",
+              "item": "GrantConsent",
+              "part": "ensures",
+              "span": {
+                "start": 4539,
+                "end": 4647
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "GrantConsent",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 4669,
+              "end": 4687
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "GrantConsent",
+        "part": "action",
+        "span": {
+          "start": 4301,
+          "end": 4693
+        }
+      }
+    },
+    {
+      "name": "RevokeConsent",
+      "params": [
+        {
+          "name": "consent",
+          "ty": {
+            "Named": "Consent"
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "RevokeConsent",
+            "part": "param:consent",
+            "span": {
+              "start": 4772,
+              "end": 4792
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "consent"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "RevokeConsent",
+            "part": "requires",
+            "span": {
+              "start": 4807,
+              "end": 4834
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "consent"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Revoked"
+                }
+              }
+            },
+            "trace": {
+              "module": "PatientRecords",
+              "item": "RevokeConsent",
+              "part": "ensures",
+              "span": {
+                "start": 4853,
+                "end": 4881
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "PatientRecords",
+            "item": "RevokeConsent",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 4903,
+              "end": 4921
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "RevokeConsent",
+        "part": "action",
+        "span": {
+          "start": 4695,
+          "end": 4927
+        }
+      }
+    }
+  ],
+  "invariants": [
+    {
+      "name": "UniqueMRN",
+      "expr": {
+        "Forall": {
+          "binding": "a",
+          "ty": "Patient",
+          "body": {
+            "Forall": {
+              "binding": "b",
+              "ty": "Patient",
+              "body": {
+                "Implies": [
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "a"
+                          },
+                          "field": "id"
+                        }
+                      },
+                      "op": "Ne",
+                      "right": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "b"
+                          },
+                          "field": "id"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "a"
+                          },
+                          "field": "medical_record_number"
+                        }
+                      },
+                      "op": "Ne",
+                      "right": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "b"
+                          },
+                          "field": "medical_record_number"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "PatientRecords",
+        "item": "UniqueMRN",
+        "part": "invariant",
+        "span": {
+          "start": 4929,
+          "end": 5146
+        }
+      }
+    },
+    {
+      "name": "ConsentRequired",
+      "expr": {
+        "Forall": {
+          "binding": "r",
+          "ty": "MedicalRecord",
+          "body": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "r"
+                      },
+                      "field": "patient"
+                    }
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "PatientRecords",
+        "item": "ConsentRequired",
+        "part": "invariant",
+        "span": {
+          "start": 5148,
+          "end": 5362
+        }
+      }
+    },
+    {
+      "name": "ActiveProviderRequired",
+      "expr": {
+        "Forall": {
+          "binding": "r",
+          "ty": "MedicalRecord",
+          "body": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "r"
+                      },
+                      "field": "author"
+                    }
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "PatientRecords",
+        "item": "ActiveProviderRequired",
+        "part": "invariant",
+        "span": {
+          "start": 5364,
+          "end": 5515
+        }
+      }
+    },
+    {
+      "name": "AllAccessLogged",
+      "expr": {
+        "Forall": {
+          "binding": "log",
+          "ty": "AccessLog",
+          "body": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "log"
+                  },
+                  "field": "reason"
+                }
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "PatientRecords",
+        "item": "AllAccessLogged",
+        "part": "invariant",
+        "span": {
+          "start": 5517,
+          "end": 5649
+        }
+      }
+    },
+    {
+      "name": "ActiveMedicationHasPrescriber",
+      "expr": {
+        "Forall": {
+          "binding": "m",
+          "ty": "Medication",
+          "body": {
+            "Implies": [
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "m"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Active"
+                  }
+                }
+              },
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "m"
+                          },
+                          "field": "prescriber"
+                        }
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Active"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "module": "PatientRecords",
+        "item": "ActiveMedicationHasPrescriber",
+        "part": "invariant",
+        "span": {
+          "start": 5651,
+          "end": 5839
+        }
+      }
+    }
+  ],
+  "edge_guards": [
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "patient"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Deceased"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Cannot modify records for deceased patients"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 5856,
+          "end": 5944
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "patient"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Inactive"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Patient record is inactive"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 5947,
+          "end": 6018
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "accessor"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Suspended"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Suspended providers cannot access records"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 6021,
+          "end": 6109
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "accessor"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Revoked"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Revoked providers cannot access records"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "PatientRecords",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 6112,
+          "end": 6196
+        }
+      }
+    }
+  ]
+}

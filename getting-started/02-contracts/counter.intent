@@ -1,0 +1,55 @@
+module Counter
+
+--- A simple counter that can be incremented, decremented, and reset.
+--- Demonstrates requires/ensures contracts and old() for
+--- referencing pre-execution state.
+
+entity Counter {
+  id: UUID
+  value: Int
+  name: String
+  max_value: Int
+}
+
+action Increment {
+  --- Increase the counter by a given step.
+  counter: Counter
+  step: Int
+
+  requires {
+    step > 0
+    counter.value + step <= counter.max_value
+  }
+
+  ensures {
+    counter.value == old(counter.value) + step
+  }
+}
+
+action Decrement {
+  --- Decrease the counter by a given step.
+  counter: Counter
+  step: Int
+
+  requires {
+    step > 0
+    counter.value - step >= 0
+  }
+
+  ensures {
+    counter.value == old(counter.value) - step
+  }
+}
+
+action Reset {
+  --- Reset the counter to zero.
+  counter: Counter
+
+  ensures {
+    counter.value == 0
+  }
+
+  properties {
+    idempotent: true
+  }
+}

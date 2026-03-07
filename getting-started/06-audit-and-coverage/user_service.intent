@@ -1,0 +1,166 @@
+module UserService
+
+--- A user management service demonstrating the Audit Bridge:
+--- trace maps, coverage analysis, and spec querying.
+--- Every action, entity, and invariant is traceable from
+--- spec to IR and back.
+
+entity User {
+  id: UUID
+  email: Email
+  name: String
+  password_hash: String
+  role: Admin | Member | Guest
+  status: Active | Suspended | Deleted
+  login_count: Int
+  last_login: DateTime?
+  created_at: DateTime
+}
+
+entity Session {
+  id: UUID
+  user: User
+  token: String
+  expires_at: DateTime
+  active: Bool
+}
+
+entity AuditLog {
+  id: UUID
+  user: User
+  event: String
+  details: String?
+  timestamp: DateTime
+}
+
+action RegisterUser {
+  --- Create a new user account.
+  email: Email
+  name: String
+  password_hash: String
+
+  requires {
+    email != ""
+    name != ""
+    !(exists u: User => u.email == email)
+  }
+
+  ensures {
+    exists u: User =>
+      u.email == email &&
+      u.name == name &&
+      u.status == Active &&
+      u.role == Member &&
+      u.login_count == 0
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action Login {
+  --- Authenticate a user and create a session.
+  user: User
+  password_hash: String
+
+  requires {
+    user.status == Active
+    user.password_hash == password_hash
+  }
+
+  ensures {
+    user.login_count == old(user.login_count) + 1
+    exists s: Session =>
+      s.user == user &&
+      s.active == true
+  }
+
+  properties {
+    audit_logged: true
+    max_latency_ms: 200
+  }
+}
+
+action Logout {
+  --- End a user's session.
+  session: Session
+
+  requires {
+    session.active == true
+  }
+
+  ensures {
+    session.active == false
+  }
+
+  properties {
+    idempotent: true
+    audit_logged: true
+  }
+}
+
+action SuspendUser {
+  --- Suspend a user account, ending all active sessions.
+  user: User
+  reason: String
+
+  requires {
+    user.status == Active
+    reason != ""
+  }
+
+  ensures {
+    user.status == Suspended
+  }
+
+  properties {
+    audit_logged: true
+    requires_role: "admin"
+  }
+}
+
+action PromoteToAdmin {
+  --- Elevate a user to admin role.
+  user: User
+  promoted_by: User
+
+  requires {
+    user.status == Active
+    user.role == Member
+    promoted_by.role == Admin
+  }
+
+  ensures {
+    user.role == Admin
+  }
+
+  properties {
+    audit_logged: true
+    requires_role: "admin"
+  }
+}
+
+invariant UniqueEmails {
+  --- No two users may share the same email.
+  forall a: User =>
+    forall b: User =>
+      a.id != b.id => a.email != b.email
+}
+
+invariant SuspendedNoSessions {
+  --- Suspended users must not have active sessions.
+  forall s: Session =>
+    s.user.status == Suspended => s.active == false
+}
+
+invariant NonNegativeLoginCount {
+  --- Login count can never go below zero.
+  forall u: User => u.login_count >= 0
+}
+
+edge_cases {
+  when user.status == Suspended => reject("Account is suspended")
+  when user.status == Deleted => reject("Account has been deleted")
+  when user.role == Guest => reject("Guests cannot perform this action")
+}

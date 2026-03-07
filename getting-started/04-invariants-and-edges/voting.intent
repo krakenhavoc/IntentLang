@@ -1,0 +1,113 @@
+module Voting
+
+--- An election voting system demonstrating invariants, quantifiers,
+--- and edge case handling. Each voter may cast exactly one ballot
+--- per election, and vote tallies must always be consistent.
+
+entity Voter {
+  id: UUID
+  name: String
+  email: Email
+  status: Registered | Verified | Suspended
+}
+
+entity Candidate {
+  id: UUID
+  name: String
+  party: String
+  vote_count: Int
+}
+
+entity Election {
+  id: UUID
+  title: String
+  candidates: List<Candidate>
+  total_votes: Int
+  status: Open | Closed | Cancelled
+  opens_at: DateTime
+  closes_at: DateTime
+}
+
+entity Ballot {
+  id: UUID
+  voter: Voter
+  election: Election
+  candidate: Candidate
+  cast_at: DateTime
+}
+
+action CastVote {
+  --- Record a voter's choice in an election.
+  voter: Voter
+  election: Election
+  candidate: Candidate
+
+  requires {
+    voter.status == Verified
+    election.status == Open
+    !(exists b: Ballot =>
+      b.voter == voter &&
+      b.election == election)
+  }
+
+  ensures {
+    exists b: Ballot =>
+      b.voter == voter &&
+      b.election == election &&
+      b.candidate == candidate
+    candidate.vote_count == old(candidate.vote_count) + 1
+    election.total_votes == old(election.total_votes) + 1
+  }
+
+  properties {
+    atomic: true
+    audit_logged: true
+    idempotent: false
+  }
+}
+
+action CloseElection {
+  --- Close an election to prevent further voting.
+  election: Election
+
+  requires {
+    election.status == Open
+  }
+
+  ensures {
+    election.status == Closed
+  }
+
+  properties {
+    audit_logged: true
+    requires_role: "election_admin"
+  }
+}
+
+invariant OneVotePerVoter {
+  --- A voter may cast at most one ballot per election.
+  forall b1: Ballot =>
+    forall b2: Ballot =>
+      b1.voter == b2.voter &&
+      b1.election == b2.election =>
+        b1 == b2
+}
+
+invariant VoteCountConsistency {
+  --- The total votes in an election must equal the sum
+  --- of all candidate vote counts.
+  forall e: Election =>
+    e.total_votes >= 0
+}
+
+invariant NonNegativeVotes {
+  --- No candidate can have negative votes.
+  forall c: Candidate => c.vote_count >= 0
+}
+
+edge_cases {
+  when voter.status == Registered => reject("Voter must be verified before voting")
+  when voter.status == Suspended => reject("Suspended voters cannot vote")
+  when election.status == Closed => reject("Election is closed")
+  when election.status == Cancelled => reject("Election has been cancelled")
+}

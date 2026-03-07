@@ -25,10 +25,11 @@
 - [Compiling to IR](./cli/compile.md)
 - [Verification & Audit](./cli/verify.md)
 - [Agent Tooling](./cli/agent-tools.md)
+- [Generating Specs (Layer 0)](./cli/generate.md)
 
 # Architecture
 
-- [Three-Layer Design](./architecture/three-layers.md)
+- [Four-Layer Design](./architecture/three-layers.md)
 - [Crate Structure](./architecture/crates.md)
 
 # Examples

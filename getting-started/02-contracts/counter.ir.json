@@ -1,0 +1,474 @@
+{
+  "name": "Counter",
+  "structs": [
+    {
+      "name": "Counter",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Counter",
+            "part": "field:id",
+            "span": {
+              "start": 201,
+              "end": 212
+            }
+          }
+        },
+        {
+          "name": "value",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Counter",
+            "part": "field:value",
+            "span": {
+              "start": 212,
+              "end": 225
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Counter",
+            "part": "field:name",
+            "span": {
+              "start": 225,
+              "end": 240
+            }
+          }
+        },
+        {
+          "name": "max_value",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Counter",
+            "part": "field:max_value",
+            "span": {
+              "start": 240,
+              "end": 255
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Counter",
+        "item": "Counter",
+        "part": "entity",
+        "span": {
+          "start": 182,
+          "end": 256
+        }
+      }
+    }
+  ],
+  "functions": [
+    {
+      "name": "Increment",
+      "params": [
+        {
+          "name": "counter",
+          "ty": {
+            "Named": "Counter"
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Increment",
+            "part": "param:counter",
+            "span": {
+              "start": 323,
+              "end": 342
+            }
+          }
+        },
+        {
+          "name": "step",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Increment",
+            "part": "param:step",
+            "span": {
+              "start": 342,
+              "end": 355
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "step"
+              },
+              "op": "Gt",
+              "right": {
+                "Literal": {
+                  "Int": 0
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Increment",
+            "part": "requires",
+            "span": {
+              "start": 370,
+              "end": 383
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Arithmetic": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "counter"
+                      },
+                      "field": "value"
+                    }
+                  },
+                  "op": "Add",
+                  "right": {
+                    "Var": "step"
+                  }
+                }
+              },
+              "op": "Le",
+              "right": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "counter"
+                  },
+                  "field": "max_value"
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Increment",
+            "part": "requires",
+            "span": {
+              "start": 383,
+              "end": 427
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "counter"
+                    },
+                    "field": "value"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Arithmetic": {
+                    "left": {
+                      "Old": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "counter"
+                          },
+                          "field": "value"
+                        }
+                      }
+                    },
+                    "op": "Add",
+                    "right": {
+                      "Var": "step"
+                    }
+                  }
+                }
+              }
+            },
+            "trace": {
+              "module": "Counter",
+              "item": "Increment",
+              "part": "ensures",
+              "span": {
+                "start": 446,
+                "end": 491
+              }
+            }
+          }
+        }
+      ],
+      "properties": [],
+      "trace": {
+        "module": "Counter",
+        "item": "Increment",
+        "part": "action",
+        "span": {
+          "start": 258,
+          "end": 494
+        }
+      }
+    },
+    {
+      "name": "Decrement",
+      "params": [
+        {
+          "name": "counter",
+          "ty": {
+            "Named": "Counter"
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Decrement",
+            "part": "param:counter",
+            "span": {
+              "start": 561,
+              "end": 580
+            }
+          }
+        },
+        {
+          "name": "step",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Decrement",
+            "part": "param:step",
+            "span": {
+              "start": 580,
+              "end": 593
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "step"
+              },
+              "op": "Gt",
+              "right": {
+                "Literal": {
+                  "Int": 0
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Decrement",
+            "part": "requires",
+            "span": {
+              "start": 608,
+              "end": 621
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Arithmetic": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "counter"
+                      },
+                      "field": "value"
+                    }
+                  },
+                  "op": "Sub",
+                  "right": {
+                    "Var": "step"
+                  }
+                }
+              },
+              "op": "Ge",
+              "right": {
+                "Literal": {
+                  "Int": 0
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Decrement",
+            "part": "requires",
+            "span": {
+              "start": 621,
+              "end": 649
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "counter"
+                    },
+                    "field": "value"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Arithmetic": {
+                    "left": {
+                      "Old": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "counter"
+                          },
+                          "field": "value"
+                        }
+                      }
+                    },
+                    "op": "Sub",
+                    "right": {
+                      "Var": "step"
+                    }
+                  }
+                }
+              }
+            },
+            "trace": {
+              "module": "Counter",
+              "item": "Decrement",
+              "part": "ensures",
+              "span": {
+                "start": 668,
+                "end": 713
+              }
+            }
+          }
+        }
+      ],
+      "properties": [],
+      "trace": {
+        "module": "Counter",
+        "item": "Decrement",
+        "part": "action",
+        "span": {
+          "start": 496,
+          "end": 716
+        }
+      }
+    },
+    {
+      "name": "Reset",
+      "params": [
+        {
+          "name": "counter",
+          "ty": {
+            "Named": "Counter"
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Reset",
+            "part": "param:counter",
+            "span": {
+              "start": 768,
+              "end": 788
+            }
+          }
+        }
+      ],
+      "preconditions": [],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "counter"
+                    },
+                    "field": "value"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Literal": {
+                    "Int": 0
+                  }
+                }
+              }
+            },
+            "trace": {
+              "module": "Counter",
+              "item": "Reset",
+              "part": "ensures",
+              "span": {
+                "start": 802,
+                "end": 823
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "idempotent",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Counter",
+            "item": "Reset",
+            "part": "property:idempotent",
+            "span": {
+              "start": 845,
+              "end": 861
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Counter",
+        "item": "Reset",
+        "part": "action",
+        "span": {
+          "start": 718,
+          "end": 867
+        }
+      }
+    }
+  ],
+  "invariants": [],
+  "edge_guards": []
+}

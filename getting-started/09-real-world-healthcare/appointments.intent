@@ -1,0 +1,269 @@
+module Appointments
+
+--- Clinical appointment scheduling with availability management,
+--- cancellation policies, and waitlist handling.
+
+entity Clinic {
+  id: UUID
+  name: String
+  address: String
+  status: Open | Closed | Renovating
+}
+
+entity TimeSlot {
+  id: UUID
+  clinic: Clinic
+  provider_id: UUID
+  provider_name: String
+  start_time: DateTime
+  end_time: DateTime
+  status: Available | Booked | Blocked
+}
+
+entity Appointment {
+  id: UUID
+  patient_id: UUID
+  patient_name: String
+  time_slot: TimeSlot
+  reason: String
+  appointment_type: InPerson | Telehealth
+  status: Scheduled | CheckedIn | InProgress | Completed | Cancelled | NoShow
+  notes: String?
+  created_at: DateTime
+  cancelled_at: DateTime?
+  cancellation_reason: String?
+}
+
+entity WaitlistEntry {
+  id: UUID
+  patient_id: UUID
+  patient_name: String
+  clinic: Clinic
+  preferred_provider_id: UUID?
+  reason: String
+  priority: Urgent | Routine | FollowUp
+  requested_at: DateTime
+  status: Waiting | Offered | Accepted | Expired
+}
+
+entity AppointmentReminder {
+  id: UUID
+  appointment: Appointment
+  reminder_type: String
+  sent_at: DateTime?
+  status: Pending | Sent | Failed
+}
+
+action BookAppointment {
+  --- Schedule an appointment for a patient in an available slot.
+  patient_id: UUID
+  patient_name: String
+  time_slot: TimeSlot
+  reason: String
+  appointment_type: InPerson | Telehealth
+
+  requires {
+    time_slot.status == Available
+    time_slot.clinic.status == Open
+    reason != ""
+    !(exists a: Appointment =>
+      a.patient_id == patient_id &&
+      a.time_slot == time_slot &&
+      a.status == Scheduled)
+  }
+
+  ensures {
+    time_slot.status == Booked
+    exists a: Appointment =>
+      a.patient_id == patient_id &&
+      a.time_slot == time_slot &&
+      a.reason == reason &&
+      a.status == Scheduled
+  }
+
+  properties {
+    atomic: true
+    audit_logged: true
+  }
+}
+
+action CheckIn {
+  --- Mark a patient as checked in for their appointment.
+  appointment: Appointment
+
+  requires {
+    appointment.status == Scheduled
+  }
+
+  ensures {
+    appointment.status == CheckedIn
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action StartAppointment {
+  --- Begin the clinical encounter.
+  appointment: Appointment
+
+  requires {
+    appointment.status == CheckedIn
+  }
+
+  ensures {
+    appointment.status == InProgress
+  }
+}
+
+action CompleteAppointment {
+  --- Finish the appointment and record notes.
+  appointment: Appointment
+  notes: String
+
+  requires {
+    appointment.status == InProgress
+    notes != ""
+  }
+
+  ensures {
+    appointment.status == Completed
+    appointment.notes == notes
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action CancelAppointment {
+  --- Cancel a scheduled appointment and free the slot.
+  appointment: Appointment
+  reason: String
+
+  requires {
+    appointment.status == Scheduled
+    reason != ""
+  }
+
+  ensures {
+    appointment.status == Cancelled
+    appointment.cancellation_reason == reason
+    appointment.time_slot.status == Available
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action MarkNoShow {
+  --- Record that a patient did not show up.
+  appointment: Appointment
+
+  requires {
+    appointment.status == Scheduled
+  }
+
+  ensures {
+    appointment.status == NoShow
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action JoinWaitlist {
+  --- Add a patient to the waitlist for a clinic.
+  patient_id: UUID
+  patient_name: String
+  clinic: Clinic
+  reason: String
+  priority: Urgent | Routine | FollowUp
+
+  requires {
+    clinic.status == Open
+    reason != ""
+  }
+
+  ensures {
+    exists w: WaitlistEntry =>
+      w.patient_id == patient_id &&
+      w.clinic == clinic &&
+      w.priority == priority &&
+      w.status == Waiting
+  }
+}
+
+action OfferSlot {
+  --- Offer an available slot to the next waitlisted patient.
+  entry: WaitlistEntry
+  time_slot: TimeSlot
+
+  requires {
+    entry.status == Waiting
+    time_slot.status == Available
+    time_slot.clinic == entry.clinic
+  }
+
+  ensures {
+    entry.status == Offered
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action BlockSlot {
+  --- Block a time slot (e.g., provider unavailable).
+  time_slot: TimeSlot
+  reason: String
+
+  requires {
+    time_slot.status == Available
+    reason != ""
+  }
+
+  ensures {
+    time_slot.status == Blocked
+  }
+}
+
+invariant BookedSlotHasAppointment {
+  --- Every booked slot must have exactly one scheduled or active appointment.
+  forall ts: TimeSlot =>
+    ts.status == Booked =>
+      exists a: Appointment =>
+        a.time_slot == ts &&
+        (a.status == Scheduled ||
+         a.status == CheckedIn ||
+         a.status == InProgress)
+}
+
+invariant NoDoubleBooking {
+  --- A time slot can have at most one non-cancelled appointment.
+  forall a1: Appointment =>
+    forall a2: Appointment =>
+      a1.time_slot == a2.time_slot &&
+      a1.status != Cancelled &&
+      a1.status != NoShow &&
+      a2.status != Cancelled &&
+      a2.status != NoShow =>
+        a1 == a2
+}
+
+invariant CancelledSlotFreed {
+  --- Cancelling an appointment must free the time slot.
+  forall a: Appointment =>
+    a.status == Cancelled =>
+      a.time_slot.status == Available
+}
+
+edge_cases {
+  when time_slot.clinic.status == Closed => reject("Clinic is closed")
+  when time_slot.clinic.status == Renovating => reject("Clinic is temporarily closed for renovation")
+  when time_slot.status == Blocked => reject("This time slot is blocked")
+}

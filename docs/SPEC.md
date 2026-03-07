@@ -36,6 +36,54 @@ Intent specs should compose — you can import, extend, and constrain other spec
 
 ---
 
+## Layer 0: Natural Language
+
+### Purpose
+A natural language interface that translates human descriptions into formal `.intent` specs. Layer 0 lowers the barrier to entry — anyone who can describe what they want in plain English can produce a verified specification.
+
+### How It Works
+1. Human provides a natural language description (e.g., *"I want a program that greets a user by name"*)
+2. An AI agent translates the description into IntentLang syntax
+3. The generated spec is automatically validated via `intent check`
+4. If validation fails, the agent self-corrects and retries
+5. The validated `.intent` file is output for human review
+
+### CLI Interface
+```
+intent generate "I want a task tracker with priorities and assignments"
+intent generate --interactive "build me a shopping cart"
+intent generate --edit cart.intent "add a discount code feature"
+intent generate --confidence 2 "healthcare patient records system"
+intent generate --model claude-sonnet-4-6 --out hello.intent "greeting service"
+```
+
+### Confidence Levels
+The `--confidence` flag (1–5) controls how much the agent asks vs. assumes:
+
+| Level | Behavior |
+|-------|----------|
+| 1 | Always start interactive — ask clarifying questions before generating |
+| 2 | Generate a draft, then ask "does this look right?" before finalizing |
+| 3 (default) | Generate and auto-validate. Switch to interactive only if `check` finds errors after retry |
+| 4 | Generate, auto-validate, auto-retry errors. Only prompt if completely stuck |
+| 5 | Single-shot. Output whatever the LLM returns (still runs `check`, but doesn't retry or prompt) |
+
+### Edit Mode
+`intent generate --edit <file> "description of changes"` reads an existing spec, applies the requested modifications, and outputs the updated file. Use `--diff` to see a diff instead of the full file.
+
+### Prompt Preservation
+The natural language prompt used to generate a spec should be committed to version control alongside the `.intent` file. This preserves the original ask so that team members can understand the intent behind the spec. Storage format TBD (companion `.prompt` file or `--- @prompt` annotation in the spec itself).
+
+### Configuration
+- `AI_API_KEY` — API key (env var)
+- `AI_API_BASE` — API base URL (env var, defaults to OpenAI-compatible endpoint)
+- `AI_MODEL` — Default model (env var, overridden by `--model`)
+- `--max-retries N` — Max validation retry attempts (default: 2, so 3 total attempts)
+
+The API client uses the OpenAI-compatible chat completions format, supporting any provider (OpenAI, Anthropic, local models via Ollama/vLLM, Azure, etc.) through configurable base URL and model.
+
+---
+
 ## Layer 1: Intent Language
 
 ### Purpose
@@ -208,6 +256,13 @@ New behavior: Transfers exceeding 100/min per account are queued
 - Agent-friendly API for reading specs and producing IR
 - Incremental verification (re-verify only changed code)
 - Multi-agent collaboration support (lock/claim spec sections)
+
+### Phase 5: Language Polish & Natural Language Generation
+- Auto-formatter (`intent fmt`), scaffolding (`intent init`), shell completions
+- Natural language to intent translation (`intent generate`)
+- Interactive and single-shot generation modes with confidence levels
+- Edit existing specs from natural language descriptions
+- Model-agnostic LLM integration (OpenAI-compatible API)
 
 ---
 

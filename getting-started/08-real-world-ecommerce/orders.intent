@@ -1,0 +1,234 @@
+module Orders
+
+--- Order management with cart-to-order conversion, fulfillment
+--- tracking, and return handling.
+
+entity Customer {
+  id: UUID
+  email: Email
+  name: String
+  shipping_address: String
+  status: Active | Suspended
+}
+
+entity CartItem {
+  product_id: UUID
+  product_name: String
+  quantity: Int
+  unit_price: Decimal(precision: 2)
+}
+
+entity Cart {
+  id: UUID
+  customer: Customer
+  items: List<CartItem>
+  status: Open | CheckedOut | Abandoned
+}
+
+entity OrderLine {
+  product_id: UUID
+  product_name: String
+  quantity: Int
+  unit_price: Decimal(precision: 2)
+  line_total: Decimal(precision: 2)
+}
+
+entity Order {
+  id: UUID
+  customer: Customer
+  lines: List<OrderLine>
+  subtotal: Decimal(precision: 2)
+  tax: Decimal(precision: 2)
+  total: Decimal(precision: 2)
+  status: Pending | Confirmed | Shipped | Delivered | Cancelled | Returned
+  shipping_address: String
+  tracking_number: String?
+  created_at: DateTime
+  shipped_at: DateTime?
+  delivered_at: DateTime?
+}
+
+entity ReturnRequest {
+  id: UUID
+  order: Order
+  reason: String
+  status: Requested | Approved | Rejected | Completed
+  refund_amount: Decimal(precision: 2)
+  created_at: DateTime
+}
+
+action Checkout {
+  --- Convert a cart into a pending order.
+  cart: Cart
+  shipping_address: String
+
+  requires {
+    cart.status == Open
+    cart.customer.status == Active
+    shipping_address != ""
+  }
+
+  ensures {
+    cart.status == CheckedOut
+    exists o: Order =>
+      o.customer == cart.customer &&
+      o.status == Pending &&
+      o.shipping_address == shipping_address &&
+      o.total > 0
+  }
+
+  properties {
+    atomic: true
+    audit_logged: true
+  }
+}
+
+action ConfirmOrder {
+  --- Confirm a pending order after payment verification.
+  order: Order
+
+  requires {
+    order.status == Pending
+  }
+
+  ensures {
+    order.status == Confirmed
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action ShipOrder {
+  --- Mark an order as shipped with a tracking number.
+  order: Order
+  tracking_number: String
+
+  requires {
+    order.status == Confirmed
+    tracking_number != ""
+  }
+
+  ensures {
+    order.status == Shipped
+    order.tracking_number == tracking_number
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action DeliverOrder {
+  --- Mark an order as delivered.
+  order: Order
+
+  requires {
+    order.status == Shipped
+  }
+
+  ensures {
+    order.status == Delivered
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action CancelOrder {
+  --- Cancel an order that hasn't shipped yet.
+  order: Order
+  reason: String
+
+  requires {
+    order.status == Pending || order.status == Confirmed
+    reason != ""
+  }
+
+  ensures {
+    order.status == Cancelled
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action RequestReturn {
+  --- Customer requests a return for a delivered order.
+  order: Order
+  reason: String
+
+  requires {
+    order.status == Delivered
+    reason != ""
+    !(exists rr: ReturnRequest =>
+      rr.order == order &&
+      rr.status != Rejected)
+  }
+
+  ensures {
+    exists rr: ReturnRequest =>
+      rr.order == order &&
+      rr.reason == reason &&
+      rr.status == Requested
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action ApproveReturn {
+  --- Approve a return request and set the refund amount.
+  return_request: ReturnRequest
+  refund_amount: Decimal(precision: 2)
+
+  requires {
+    return_request.status == Requested
+    refund_amount > 0
+    refund_amount <= return_request.order.total
+  }
+
+  ensures {
+    return_request.status == Approved
+    return_request.refund_amount == refund_amount
+  }
+
+  properties {
+    audit_logged: true
+    requires_role: "customer_service"
+  }
+}
+
+invariant OrderTotalPositive {
+  --- Confirmed orders must have a positive total.
+  forall o: Order =>
+    o.status == Confirmed ||
+    o.status == Shipped ||
+    o.status == Delivered =>
+      o.total > 0
+}
+
+invariant RefundNotExceedTotal {
+  --- A return refund cannot exceed the order total.
+  forall rr: ReturnRequest =>
+    rr.status == Approved =>
+      rr.refund_amount <= rr.order.total
+}
+
+invariant NoShippedCancellations {
+  --- Orders that have been shipped cannot be cancelled.
+  forall o: Order =>
+    o.status == Shipped ||
+    o.status == Delivered =>
+      o.status != Cancelled
+}
+
+edge_cases {
+  when cart.customer.status == Suspended => reject("Suspended customers cannot checkout")
+  when order.status == Cancelled => reject("Order has been cancelled")
+  when order.status == Returned => reject("Order has already been returned")
+}

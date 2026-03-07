@@ -1,0 +1,1193 @@
+{
+  "name": "Voting",
+  "structs": [
+    {
+      "name": "Voter",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Voter",
+            "part": "field:id",
+            "span": {
+              "start": 231,
+              "end": 242
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Voter",
+            "part": "field:name",
+            "span": {
+              "start": 242,
+              "end": 257
+            }
+          }
+        },
+        {
+          "name": "email",
+          "ty": {
+            "Named": "Email"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Voter",
+            "part": "field:email",
+            "span": {
+              "start": 257,
+              "end": 272
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Registered",
+              "Verified",
+              "Suspended"
+            ]
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Voter",
+            "part": "field:status",
+            "span": {
+              "start": 272,
+              "end": 314
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Voting",
+        "item": "Voter",
+        "part": "entity",
+        "span": {
+          "start": 214,
+          "end": 315
+        }
+      }
+    },
+    {
+      "name": "Candidate",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Candidate",
+            "part": "field:id",
+            "span": {
+              "start": 338,
+              "end": 349
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Candidate",
+            "part": "field:name",
+            "span": {
+              "start": 349,
+              "end": 364
+            }
+          }
+        },
+        {
+          "name": "party",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Candidate",
+            "part": "field:party",
+            "span": {
+              "start": 364,
+              "end": 380
+            }
+          }
+        },
+        {
+          "name": "vote_count",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Candidate",
+            "part": "field:vote_count",
+            "span": {
+              "start": 380,
+              "end": 396
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Voting",
+        "item": "Candidate",
+        "part": "entity",
+        "span": {
+          "start": 317,
+          "end": 397
+        }
+      }
+    },
+    {
+      "name": "Election",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Election",
+            "part": "field:id",
+            "span": {
+              "start": 419,
+              "end": 430
+            }
+          }
+        },
+        {
+          "name": "title",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Election",
+            "part": "field:title",
+            "span": {
+              "start": 430,
+              "end": 446
+            }
+          }
+        },
+        {
+          "name": "candidates",
+          "ty": {
+            "List": {
+              "Named": "Candidate"
+            }
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Election",
+            "part": "field:candidates",
+            "span": {
+              "start": 446,
+              "end": 476
+            }
+          }
+        },
+        {
+          "name": "total_votes",
+          "ty": {
+            "Named": "Int"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Election",
+            "part": "field:total_votes",
+            "span": {
+              "start": 476,
+              "end": 495
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Open",
+              "Closed",
+              "Cancelled"
+            ]
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Election",
+            "part": "field:status",
+            "span": {
+              "start": 495,
+              "end": 531
+            }
+          }
+        },
+        {
+          "name": "opens_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Election",
+            "part": "field:opens_at",
+            "span": {
+              "start": 531,
+              "end": 552
+            }
+          }
+        },
+        {
+          "name": "closes_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Election",
+            "part": "field:closes_at",
+            "span": {
+              "start": 552,
+              "end": 572
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Voting",
+        "item": "Election",
+        "part": "entity",
+        "span": {
+          "start": 399,
+          "end": 573
+        }
+      }
+    },
+    {
+      "name": "Ballot",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Ballot",
+            "part": "field:id",
+            "span": {
+              "start": 593,
+              "end": 604
+            }
+          }
+        },
+        {
+          "name": "voter",
+          "ty": {
+            "Named": "Voter"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Ballot",
+            "part": "field:voter",
+            "span": {
+              "start": 604,
+              "end": 619
+            }
+          }
+        },
+        {
+          "name": "election",
+          "ty": {
+            "Named": "Election"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Ballot",
+            "part": "field:election",
+            "span": {
+              "start": 619,
+              "end": 640
+            }
+          }
+        },
+        {
+          "name": "candidate",
+          "ty": {
+            "Named": "Candidate"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Ballot",
+            "part": "field:candidate",
+            "span": {
+              "start": 640,
+              "end": 663
+            }
+          }
+        },
+        {
+          "name": "cast_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "Ballot",
+            "part": "field:cast_at",
+            "span": {
+              "start": 663,
+              "end": 681
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Voting",
+        "item": "Ballot",
+        "part": "entity",
+        "span": {
+          "start": 575,
+          "end": 682
+        }
+      }
+    }
+  ],
+  "functions": [
+    {
+      "name": "CastVote",
+      "params": [
+        {
+          "name": "voter",
+          "ty": {
+            "Named": "Voter"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CastVote",
+            "part": "param:voter",
+            "span": {
+              "start": 750,
+              "end": 765
+            }
+          }
+        },
+        {
+          "name": "election",
+          "ty": {
+            "Named": "Election"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CastVote",
+            "part": "param:election",
+            "span": {
+              "start": 765,
+              "end": 786
+            }
+          }
+        },
+        {
+          "name": "candidate",
+          "ty": {
+            "Named": "Candidate"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CastVote",
+            "part": "param:candidate",
+            "span": {
+              "start": 786,
+              "end": 810
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "voter"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Verified"
+              }
+            }
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CastVote",
+            "part": "requires",
+            "span": {
+              "start": 825,
+              "end": 854
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "election"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Open"
+              }
+            }
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CastVote",
+            "part": "requires",
+            "span": {
+              "start": 854,
+              "end": 882
+            }
+          }
+        },
+        {
+          "expr": {
+            "Not": {
+              "Exists": {
+                "binding": "b",
+                "ty": "Ballot",
+                "body": {
+                  "And": [
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "b"
+                            },
+                            "field": "voter"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "voter"
+                        }
+                      }
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "b"
+                            },
+                            "field": "election"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "election"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CastVote",
+            "part": "requires",
+            "span": {
+              "start": 882,
+              "end": 962
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "b",
+                "ty": "Ballot",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "b"
+                                },
+                                "field": "voter"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "voter"
+                            }
+                          }
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "b"
+                                },
+                                "field": "election"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "election"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "b"
+                            },
+                            "field": "candidate"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "candidate"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "Voting",
+              "item": "CastVote",
+              "part": "ensures",
+              "span": {
+                "start": 981,
+                "end": 1094
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "candidate"
+                    },
+                    "field": "vote_count"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Arithmetic": {
+                    "left": {
+                      "Old": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "candidate"
+                          },
+                          "field": "vote_count"
+                        }
+                      }
+                    },
+                    "op": "Add",
+                    "right": {
+                      "Literal": {
+                        "Int": 1
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "trace": {
+              "module": "Voting",
+              "item": "CastVote",
+              "part": "ensures",
+              "span": {
+                "start": 1094,
+                "end": 1152
+              }
+            }
+          }
+        },
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "election"
+                    },
+                    "field": "total_votes"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Arithmetic": {
+                    "left": {
+                      "Old": {
+                        "FieldAccess": {
+                          "root": {
+                            "Var": "election"
+                          },
+                          "field": "total_votes"
+                        }
+                      }
+                    },
+                    "op": "Add",
+                    "right": {
+                      "Literal": {
+                        "Int": 1
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "trace": {
+              "module": "Voting",
+              "item": "CastVote",
+              "part": "ensures",
+              "span": {
+                "start": 1152,
+                "end": 1208
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "atomic",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CastVote",
+            "part": "property:atomic",
+            "span": {
+              "start": 1230,
+              "end": 1242
+            }
+          }
+        },
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CastVote",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1247,
+              "end": 1265
+            }
+          }
+        },
+        {
+          "key": "idempotent",
+          "value": {
+            "Bool": false
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CastVote",
+            "part": "property:idempotent",
+            "span": {
+              "start": 1270,
+              "end": 1287
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Voting",
+        "item": "CastVote",
+        "part": "action",
+        "span": {
+          "start": 684,
+          "end": 1293
+        }
+      }
+    },
+    {
+      "name": "CloseElection",
+      "params": [
+        {
+          "name": "election",
+          "ty": {
+            "Named": "Election"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CloseElection",
+            "part": "param:election",
+            "span": {
+              "start": 1371,
+              "end": 1393
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "election"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Open"
+              }
+            }
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CloseElection",
+            "part": "requires",
+            "span": {
+              "start": 1408,
+              "end": 1434
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "election"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Closed"
+                }
+              }
+            },
+            "trace": {
+              "module": "Voting",
+              "item": "CloseElection",
+              "part": "ensures",
+              "span": {
+                "start": 1453,
+                "end": 1481
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CloseElection",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1503,
+              "end": 1521
+            }
+          }
+        },
+        {
+          "key": "requires_role",
+          "value": {
+            "String": "election_admin"
+          },
+          "trace": {
+            "module": "Voting",
+            "item": "CloseElection",
+            "part": "property:requires_role",
+            "span": {
+              "start": 1526,
+              "end": 1557
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Voting",
+        "item": "CloseElection",
+        "part": "action",
+        "span": {
+          "start": 1295,
+          "end": 1563
+        }
+      }
+    }
+  ],
+  "invariants": [
+    {
+      "name": "OneVotePerVoter",
+      "expr": {
+        "Forall": {
+          "binding": "b1",
+          "ty": "Ballot",
+          "body": {
+            "Forall": {
+              "binding": "b2",
+              "ty": "Ballot",
+              "body": {
+                "Implies": [
+                  {
+                    "And": [
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "b1"
+                              },
+                              "field": "voter"
+                            }
+                          },
+                          "op": "Eq",
+                          "right": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "b2"
+                              },
+                              "field": "voter"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "Compare": {
+                          "left": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "b1"
+                              },
+                              "field": "election"
+                            }
+                          },
+                          "op": "Eq",
+                          "right": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "b2"
+                              },
+                              "field": "election"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "Var": "b1"
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "b2"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "Voting",
+        "item": "OneVotePerVoter",
+        "part": "invariant",
+        "span": {
+          "start": 1565,
+          "end": 1781
+        }
+      }
+    },
+    {
+      "name": "VoteCountConsistency",
+      "expr": {
+        "Forall": {
+          "binding": "e",
+          "ty": "Election",
+          "body": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "e"
+                  },
+                  "field": "total_votes"
+                }
+              },
+              "op": "Ge",
+              "right": {
+                "Literal": {
+                  "Int": 0
+                }
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "Voting",
+        "item": "VoteCountConsistency",
+        "part": "invariant",
+        "span": {
+          "start": 1783,
+          "end": 1956
+        }
+      }
+    },
+    {
+      "name": "NonNegativeVotes",
+      "expr": {
+        "Forall": {
+          "binding": "c",
+          "ty": "Candidate",
+          "body": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "c"
+                  },
+                  "field": "vote_count"
+                }
+              },
+              "op": "Ge",
+              "right": {
+                "Literal": {
+                  "Int": 0
+                }
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "Voting",
+        "item": "NonNegativeVotes",
+        "part": "invariant",
+        "span": {
+          "start": 1958,
+          "end": 2075
+        }
+      }
+    }
+  ],
+  "edge_guards": [
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "voter"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Registered"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Voter must be verified before voting"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Voting",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 2092,
+          "end": 2173
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "voter"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Suspended"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Suspended voters cannot vote"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Voting",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 2176,
+          "end": 2248
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "election"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Closed"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Election is closed"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Voting",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 2251,
+          "end": 2313
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "election"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Cancelled"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Election has been cancelled"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Voting",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 2316,
+          "end": 2390
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,181 @@
+module Catalog
+
+--- Product catalog with categories, pricing tiers, and search.
+--- Part of a multi-module e-commerce system.
+
+entity Category {
+  id: UUID
+  name: String
+  parent: Category?
+  status: Active | Hidden | Archived
+}
+
+entity Product {
+  id: UUID
+  sku: String
+  name: String
+  description: String
+  category: Category
+  base_price: Decimal(precision: 2)
+  currency: CurrencyCode
+  weight_grams: Int
+  tags: Set<String>
+  images: List<URL>
+  status: Draft | Listed | OutOfStock | Discontinued
+  created_at: DateTime
+  updated_at: DateTime
+}
+
+entity PriceTier {
+  id: UUID
+  product: Product
+  name: String
+  min_quantity: Int
+  unit_price: Decimal(precision: 2)
+}
+
+entity Review {
+  id: UUID
+  product: Product
+  author_id: UUID
+  rating: Int
+  comment: String?
+  verified_purchase: Bool
+  created_at: DateTime
+}
+
+action ListProduct {
+  --- Make a draft product visible in the catalog.
+  product: Product
+
+  requires {
+    product.status == Draft
+    product.name != ""
+    product.base_price > 0
+    product.category.status == Active
+  }
+
+  ensures {
+    product.status == Listed
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action UpdatePrice {
+  --- Change the base price of a listed product.
+  product: Product
+  new_price: Decimal(precision: 2)
+
+  requires {
+    product.status == Listed
+    new_price > 0
+  }
+
+  ensures {
+    product.base_price == new_price
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action AddPriceTier {
+  --- Add a volume discount tier to a product.
+  product: Product
+  name: String
+  min_quantity: Int
+  unit_price: Decimal(precision: 2)
+
+  requires {
+    product.status == Listed
+    min_quantity > 1
+    unit_price > 0
+    unit_price < product.base_price
+  }
+
+  ensures {
+    exists tier: PriceTier =>
+      tier.product == product &&
+      tier.min_quantity == min_quantity &&
+      tier.unit_price == unit_price
+  }
+}
+
+action SubmitReview {
+  --- Submit a customer review for a product.
+  product: Product
+  author_id: UUID
+  rating: Int
+  comment: String?
+
+  requires {
+    product.status == Listed
+    rating >= 1
+    rating <= 5
+    !(exists r: Review =>
+      r.product == product &&
+      r.author_id == author_id)
+  }
+
+  ensures {
+    exists r: Review =>
+      r.product == product &&
+      r.author_id == author_id &&
+      r.rating == rating
+  }
+}
+
+action DiscontinueProduct {
+  --- Remove a product from the catalog permanently.
+  product: Product
+  reason: String
+
+  requires {
+    product.status != Discontinued
+    reason != ""
+  }
+
+  ensures {
+    product.status == Discontinued
+  }
+
+  properties {
+    audit_logged: true
+    requires_role: "catalog_manager"
+  }
+}
+
+invariant PositivePricing {
+  --- All listed products must have a positive base price.
+  forall p: Product =>
+    p.status == Listed => p.base_price > 0
+}
+
+invariant TierBelowBase {
+  --- Volume discount prices must be below the product's base price.
+  forall tier: PriceTier =>
+    tier.unit_price < tier.product.base_price
+}
+
+invariant OneReviewPerAuthor {
+  --- Each customer may review a product only once.
+  forall r1: Review =>
+    forall r2: Review =>
+      r1.product == r2.product &&
+      r1.author_id == r2.author_id =>
+        r1 == r2
+}
+
+invariant ValidRatings {
+  --- Review ratings must be between 1 and 5.
+  forall r: Review => r.rating >= 1 && r.rating <= 5
+}
+
+edge_cases {
+  when product.status == Discontinued => reject("Product has been discontinued")
+  when product.category.status == Archived => reject("Category is archived — move product first")
+}

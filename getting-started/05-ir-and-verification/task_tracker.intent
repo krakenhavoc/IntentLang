@@ -1,0 +1,159 @@
+module TaskTracker
+
+--- A project task tracker demonstrating the IR compilation and
+--- verification pipeline. This spec is designed to show how
+--- intent specs lower to typed IR with source traces,
+--- and how the verifier checks structural correctness.
+
+entity Project {
+  id: UUID
+  name: String
+  owner: String
+  status: Active | Archived
+}
+
+entity Task {
+  id: UUID
+  project: Project
+  title: String
+  description: String?
+  assignee: String?
+  priority: Low | Medium | High | Critical
+  status: Open | InProgress | Review | Done | Cancelled
+  created_at: DateTime
+  completed_at: DateTime?
+}
+
+entity Comment {
+  id: UUID
+  task: Task
+  author: String
+  body: String
+  created_at: DateTime
+}
+
+action CreateTask {
+  --- Add a new task to a project.
+  project: Project
+  title: String
+  priority: Low | Medium | High | Critical
+
+  requires {
+    project.status == Active
+    title != ""
+  }
+
+  ensures {
+    exists t: Task =>
+      t.project == project &&
+      t.title == title &&
+      t.priority == priority &&
+      t.status == Open
+  }
+}
+
+action AssignTask {
+  --- Assign a task to a team member.
+  task: Task
+  assignee: String
+
+  requires {
+    task.status != Done
+    task.status != Cancelled
+    assignee != ""
+  }
+
+  ensures {
+    task.assignee == assignee
+  }
+}
+
+action StartWork {
+  --- Move a task from Open to InProgress.
+  task: Task
+
+  requires {
+    task.status == Open
+  }
+
+  ensures {
+    task.status == InProgress
+  }
+}
+
+action CompleteTask {
+  --- Mark a task as done.
+  task: Task
+
+  requires {
+    task.status == InProgress || task.status == Review
+  }
+
+  ensures {
+    task.status == Done
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action CancelTask {
+  --- Cancel a task that is no longer needed.
+  task: Task
+  reason: String
+
+  requires {
+    task.status != Done
+    task.status != Cancelled
+  }
+
+  ensures {
+    task.status == Cancelled
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action AddComment {
+  --- Add a comment to a task.
+  task: Task
+  author: String
+  body: String
+
+  requires {
+    task.status != Cancelled
+    body != ""
+  }
+
+  ensures {
+    exists c: Comment =>
+      c.task == task &&
+      c.author == author &&
+      c.body == body
+  }
+}
+
+invariant ActiveProjectTasks {
+  --- Tasks in non-terminal states must belong to active projects.
+  forall t: Task =>
+    t.status != Done &&
+    t.status != Cancelled =>
+      t.project.status == Active
+}
+
+invariant CriticalTasksAssigned {
+  --- Critical tasks that are in progress must have an assignee.
+  forall t: Task =>
+    t.priority == Critical &&
+    t.status == InProgress =>
+      t.assignee != ""
+}
+
+edge_cases {
+  when project.status == Archived => reject("Cannot create tasks in archived projects")
+  when task.status == Cancelled => reject("Cannot modify cancelled tasks")
+  when task.status == Done => reject("Task is already completed")
+}

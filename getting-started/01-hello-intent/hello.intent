@@ -1,0 +1,26 @@
+module Hello
+
+--- Your first IntentLang spec. A simple greeting service
+--- that stores and retrieves greetings by name.
+
+entity Greeting {
+  id: UUID
+  name: String
+  message: String
+}
+
+action CreateGreeting {
+  --- Store a new greeting for someone.
+  name: String
+  message: String
+
+  requires {
+    name != ""
+  }
+
+  ensures {
+    exists g: Greeting =>
+      g.name == name &&
+      g.message == message
+  }
+}

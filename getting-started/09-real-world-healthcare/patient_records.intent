@@ -1,0 +1,295 @@
+module PatientRecords
+
+--- Electronic health records system with strict access controls,
+--- consent management, and regulatory audit trails.
+--- Demonstrates complex invariants for healthcare compliance.
+
+entity Patient {
+  id: UUID
+  medical_record_number: String
+  name: String
+  date_of_birth: String
+  email: Email?
+  status: Active | Inactive | Deceased
+  primary_provider: Provider?
+  created_at: DateTime
+}
+
+entity Provider {
+  id: UUID
+  name: String
+  license_number: String
+  specialty: String
+  status: Active | Suspended | Revoked
+}
+
+entity CareTeam {
+  id: UUID
+  patient: Patient
+  members: List<Provider>
+}
+
+entity Consent {
+  id: UUID
+  patient: Patient
+  purpose: Treatment | Research | Billing | DataSharing
+  granted_to: Provider?
+  status: Active | Revoked | Expired
+  granted_at: DateTime
+  expires_at: DateTime?
+}
+
+entity MedicalRecord {
+  id: UUID
+  patient: Patient
+  record_type: LabResult | Diagnosis | Prescription | Note | Imaging
+  title: String
+  content: String
+  author: Provider
+  sensitivity: Normal | Restricted | HighlyRestricted
+  created_at: DateTime
+  updated_at: DateTime
+}
+
+entity AccessLog {
+  id: UUID
+  record: MedicalRecord
+  accessor: Provider
+  action: String
+  reason: String
+  timestamp: DateTime
+}
+
+entity Medication {
+  id: UUID
+  patient: Patient
+  name: String
+  dosage: String
+  frequency: String
+  prescriber: Provider
+  status: Active | Discontinued | Completed
+  start_date: DateTime
+  end_date: DateTime?
+}
+
+action CreatePatient {
+  --- Register a new patient in the system.
+  name: String
+  date_of_birth: String
+  medical_record_number: String
+
+  requires {
+    name != ""
+    date_of_birth != ""
+    medical_record_number != ""
+    !(exists p: Patient =>
+      p.medical_record_number == medical_record_number)
+  }
+
+  ensures {
+    exists p: Patient =>
+      p.name == name &&
+      p.date_of_birth == date_of_birth &&
+      p.medical_record_number == medical_record_number &&
+      p.status == Active
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action AddToRecord {
+  --- Create a new medical record entry for a patient.
+  patient: Patient
+  record_type: LabResult | Diagnosis | Prescription | Note | Imaging
+  title: String
+  content: String
+  author: Provider
+  sensitivity: Normal | Restricted | HighlyRestricted
+
+  requires {
+    patient.status == Active
+    author.status == Active
+    title != ""
+    content != ""
+    exists consent: Consent =>
+      consent.patient == patient &&
+      consent.purpose == Treatment &&
+      consent.status == Active
+  }
+
+  ensures {
+    exists r: MedicalRecord =>
+      r.patient == patient &&
+      r.record_type == record_type &&
+      r.author == author &&
+      r.sensitivity == sensitivity
+    exists log: AccessLog =>
+      log.accessor == author &&
+      log.action == "create"
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action ViewRecord {
+  --- Access a patient's medical record (creates audit trail).
+  record: MedicalRecord
+  accessor: Provider
+  reason: String
+
+  requires {
+    accessor.status == Active
+    reason != ""
+    exists consent: Consent =>
+      consent.patient == record.patient &&
+      consent.status == Active
+  }
+
+  ensures {
+    exists log: AccessLog =>
+      log.record == record &&
+      log.accessor == accessor &&
+      log.reason == reason
+  }
+
+  properties {
+    audit_logged: true
+    max_latency_ms: 500
+  }
+}
+
+action PrescribeMedication {
+  --- Prescribe a medication for a patient.
+  patient: Patient
+  prescriber: Provider
+  name: String
+  dosage: String
+  frequency: String
+
+  requires {
+    patient.status == Active
+    prescriber.status == Active
+    name != ""
+    dosage != ""
+    exists consent: Consent =>
+      consent.patient == patient &&
+      consent.purpose == Treatment &&
+      consent.status == Active
+  }
+
+  ensures {
+    exists med: Medication =>
+      med.patient == patient &&
+      med.prescriber == prescriber &&
+      med.name == name &&
+      med.dosage == dosage &&
+      med.status == Active
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action DiscontinueMedication {
+  --- Stop an active medication.
+  medication: Medication
+  reason: String
+
+  requires {
+    medication.status == Active
+    reason != ""
+  }
+
+  ensures {
+    medication.status == Discontinued
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action GrantConsent {
+  --- Patient grants consent for a specific purpose.
+  patient: Patient
+  purpose: Treatment | Research | Billing | DataSharing
+  granted_to: Provider?
+
+  requires {
+    patient.status == Active
+  }
+
+  ensures {
+    exists c: Consent =>
+      c.patient == patient &&
+      c.purpose == purpose &&
+      c.status == Active
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action RevokeConsent {
+  --- Patient revokes a previously granted consent.
+  consent: Consent
+
+  requires {
+    consent.status == Active
+  }
+
+  ensures {
+    consent.status == Revoked
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+invariant UniqueMRN {
+  --- Medical record numbers must be unique across all patients.
+  forall a: Patient =>
+    forall b: Patient =>
+      a.id != b.id =>
+        a.medical_record_number != b.medical_record_number
+}
+
+invariant ConsentRequired {
+  --- Every medical record must have been created for a patient
+  --- with active treatment consent at the time of creation.
+  forall r: MedicalRecord =>
+    r.patient.status == Active
+}
+
+invariant ActiveProviderRequired {
+  --- Only active providers may author medical records.
+  forall r: MedicalRecord =>
+    r.author.status == Active
+}
+
+invariant AllAccessLogged {
+  --- Every access to a medical record must be logged.
+  forall log: AccessLog =>
+    log.reason != ""
+}
+
+invariant ActiveMedicationHasPrescriber {
+  --- Active medications must have an active prescriber.
+  forall m: Medication =>
+    m.status == Active =>
+      m.prescriber.status == Active
+}
+
+edge_cases {
+  when patient.status == Deceased => reject("Cannot modify records for deceased patients")
+  when patient.status == Inactive => reject("Patient record is inactive")
+  when accessor.status == Suspended => reject("Suspended providers cannot access records")
+  when accessor.status == Revoked => reject("Revoked providers cannot access records")
+}

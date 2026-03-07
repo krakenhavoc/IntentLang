@@ -1,0 +1,106 @@
+module Inventory
+
+--- Warehouse inventory system demonstrating IntentLang's type system:
+--- collections (List, Set, Map), optionals, union types, and
+--- domain-specific types.
+
+entity Warehouse {
+  id: UUID
+  name: String
+  location: String
+  capacity: Int
+  status: Open | Closed | UnderMaintenance
+}
+
+entity Product {
+  id: UUID
+  sku: String
+  name: String
+  category: String
+  weight_kg: Decimal(precision: 2)
+  tags: Set<String>
+  supplier_url: URL?
+}
+
+entity StockEntry {
+  product: Product
+  warehouse: Warehouse
+  quantity: Int
+  bin_locations: List<String>
+  last_counted: DateTime?
+}
+
+entity TransferManifest {
+  id: UUID
+  source: Warehouse
+  destination: Warehouse
+  items: List<StockEntry>
+  status: Draft | InTransit | Delivered | Cancelled
+  notes: String?
+  created_at: DateTime
+}
+
+action ReceiveStock {
+  --- Record new stock arriving at a warehouse.
+  warehouse: Warehouse
+  product: Product
+  quantity: Int
+  bin_location: String
+
+  requires {
+    warehouse.status == Open
+    quantity > 0
+  }
+
+  ensures {
+    exists entry: StockEntry =>
+      entry.product == product &&
+      entry.warehouse == warehouse &&
+      entry.quantity >= quantity
+  }
+}
+
+action TransferStock {
+  --- Move stock between two warehouses.
+  source: Warehouse
+  destination: Warehouse
+  product: Product
+  quantity: Int
+
+  requires {
+    source.status == Open
+    destination.status == Open
+    source.id != destination.id
+    quantity > 0
+    exists entry: StockEntry =>
+      entry.product == product &&
+      entry.warehouse == source &&
+      entry.quantity >= quantity
+  }
+
+  ensures {
+    exists manifest: TransferManifest =>
+      manifest.source == source &&
+      manifest.destination == destination &&
+      manifest.status == InTransit
+  }
+
+  properties {
+    atomic: true
+    audit_logged: true
+  }
+}
+
+invariant NonNegativeStock {
+  forall entry: StockEntry => entry.quantity >= 0
+}
+
+invariant PositiveWeight {
+  forall p: Product => p.weight_kg > 0
+}
+
+edge_cases {
+  when warehouse.status == Closed => reject("Warehouse is closed")
+  when warehouse.status == UnderMaintenance => reject("Warehouse is under maintenance")
+  when quantity <= 0 => reject("Quantity must be positive")
+}

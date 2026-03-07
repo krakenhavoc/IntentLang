@@ -1,0 +1,1779 @@
+{
+  "name": "Payments",
+  "structs": [
+    {
+      "name": "PaymentMethod",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "PaymentMethod",
+            "part": "field:id",
+            "span": {
+              "start": 131,
+              "end": 142
+            }
+          }
+        },
+        {
+          "name": "customer_id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "PaymentMethod",
+            "part": "field:customer_id",
+            "span": {
+              "start": 142,
+              "end": 162
+            }
+          }
+        },
+        {
+          "name": "method_type",
+          "ty": {
+            "Union": [
+              "CreditCard",
+              "DebitCard",
+              "BankTransfer",
+              "Wallet"
+            ]
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "PaymentMethod",
+            "part": "field:method_type",
+            "span": {
+              "start": 162,
+              "end": 224
+            }
+          }
+        },
+        {
+          "name": "last_four",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "PaymentMethod",
+            "part": "field:last_four",
+            "span": {
+              "start": 224,
+              "end": 244
+            }
+          }
+        },
+        {
+          "name": "is_default",
+          "ty": {
+            "Named": "Bool"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "PaymentMethod",
+            "part": "field:is_default",
+            "span": {
+              "start": 244,
+              "end": 263
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Active",
+              "Expired",
+              "Revoked"
+            ]
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "PaymentMethod",
+            "part": "field:status",
+            "span": {
+              "start": 263,
+              "end": 298
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Payments",
+        "item": "PaymentMethod",
+        "part": "entity",
+        "span": {
+          "start": 106,
+          "end": 299
+        }
+      }
+    },
+    {
+      "name": "Payment",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Payment",
+            "part": "field:id",
+            "span": {
+              "start": 320,
+              "end": 331
+            }
+          }
+        },
+        {
+          "name": "order_id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Payment",
+            "part": "field:order_id",
+            "span": {
+              "start": 331,
+              "end": 348
+            }
+          }
+        },
+        {
+          "name": "payment_method",
+          "ty": {
+            "Named": "PaymentMethod"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Payment",
+            "part": "field:payment_method",
+            "span": {
+              "start": 348,
+              "end": 380
+            }
+          }
+        },
+        {
+          "name": "amount",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Payment",
+            "part": "field:amount",
+            "span": {
+              "start": 380,
+              "end": 412
+            }
+          }
+        },
+        {
+          "name": "currency",
+          "ty": {
+            "Named": "CurrencyCode"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Payment",
+            "part": "field:currency",
+            "span": {
+              "start": 412,
+              "end": 437
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Pending",
+              "Authorized",
+              "Captured",
+              "Failed",
+              "Refunded"
+            ]
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Payment",
+            "part": "field:status",
+            "span": {
+              "start": 437,
+              "end": 499
+            }
+          }
+        },
+        {
+          "name": "idempotency_key",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Payment",
+            "part": "field:idempotency_key",
+            "span": {
+              "start": 499,
+              "end": 523
+            }
+          }
+        },
+        {
+          "name": "gateway_ref",
+          "ty": {
+            "Optional": {
+              "Named": "String"
+            }
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Payment",
+            "part": "field:gateway_ref",
+            "span": {
+              "start": 523,
+              "end": 543
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Payment",
+            "part": "field:created_at",
+            "span": {
+              "start": 546,
+              "end": 569
+            }
+          }
+        },
+        {
+          "name": "captured_at",
+          "ty": {
+            "Optional": {
+              "Named": "DateTime"
+            }
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Payment",
+            "part": "field:captured_at",
+            "span": {
+              "start": 569,
+              "end": 591
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Payments",
+        "item": "Payment",
+        "part": "entity",
+        "span": {
+          "start": 301,
+          "end": 593
+        }
+      }
+    },
+    {
+      "name": "Refund",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Refund",
+            "part": "field:id",
+            "span": {
+              "start": 613,
+              "end": 624
+            }
+          }
+        },
+        {
+          "name": "payment",
+          "ty": {
+            "Named": "Payment"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Refund",
+            "part": "field:payment",
+            "span": {
+              "start": 624,
+              "end": 643
+            }
+          }
+        },
+        {
+          "name": "amount",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Refund",
+            "part": "field:amount",
+            "span": {
+              "start": 643,
+              "end": 675
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Refund",
+            "part": "field:reason",
+            "span": {
+              "start": 675,
+              "end": 692
+            }
+          }
+        },
+        {
+          "name": "status",
+          "ty": {
+            "Union": [
+              "Pending",
+              "Processed",
+              "Failed"
+            ]
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Refund",
+            "part": "field:status",
+            "span": {
+              "start": 692,
+              "end": 731
+            }
+          }
+        },
+        {
+          "name": "processed_at",
+          "ty": {
+            "Optional": {
+              "Named": "DateTime"
+            }
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "Refund",
+            "part": "field:processed_at",
+            "span": {
+              "start": 731,
+              "end": 754
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Payments",
+        "item": "Refund",
+        "part": "entity",
+        "span": {
+          "start": 595,
+          "end": 756
+        }
+      }
+    },
+    {
+      "name": "ReconciliationEntry",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "ReconciliationEntry",
+            "part": "field:id",
+            "span": {
+              "start": 789,
+              "end": 800
+            }
+          }
+        },
+        {
+          "name": "payment",
+          "ty": {
+            "Named": "Payment"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "ReconciliationEntry",
+            "part": "field:payment",
+            "span": {
+              "start": 800,
+              "end": 819
+            }
+          }
+        },
+        {
+          "name": "expected_amount",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "ReconciliationEntry",
+            "part": "field:expected_amount",
+            "span": {
+              "start": 819,
+              "end": 860
+            }
+          }
+        },
+        {
+          "name": "actual_amount",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "ReconciliationEntry",
+            "part": "field:actual_amount",
+            "span": {
+              "start": 860,
+              "end": 899
+            }
+          }
+        },
+        {
+          "name": "matched",
+          "ty": {
+            "Named": "Bool"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "ReconciliationEntry",
+            "part": "field:matched",
+            "span": {
+              "start": 899,
+              "end": 915
+            }
+          }
+        },
+        {
+          "name": "checked_at",
+          "ty": {
+            "Named": "DateTime"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "ReconciliationEntry",
+            "part": "field:checked_at",
+            "span": {
+              "start": 915,
+              "end": 936
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Payments",
+        "item": "ReconciliationEntry",
+        "part": "entity",
+        "span": {
+          "start": 758,
+          "end": 937
+        }
+      }
+    }
+  ],
+  "functions": [
+    {
+      "name": "AuthorizePayment",
+      "params": [
+        {
+          "name": "order_id",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "AuthorizePayment",
+            "part": "param:order_id",
+            "span": {
+              "start": 1032,
+              "end": 1049
+            }
+          }
+        },
+        {
+          "name": "payment_method",
+          "ty": {
+            "Named": "PaymentMethod"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "AuthorizePayment",
+            "part": "param:payment_method",
+            "span": {
+              "start": 1049,
+              "end": 1081
+            }
+          }
+        },
+        {
+          "name": "amount",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "AuthorizePayment",
+            "part": "param:amount",
+            "span": {
+              "start": 1081,
+              "end": 1113
+            }
+          }
+        },
+        {
+          "name": "currency",
+          "ty": {
+            "Named": "CurrencyCode"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "AuthorizePayment",
+            "part": "param:currency",
+            "span": {
+              "start": 1113,
+              "end": 1138
+            }
+          }
+        },
+        {
+          "name": "idempotency_key",
+          "ty": {
+            "Named": "UUID"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "AuthorizePayment",
+            "part": "param:idempotency_key",
+            "span": {
+              "start": 1138,
+              "end": 1163
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "payment_method"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Active"
+              }
+            }
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "AuthorizePayment",
+            "part": "requires",
+            "span": {
+              "start": 1178,
+              "end": 1214
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "amount"
+              },
+              "op": "Gt",
+              "right": {
+                "Literal": {
+                  "Int": 0
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "AuthorizePayment",
+            "part": "requires",
+            "span": {
+              "start": 1214,
+              "end": 1227
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "p",
+                "ty": "Payment",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "And": [
+                            {
+                              "And": [
+                                {
+                                  "Compare": {
+                                    "left": {
+                                      "FieldAccess": {
+                                        "root": {
+                                          "Var": "p"
+                                        },
+                                        "field": "order_id"
+                                      }
+                                    },
+                                    "op": "Eq",
+                                    "right": {
+                                      "Var": "order_id"
+                                    }
+                                  }
+                                },
+                                {
+                                  "Compare": {
+                                    "left": {
+                                      "FieldAccess": {
+                                        "root": {
+                                          "Var": "p"
+                                        },
+                                        "field": "payment_method"
+                                      }
+                                    },
+                                    "op": "Eq",
+                                    "right": {
+                                      "Var": "payment_method"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "p"
+                                    },
+                                    "field": "amount"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "amount"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "p"
+                                },
+                                "field": "status"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "Authorized"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "p"
+                            },
+                            "field": "idempotency_key"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "idempotency_key"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "Payments",
+              "item": "AuthorizePayment",
+              "part": "ensures",
+              "span": {
+                "start": 1246,
+                "end": 1448
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "idempotent",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "AuthorizePayment",
+            "part": "property:idempotent",
+            "span": {
+              "start": 1470,
+              "end": 1486
+            }
+          }
+        },
+        {
+          "key": "idempotency_key",
+          "value": {
+            "Ident": "idempotency_key"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "AuthorizePayment",
+            "part": "property:idempotency_key",
+            "span": {
+              "start": 1491,
+              "end": 1523
+            }
+          }
+        },
+        {
+          "key": "atomic",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "AuthorizePayment",
+            "part": "property:atomic",
+            "span": {
+              "start": 1528,
+              "end": 1540
+            }
+          }
+        },
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "AuthorizePayment",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1545,
+              "end": 1563
+            }
+          }
+        },
+        {
+          "key": "max_latency_ms",
+          "value": {
+            "Int": 3000
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "AuthorizePayment",
+            "part": "property:max_latency_ms",
+            "span": {
+              "start": 1568,
+              "end": 1588
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Payments",
+        "item": "AuthorizePayment",
+        "part": "action",
+        "span": {
+          "start": 939,
+          "end": 1594
+        }
+      }
+    },
+    {
+      "name": "CapturePayment",
+      "params": [
+        {
+          "name": "payment",
+          "ty": {
+            "Named": "Payment"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "CapturePayment",
+            "part": "param:payment",
+            "span": {
+              "start": 1669,
+              "end": 1689
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "payment"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Authorized"
+              }
+            }
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "CapturePayment",
+            "part": "requires",
+            "span": {
+              "start": 1704,
+              "end": 1735
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Compare": {
+                "left": {
+                  "FieldAccess": {
+                    "root": {
+                      "Var": "payment"
+                    },
+                    "field": "status"
+                  }
+                },
+                "op": "Eq",
+                "right": {
+                  "Var": "Captured"
+                }
+              }
+            },
+            "trace": {
+              "module": "Payments",
+              "item": "CapturePayment",
+              "part": "ensures",
+              "span": {
+                "start": 1754,
+                "end": 1783
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "atomic",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "CapturePayment",
+            "part": "property:atomic",
+            "span": {
+              "start": 1805,
+              "end": 1817
+            }
+          }
+        },
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "CapturePayment",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 1822,
+              "end": 1840
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Payments",
+        "item": "CapturePayment",
+        "part": "action",
+        "span": {
+          "start": 1596,
+          "end": 1846
+        }
+      }
+    },
+    {
+      "name": "RefundPayment",
+      "params": [
+        {
+          "name": "payment",
+          "ty": {
+            "Named": "Payment"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "RefundPayment",
+            "part": "param:payment",
+            "span": {
+              "start": 1934,
+              "end": 1953
+            }
+          }
+        },
+        {
+          "name": "amount",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "RefundPayment",
+            "part": "param:amount",
+            "span": {
+              "start": 1953,
+              "end": 1985
+            }
+          }
+        },
+        {
+          "name": "reason",
+          "ty": {
+            "Named": "String"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "RefundPayment",
+            "part": "param:reason",
+            "span": {
+              "start": 1985,
+              "end": 2003
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "payment"
+                  },
+                  "field": "status"
+                }
+              },
+              "op": "Eq",
+              "right": {
+                "Var": "Captured"
+              }
+            }
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "RefundPayment",
+            "part": "requires",
+            "span": {
+              "start": 2018,
+              "end": 2049
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "amount"
+              },
+              "op": "Gt",
+              "right": {
+                "Literal": {
+                  "Int": 0
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "RefundPayment",
+            "part": "requires",
+            "span": {
+              "start": 2049,
+              "end": 2064
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "amount"
+              },
+              "op": "Le",
+              "right": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "payment"
+                  },
+                  "field": "amount"
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "RefundPayment",
+            "part": "requires",
+            "span": {
+              "start": 2064,
+              "end": 2093
+            }
+          }
+        },
+        {
+          "expr": {
+            "Compare": {
+              "left": {
+                "Var": "reason"
+              },
+              "op": "Ne",
+              "right": {
+                "Literal": {
+                  "String": ""
+                }
+              }
+            }
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "RefundPayment",
+            "part": "requires",
+            "span": {
+              "start": 2093,
+              "end": 2108
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "r",
+                "ty": "Refund",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "And": [
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "r"
+                                    },
+                                    "field": "payment"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "payment"
+                                }
+                              }
+                            },
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "r"
+                                    },
+                                    "field": "amount"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "amount"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "r"
+                                },
+                                "field": "reason"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "reason"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "r"
+                            },
+                            "field": "status"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Var": "Pending"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "Payments",
+              "item": "RefundPayment",
+              "part": "ensures",
+              "span": {
+                "start": 2127,
+                "end": 2261
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "RefundPayment",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 2283,
+              "end": 2301
+            }
+          }
+        },
+        {
+          "key": "requires_role",
+          "value": {
+            "String": "finance"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "RefundPayment",
+            "part": "property:requires_role",
+            "span": {
+              "start": 2306,
+              "end": 2330
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Payments",
+        "item": "RefundPayment",
+        "part": "action",
+        "span": {
+          "start": 1848,
+          "end": 2336
+        }
+      }
+    },
+    {
+      "name": "ReconcilePayment",
+      "params": [
+        {
+          "name": "payment",
+          "ty": {
+            "Named": "Payment"
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "ReconcilePayment",
+            "part": "param:payment",
+            "span": {
+              "start": 2419,
+              "end": 2438
+            }
+          }
+        },
+        {
+          "name": "actual_amount",
+          "ty": {
+            "Decimal": 2
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "ReconcilePayment",
+            "part": "param:actual_amount",
+            "span": {
+              "start": 2438,
+              "end": 2478
+            }
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "expr": {
+            "Or": [
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "payment"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Captured"
+                  }
+                }
+              },
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "payment"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Refunded"
+                  }
+                }
+              }
+            ]
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "ReconcilePayment",
+            "part": "requires",
+            "span": {
+              "start": 2493,
+              "end": 2552
+            }
+          }
+        }
+      ],
+      "postconditions": [
+        {
+          "Always": {
+            "expr": {
+              "Exists": {
+                "binding": "entry",
+                "ty": "ReconciliationEntry",
+                "body": {
+                  "And": [
+                    {
+                      "And": [
+                        {
+                          "And": [
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "entry"
+                                    },
+                                    "field": "payment"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "Var": "payment"
+                                }
+                              }
+                            },
+                            {
+                              "Compare": {
+                                "left": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "entry"
+                                    },
+                                    "field": "expected_amount"
+                                  }
+                                },
+                                "op": "Eq",
+                                "right": {
+                                  "FieldAccess": {
+                                    "root": {
+                                      "Var": "payment"
+                                    },
+                                    "field": "amount"
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "entry"
+                                },
+                                "field": "actual_amount"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "actual_amount"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Compare": {
+                        "left": {
+                          "FieldAccess": {
+                            "root": {
+                              "Var": "entry"
+                            },
+                            "field": "matched"
+                          }
+                        },
+                        "op": "Eq",
+                        "right": {
+                          "Compare": {
+                            "left": {
+                              "FieldAccess": {
+                                "root": {
+                                  "Var": "payment"
+                                },
+                                "field": "amount"
+                              }
+                            },
+                            "op": "Eq",
+                            "right": {
+                              "Var": "actual_amount"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "trace": {
+              "module": "Payments",
+              "item": "ReconcilePayment",
+              "part": "ensures",
+              "span": {
+                "start": 2571,
+                "end": 2796
+              }
+            }
+          }
+        }
+      ],
+      "properties": [
+        {
+          "key": "idempotent",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "ReconcilePayment",
+            "part": "property:idempotent",
+            "span": {
+              "start": 2818,
+              "end": 2834
+            }
+          }
+        },
+        {
+          "key": "audit_logged",
+          "value": {
+            "Bool": true
+          },
+          "trace": {
+            "module": "Payments",
+            "item": "ReconcilePayment",
+            "part": "property:audit_logged",
+            "span": {
+              "start": 2839,
+              "end": 2857
+            }
+          }
+        }
+      ],
+      "trace": {
+        "module": "Payments",
+        "item": "ReconcilePayment",
+        "part": "action",
+        "span": {
+          "start": 2338,
+          "end": 2863
+        }
+      }
+    }
+  ],
+  "invariants": [
+    {
+      "name": "PaymentPositive",
+      "expr": {
+        "Forall": {
+          "binding": "p",
+          "ty": "Payment",
+          "body": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "p"
+                  },
+                  "field": "amount"
+                }
+              },
+              "op": "Gt",
+              "right": {
+                "Literal": {
+                  "Int": 0
+                }
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "Payments",
+        "item": "PaymentPositive",
+        "part": "invariant",
+        "span": {
+          "start": 2865,
+          "end": 2978
+        }
+      }
+    },
+    {
+      "name": "RefundNotExceedPayment",
+      "expr": {
+        "Forall": {
+          "binding": "r",
+          "ty": "Refund",
+          "body": {
+            "Compare": {
+              "left": {
+                "FieldAccess": {
+                  "root": {
+                    "Var": "r"
+                  },
+                  "field": "amount"
+                }
+              },
+              "op": "Le",
+              "right": {
+                "FieldAccess": {
+                  "root": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "r"
+                      },
+                      "field": "payment"
+                    }
+                  },
+                  "field": "amount"
+                }
+              }
+            }
+          }
+        }
+      },
+      "trace": {
+        "module": "Payments",
+        "item": "RefundNotExceedPayment",
+        "part": "invariant",
+        "span": {
+          "start": 2980,
+          "end": 3129
+        }
+      }
+    },
+    {
+      "name": "CapturedBeforeRefund",
+      "expr": {
+        "Forall": {
+          "binding": "r",
+          "ty": "Refund",
+          "body": {
+            "Implies": [
+              {
+                "Compare": {
+                  "left": {
+                    "FieldAccess": {
+                      "root": {
+                        "Var": "r"
+                      },
+                      "field": "status"
+                    }
+                  },
+                  "op": "Eq",
+                  "right": {
+                    "Var": "Processed"
+                  }
+                }
+              },
+              {
+                "Or": [
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "r"
+                              },
+                              "field": "payment"
+                            }
+                          },
+                          "field": "status"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "Captured"
+                      }
+                    }
+                  },
+                  {
+                    "Compare": {
+                      "left": {
+                        "FieldAccess": {
+                          "root": {
+                            "FieldAccess": {
+                              "root": {
+                                "Var": "r"
+                              },
+                              "field": "payment"
+                            }
+                          },
+                          "field": "status"
+                        }
+                      },
+                      "op": "Eq",
+                      "right": {
+                        "Var": "Refunded"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "module": "Payments",
+        "item": "CapturedBeforeRefund",
+        "part": "invariant",
+        "span": {
+          "start": 3131,
+          "end": 3329
+        }
+      }
+    }
+  ],
+  "edge_guards": [
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "payment_method"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Expired"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Payment method has expired"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Payments",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 3346,
+          "end": 3423
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "payment_method"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Revoked"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Payment method has been revoked"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Payments",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 3426,
+          "end": 3508
+        }
+      }
+    },
+    {
+      "condition": {
+        "Compare": {
+          "left": {
+            "FieldAccess": {
+              "root": {
+                "Var": "payment"
+              },
+              "field": "status"
+            }
+          },
+          "op": "Eq",
+          "right": {
+            "Var": "Failed"
+          }
+        }
+      },
+      "action": "reject",
+      "args": [
+        [
+          "",
+          {
+            "Literal": {
+              "String": "Cannot operate on a failed payment"
+            }
+          }
+        ]
+      ],
+      "trace": {
+        "module": "Payments",
+        "item": "edge_cases",
+        "part": "when:reject",
+        "span": {
+          "start": 3511,
+          "end": 3588
+        }
+      }
+    }
+  ]
+}
