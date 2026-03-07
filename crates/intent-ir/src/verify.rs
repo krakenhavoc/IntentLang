@@ -15,18 +15,18 @@
 
 use std::collections::{HashMap, HashSet};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::types::*;
 
 /// A verification diagnostic.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VerifyError {
     pub kind: VerifyErrorKind,
     pub trace: SourceTrace,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum VerifyErrorKind {
     /// A variable is referenced but not bound as a parameter or quantifier binding.
     UnboundVariable { name: String },
@@ -106,7 +106,7 @@ pub fn verify_module(module: &Module) -> Vec<VerifyError> {
 
 /// A verification obligation — something that needs to be proven
 /// for the module to be correct.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Obligation {
     /// The action (function) that triggers this obligation.
     pub action: String,
@@ -120,7 +120,7 @@ pub struct Obligation {
     pub kind: ObligationKind,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ObligationKind {
     /// Action modifies fields that an entity invariant constrains.
     /// The invariant quantifies over the entity type (e.g., `forall a: Account => ...`).
@@ -380,7 +380,7 @@ fn collect_fields_on_inner(expr: &IrExpr, binding: &str, fields: &mut Vec<String
 // ── Structural verification helpers ────────────────────────
 
 /// Collect all function names used in Call expressions across the module.
-fn collect_module_call_names<'a>(module: &'a Module, names: &mut HashSet<&'a str>) {
+pub(crate) fn collect_module_call_names<'a>(module: &'a Module, names: &mut HashSet<&'a str>) {
     for func in &module.functions {
         for pre in &func.preconditions {
             collect_call_names(&pre.expr, names);
@@ -432,7 +432,7 @@ fn collect_call_names<'a>(expr: &'a IrExpr, names: &mut HashSet<&'a str>) {
     }
 }
 
-fn verify_function(
+pub(crate) fn verify_function(
     func: &Function,
     known_types: &HashSet<&str>,
     call_names: &HashSet<&str>,
@@ -519,7 +519,7 @@ fn verify_function(
     }
 }
 
-fn verify_invariant(
+pub(crate) fn verify_invariant(
     inv: &Invariant,
     known_types: &HashSet<&str>,
     call_names: &HashSet<&str>,
@@ -538,7 +538,7 @@ fn verify_invariant(
     );
 }
 
-fn verify_edge_guard(
+pub(crate) fn verify_edge_guard(
     guard: &EdgeGuard,
     known_types: &HashSet<&str>,
     errors: &mut Vec<VerifyError>,

@@ -49,6 +49,9 @@ enum Commands {
     Verify {
         /// Path to the .intent file
         file: PathBuf,
+        /// Enable incremental verification (cache results, re-verify only changed items)
+        #[arg(long)]
+        incremental: bool,
     },
     /// Show the audit trace map (spec items → IR constructs)
     Audit {
@@ -73,6 +76,31 @@ enum Commands {
         file: PathBuf,
         /// What to query: entities, actions, invariants, edge-cases, or a specific name
         target: String,
+    },
+    /// Claim a spec item for an agent (multi-agent collaboration)
+    Lock {
+        /// Path to the .intent file
+        file: PathBuf,
+        /// Name of the spec item to claim
+        item: String,
+        /// Agent identifier
+        #[arg(long)]
+        agent: String,
+    },
+    /// Release a claimed spec item
+    Unlock {
+        /// Path to the .intent file
+        file: PathBuf,
+        /// Name of the spec item to release
+        item: String,
+        /// Agent identifier
+        #[arg(long)]
+        agent: String,
+    },
+    /// Show lock status for all spec items
+    Status {
+        /// Path to the .intent file
+        file: PathBuf,
     },
 }
 
@@ -173,7 +201,7 @@ fn main() {
             let ir = intent_ir::lower_file(&ast);
             json_out(&ir);
         }
-        Commands::Verify { file } => {
+        Commands::Verify { file, incremental } => {
             let source = read_source(&file);
             let ast = parse_or_exit(&source, &file);
 
@@ -186,6 +214,7 @@ fn main() {
                         module: ast.module.name.clone(),
                         errors: check_errors.iter().map(|e| format!("{e}")).collect(),
                         obligations: vec![],
+                        incremental: None,
                     });
                 } else {
                     let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
@@ -205,48 +234,105 @@ fn main() {
                 process::exit(1);
             }
 
-            // Lower to IR and verify
+            // Lower to IR
             let ir = intent_ir::lower_file(&ast);
-            let ir_errors = intent_ir::verify_module(&ir);
-            let obligations = intent_ir::analyze_obligations(&ir);
 
-            if json {
-                json_out(&VerifyResult {
-                    ok: ir_errors.is_empty(),
-                    module: ir.name.clone(),
-                    errors: ir_errors.iter().map(|e| format!("{e}")).collect(),
-                    obligations: obligations.iter().map(|o| format!("{o}")).collect(),
-                });
-                if !ir_errors.is_empty() {
+            if incremental {
+                // Incremental verification with cache.
+                let cache_path = cache_path_for(&file);
+                let cache = load_cache(&cache_path);
+                let result = intent_ir::incremental_verify(&ir, cache.as_ref());
+
+                // Save updated cache.
+                save_cache(&cache_path, &result.cache);
+
+                if json {
+                    json_out(&VerifyResult {
+                        ok: result.errors.is_empty(),
+                        module: ir.name.clone(),
+                        errors: result.errors.iter().map(|e| format!("{e}")).collect(),
+                        obligations: result.obligations.iter().map(|o| format!("{o}")).collect(),
+                        incremental: Some(result.stats),
+                    });
+                    if !result.errors.is_empty() {
+                        process::exit(1);
+                    }
+                } else if result.errors.is_empty() {
+                    println!(
+                        "VERIFIED: {} — {} function(s), {} invariant(s), {} struct(s)",
+                        ir.name,
+                        ir.functions.len(),
+                        ir.invariants.len(),
+                        ir.structs.len(),
+                    );
+                    println!(
+                        "  (incremental: {} re-verified, {} cached, {} total)",
+                        result.stats.reverified, result.stats.cached, result.stats.total_items,
+                    );
+                    if !result.obligations.is_empty() {
+                        println!("\nVerification obligations:");
+                        for ob in &result.obligations {
+                            println!("  - {ob}");
+                        }
+                    }
+                } else {
+                    for err in &result.errors {
+                        eprintln!(
+                            "verify: {} (in {}.{}:{})",
+                            err, err.trace.module, err.trace.item, err.trace.part
+                        );
+                    }
+                    eprintln!(
+                        "{} verification error(s) in {}",
+                        result.errors.len(),
+                        file.display()
+                    );
                     process::exit(1);
                 }
-            } else if ir_errors.is_empty() {
-                println!(
-                    "VERIFIED: {} — {} function(s), {} invariant(s), {} struct(s)",
-                    ir.name,
-                    ir.functions.len(),
-                    ir.invariants.len(),
-                    ir.structs.len(),
-                );
-                if !obligations.is_empty() {
-                    println!("\nVerification obligations:");
-                    for ob in &obligations {
-                        println!("  - {ob}");
-                    }
-                }
             } else {
-                for err in &ir_errors {
-                    eprintln!(
-                        "verify: {} (in {}.{}:{})",
-                        err, err.trace.module, err.trace.item, err.trace.part
+                // Full verification (no cache).
+                let ir_errors = intent_ir::verify_module(&ir);
+                let obligations = intent_ir::analyze_obligations(&ir);
+
+                if json {
+                    json_out(&VerifyResult {
+                        ok: ir_errors.is_empty(),
+                        module: ir.name.clone(),
+                        errors: ir_errors.iter().map(|e| format!("{e}")).collect(),
+                        obligations: obligations.iter().map(|o| format!("{o}")).collect(),
+                        incremental: None,
+                    });
+                    if !ir_errors.is_empty() {
+                        process::exit(1);
+                    }
+                } else if ir_errors.is_empty() {
+                    println!(
+                        "VERIFIED: {} — {} function(s), {} invariant(s), {} struct(s)",
+                        ir.name,
+                        ir.functions.len(),
+                        ir.invariants.len(),
+                        ir.structs.len(),
                     );
+                    if !obligations.is_empty() {
+                        println!("\nVerification obligations:");
+                        for ob in &obligations {
+                            println!("  - {ob}");
+                        }
+                    }
+                } else {
+                    for err in &ir_errors {
+                        eprintln!(
+                            "verify: {} (in {}.{}:{})",
+                            err, err.trace.module, err.trace.item, err.trace.part
+                        );
+                    }
+                    eprintln!(
+                        "{} verification error(s) in {}",
+                        ir_errors.len(),
+                        file.display()
+                    );
+                    process::exit(1);
                 }
-                eprintln!(
-                    "{} verification error(s) in {}",
-                    ir_errors.len(),
-                    file.display()
-                );
-                process::exit(1);
             }
         }
         Commands::Audit { file } => {
@@ -399,6 +485,106 @@ fn main() {
                 }
             }
         }
+        Commands::Lock { file, item, agent } => {
+            let source = read_source(&file);
+            let report = build_audit(&source, &file);
+            let spec_items = intent_ir::extract_spec_items(&report);
+
+            let lock_path = lock_path_for(&file);
+            let mut lockfile = load_lockfile(&lock_path).unwrap_or(intent_ir::LockFile {
+                module: report.module_name.clone(),
+                claims: Default::default(),
+            });
+
+            let now = chrono_now();
+            match intent_ir::lock_item(&mut lockfile, &spec_items, &item, &agent, &now) {
+                Ok(()) => {
+                    save_lockfile(&lock_path, &lockfile);
+                    if json {
+                        json_out(&serde_json::json!({
+                            "ok": true,
+                            "item": item,
+                            "agent": agent,
+                            "action": "locked",
+                        }));
+                    } else {
+                        println!("Locked '{}' for agent '{}'", item, agent);
+                    }
+                }
+                Err(e) => {
+                    if json {
+                        json_out(&serde_json::json!({
+                            "ok": false,
+                            "error": format!("{e}"),
+                        }));
+                    } else {
+                        eprintln!("error: {e}");
+                    }
+                    process::exit(1);
+                }
+            }
+        }
+        Commands::Unlock { file, item, agent } => {
+            let lock_path = lock_path_for(&file);
+            let mut lockfile = match load_lockfile(&lock_path) {
+                Some(lf) => lf,
+                None => {
+                    if json {
+                        json_out(&serde_json::json!({
+                            "ok": false,
+                            "error": format!("'{}' is not claimed", item),
+                        }));
+                    } else {
+                        eprintln!("error: '{}' is not claimed", item);
+                    }
+                    process::exit(1);
+                }
+            };
+
+            match intent_ir::unlock_item(&mut lockfile, &item, &agent) {
+                Ok(()) => {
+                    save_lockfile(&lock_path, &lockfile);
+                    if json {
+                        json_out(&serde_json::json!({
+                            "ok": true,
+                            "item": item,
+                            "agent": agent,
+                            "action": "unlocked",
+                        }));
+                    } else {
+                        println!("Unlocked '{}' for agent '{}'", item, agent);
+                    }
+                }
+                Err(e) => {
+                    if json {
+                        json_out(&serde_json::json!({
+                            "ok": false,
+                            "error": format!("{e}"),
+                        }));
+                    } else {
+                        eprintln!("error: {e}");
+                    }
+                    process::exit(1);
+                }
+            }
+        }
+        Commands::Status { file } => {
+            let source = read_source(&file);
+            let report = build_audit(&source, &file);
+            let spec_items = intent_ir::extract_spec_items(&report);
+
+            let lock_path = lock_path_for(&file);
+            let lockfile = load_lockfile(&lock_path).unwrap_or(intent_ir::LockFile {
+                module: report.module_name.clone(),
+                claims: Default::default(),
+            });
+
+            if json {
+                json_out(&lockfile);
+            } else {
+                print!("{}", intent_ir::format_status(&lockfile, &spec_items));
+            }
+        }
     }
 }
 
@@ -418,4 +604,61 @@ struct VerifyResult {
     module: String,
     errors: Vec<String>,
     obligations: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    incremental: Option<intent_ir::IncrementalStats>,
+}
+
+// ── Cache helpers ─────────────────────────────────────────
+
+fn cache_path_for(file: &Path) -> PathBuf {
+    let parent = file.parent().unwrap_or(Path::new("."));
+    let stem = file.file_stem().unwrap_or_default();
+    let cache_dir = parent.join(".intent-cache");
+    cache_dir.join(format!("{}.json", stem.to_string_lossy()))
+}
+
+fn load_cache(path: &Path) -> Option<intent_ir::VerifyCache> {
+    let data = fs::read_to_string(path).ok()?;
+    serde_json::from_str(&data).ok()
+}
+
+fn save_cache(path: &Path, cache: &intent_ir::VerifyCache) {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).ok();
+    }
+    if let Ok(json) = serde_json::to_string_pretty(cache) {
+        fs::write(path, json).ok();
+    }
+}
+
+// ── Lock file helpers ─────────────────────────────────────
+
+fn lock_path_for(file: &Path) -> PathBuf {
+    let parent = file.parent().unwrap_or(Path::new("."));
+    let stem = file.file_stem().unwrap_or_default();
+    let lock_dir = parent.join(".intent-lock");
+    lock_dir.join(format!("{}.json", stem.to_string_lossy()))
+}
+
+fn load_lockfile(path: &Path) -> Option<intent_ir::LockFile> {
+    let data = fs::read_to_string(path).ok()?;
+    serde_json::from_str(&data).ok()
+}
+
+fn save_lockfile(path: &Path, lockfile: &intent_ir::LockFile) {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).ok();
+    }
+    if let Ok(json) = serde_json::to_string_pretty(lockfile) {
+        fs::write(path, json).ok();
+    }
+}
+
+fn chrono_now() -> String {
+    // Simple ISO 8601 timestamp without chrono dependency.
+    use std::time::SystemTime;
+    let dur = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap_or_default();
+    format!("{}Z", dur.as_secs())
 }
