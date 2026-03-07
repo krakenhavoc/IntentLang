@@ -1,0 +1,10 @@
+module BadQuantifierTest
+
+entity Account {
+  id: UUID
+  balance: Decimal(precision: 2)
+}
+
+invariant Positive {
+  forall x: Nonexistent => x.balance >= 0
+}

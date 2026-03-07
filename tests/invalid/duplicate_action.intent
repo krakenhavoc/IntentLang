@@ -1,0 +1,21 @@
+module DupActionTest
+
+entity Account {
+  id: UUID
+}
+
+action Transfer {
+  from: Account
+
+  requires {
+    from.id != from.id
+  }
+}
+
+action Transfer {
+  to: Account
+
+  requires {
+    to.id != to.id
+  }
+}
