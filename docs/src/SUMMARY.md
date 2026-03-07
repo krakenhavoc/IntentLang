@@ -24,6 +24,7 @@
 - [Rendering](./cli/render.md)
 - [Compiling to IR](./cli/compile.md)
 - [Verification & Audit](./cli/verify.md)
+- [Agent Tooling](./cli/agent-tools.md)
 
 # Architecture
 

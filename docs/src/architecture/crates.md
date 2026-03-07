@@ -7,7 +7,7 @@ intent-cli ──→ intent-parser ←── intent.pest (PEG grammar)
     │              ↑
     ├──→ intent-check
     ├──→ intent-render
-    └──→ intent-ir (lowering, verification, audit)
+    └──→ intent-ir (lowering, verification, audit, diff, incremental, lock)
 ```
 
 ## intent-parser
@@ -30,13 +30,13 @@ Renders parsed specs to Markdown or self-contained HTML. Produces entity field t
 
 ## intent-ir
 
-AST-to-IR lowering, structural verification, coherence analysis, and audit bridge. Every IR node carries a `SourceTrace` linking back to the original spec.
+AST-to-IR lowering, structural verification, coherence analysis, audit bridge, spec diffing, incremental verification, and multi-agent locking. Every IR node carries a `SourceTrace` linking back to the original spec.
 
-**Key modules:** `lower.rs` (AST → IR), `verify.rs` (verification), `audit.rs` (audit bridge)
+**Key modules:** `lower.rs` (AST → IR), `verify.rs` (verification), `audit.rs` (audit bridge), `diff.rs` (spec diffs), `incremental.rs` (cached verification), `lock.rs` (multi-agent claims)
 
 ## intent-cli
 
-CLI entry point using [clap](https://crates.io/crates/clap) (derive). Wires together all other crates and exposes the `check`, `render`, `compile`, `verify`, `audit`, and `coverage` subcommands.
+CLI entry point using [clap](https://crates.io/crates/clap) (derive). Wires together all other crates and exposes subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`. Supports `--output json` for agent consumption.
 
 ## All crates on crates.io
 
