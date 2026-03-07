@@ -49,6 +49,13 @@ enum Commands {
         /// Path to the .intent file
         file: PathBuf,
     },
+    /// Show spec-level diff between two versions of an intent file
+    Diff {
+        /// Path to the old .intent file
+        old: PathBuf,
+        /// Path to the new .intent file
+        new: PathBuf,
+    },
 }
 
 fn read_source(file: &Path) -> String {
@@ -202,6 +209,26 @@ fn main() {
             let obligations = intent_ir::analyze_obligations(&ir);
             let report = intent_ir::generate_audit(&source, &ir, &errors, &obligations);
             print!("{}", report.format_coverage());
+        }
+        Commands::Diff { old, new } => {
+            let old_source = read_source(&old);
+            let old_ast = parse_or_exit(&old_source, &old);
+            let old_ir = intent_ir::lower_file(&old_ast);
+            let old_errors = intent_ir::verify_module(&old_ir);
+            let old_obligations = intent_ir::analyze_obligations(&old_ir);
+            let old_report =
+                intent_ir::generate_audit(&old_source, &old_ir, &old_errors, &old_obligations);
+
+            let new_source = read_source(&new);
+            let new_ast = parse_or_exit(&new_source, &new);
+            let new_ir = intent_ir::lower_file(&new_ast);
+            let new_errors = intent_ir::verify_module(&new_ir);
+            let new_obligations = intent_ir::analyze_obligations(&new_ir);
+            let new_report =
+                intent_ir::generate_audit(&new_source, &new_ir, &new_errors, &new_obligations);
+
+            let diff = intent_ir::diff_reports(&old_report, &new_report);
+            print!("{}", diff.format());
         }
     }
 }
