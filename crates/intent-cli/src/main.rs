@@ -29,6 +29,16 @@ enum Commands {
         /// Path to the .intent file
         file: PathBuf,
     },
+    /// Compile an intent specification to IR (JSON)
+    Compile {
+        /// Path to the .intent file
+        file: PathBuf,
+    },
+    /// Verify an intent specification's IR for structural correctness
+    Verify {
+        /// Path to the .intent file
+        file: PathBuf,
+    },
 }
 
 fn read_source(file: &Path) -> String {
@@ -99,6 +109,62 @@ fn main() {
             let ast = parse_or_exit(&source, &file);
             let html = intent_render::html::render(&ast);
             print!("{}", html);
+        }
+        Commands::Compile { file } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+            let ir = intent_ir::lower_file(&ast);
+            let json = serde_json::to_string_pretty(&ir).expect("IR serialization failed");
+            println!("{json}");
+        }
+        Commands::Verify { file } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+
+            // Run semantic checks first
+            let check_errors = intent_check::check_file(&ast);
+            if !check_errors.is_empty() {
+                let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
+                for err in &check_errors {
+                    let mut buf = String::new();
+                    let report = miette::Report::new(err.clone())
+                        .with_source_code(source.clone());
+                    handler.render_report(&mut buf, report.as_ref()).ok();
+                    eprint!("{buf}");
+                }
+                eprintln!(
+                    "{} semantic error(s) in {}",
+                    check_errors.len(),
+                    file.display()
+                );
+                process::exit(1);
+            }
+
+            // Lower to IR and verify
+            let ir = intent_ir::lower_file(&ast);
+            let ir_errors = intent_ir::verify_module(&ir);
+            if ir_errors.is_empty() {
+                println!(
+                    "VERIFIED: {} — {} function(s), {} invariant(s), {} struct(s)",
+                    ir.name,
+                    ir.functions.len(),
+                    ir.invariants.len(),
+                    ir.structs.len(),
+                );
+            } else {
+                for err in &ir_errors {
+                    eprintln!(
+                        "verify: {} (in {}.{}:{})",
+                        err, err.trace.module, err.trace.item, err.trace.part
+                    );
+                }
+                eprintln!(
+                    "{} verification error(s) in {}",
+                    ir_errors.len(),
+                    file.display()
+                );
+                process::exit(1);
+            }
         }
     }
 }

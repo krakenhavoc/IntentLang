@@ -591,7 +591,10 @@ expression: ast
                         "op": "Lt",
                         "right": {
                           "kind": {
-                            "Ident": "now"
+                            "Call": {
+                              "name": "now",
+                              "args": []
+                            }
                           },
                           "span": {
                             "start": 745,
@@ -836,7 +839,10 @@ expression: ast
                                               "op": "Gt",
                                               "right": {
                                                 "kind": {
-                                                  "Ident": "now"
+                                                  "Call": {
+                                                    "name": "now",
+                                                    "args": []
+                                                  }
                                                 },
                                                 "span": {
                                                   "start": 956,
@@ -988,7 +994,10 @@ expression: ast
                                   "op": "Eq",
                                   "right": {
                                     "kind": {
-                                      "Ident": "now"
+                                      "Call": {
+                                        "name": "now",
+                                        "args": []
+                                      }
                                     },
                                     "span": {
                                       "start": 1067,
@@ -1429,7 +1438,10 @@ expression: ast
                   "op": "Gt",
                   "right": {
                     "kind": {
-                      "Ident": "now"
+                      "Call": {
+                        "name": "now",
+                        "args": []
+                      }
                     },
                     "span": {
                       "start": 1514,
@@ -1761,7 +1773,10 @@ expression: ast
                           "op": "Gt",
                           "right": {
                             "kind": {
-                              "Ident": "now"
+                              "Call": {
+                                "name": "now",
+                                "args": []
+                              }
                             },
                             "span": {
                               "start": 1952,
