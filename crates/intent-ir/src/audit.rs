@@ -32,7 +32,7 @@ pub struct AuditEntry {
 }
 
 /// What kind of spec item this entry represents.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SpecItemKind {
     Entity,
     Action,
