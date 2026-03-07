@@ -43,13 +43,11 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: |
-          cargo publish -p intent-parser
-          cargo publish -p intent-check
-          cargo publish -p intent-render
-          cargo publish -p intent-ir
-          cargo publish -p intent-gen
-          cargo publish -p intent-runtime
-          cargo publish -p intent-cli
+          for crate in intent-parser intent-check intent-render intent-ir intent-gen intent-runtime intent-cli; do
+            echo "Publishing $crate..."
+            cargo publish -p "$crate" || echo "Skipping $crate (already published or error)"
+            sleep 5
+          done
 
   github-release:
     needs: publish
