@@ -5,6 +5,8 @@
 
 use intent_parser::ast;
 
+use crate::format_type;
+
 /// Render an AST [`File`] to a Markdown string.
 pub fn render(file: &ast::File) -> String {
     let mut out = String::new();
@@ -79,31 +81,3 @@ fn render_edge_cases(out: &mut String, _ec: &ast::EdgeCasesDecl) {
     out.push_str("## Edge Cases\n\n");
 }
 
-fn format_type(ty: &ast::TypeExpr) -> String {
-    let base = match &ty.ty {
-        ast::TypeKind::Simple(name) => name.clone(),
-        ast::TypeKind::Union(variants) => variants
-            .iter()
-            .map(|v| match v {
-                ast::TypeKind::Simple(n) => n.clone(),
-                _ => "...".to_string(),
-            })
-            .collect::<Vec<_>>()
-            .join(" | "),
-        ast::TypeKind::List(inner) => format!("List<{}>", format_type(inner)),
-        ast::TypeKind::Set(inner) => format!("Set<{}>", format_type(inner)),
-        ast::TypeKind::Map(k, v) => format!("Map<{}, {}>", format_type(k), format_type(v)),
-        ast::TypeKind::Parameterized { name, params } => {
-            let ps: Vec<String> = params
-                .iter()
-                .map(|p| format!("{}: {:?}", p.name, p.value))
-                .collect();
-            format!("{}({})", name, ps.join(", "))
-        }
-    };
-    if ty.optional {
-        format!("{}?", base)
-    } else {
-        base
-    }
-}

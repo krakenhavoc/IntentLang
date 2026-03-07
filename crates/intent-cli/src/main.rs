@@ -23,6 +23,11 @@ enum Commands {
         /// Path to the .intent file
         file: PathBuf,
     },
+    /// Render an intent specification to HTML
+    RenderHtml {
+        /// Path to the .intent file
+        file: PathBuf,
+    },
 }
 
 fn main() {
@@ -84,6 +89,26 @@ fn main() {
                 Ok(ast) => {
                     let md = intent_render::markdown::render(&ast);
                     print!("{}", md);
+                }
+                Err(e) => {
+                    eprintln!("{}", e);
+                    process::exit(1);
+                }
+            }
+        }
+        Commands::RenderHtml { file } => {
+            let source = match fs::read_to_string(&file) {
+                Ok(s) => s,
+                Err(e) => {
+                    eprintln!("error: could not read {}: {}", file.display(), e);
+                    process::exit(1);
+                }
+            };
+
+            match intent_parser::parse_file(&source) {
+                Ok(ast) => {
+                    let html = intent_render::html::render(&ast);
+                    print!("{}", html);
                 }
                 Err(e) => {
                     eprintln!("{}", e);
