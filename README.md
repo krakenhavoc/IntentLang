@@ -105,6 +105,10 @@ docker run -v $(pwd)/examples:/work intent check /work/transfer.intent
 intent check <file>         Parse, type-check, and validate constraints
 intent render <file>        Render spec to Markdown
 intent render-html <file>   Render spec to self-contained styled HTML
+intent compile <file>       Compile spec to IR (JSON output)
+intent verify <file>        Verify structural + logical correctness
+intent audit <file>         Show audit trace map (spec → IR)
+intent coverage <file>      Show coverage summary
 ```
 
 ### Semantic Analysis
@@ -193,21 +197,29 @@ intent render-html examples/transfer.intent > transfer.html
 
 ## Project Status
 
-**Current release: [v0.1.0-alpha.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.1.0-alpha.1)** — Phase 1 MVP.
+**Current release: [v0.2.0-alpha.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.2.0-alpha.1)** — Phase 2 complete.
 
 Phase 1 (complete):
 - PEG grammar via [pest](https://pest.rs/) with typed AST and source spans
 - Six-pass semantic checker with diagnostic error reporting
 - Markdown and self-contained HTML renderers
-- CLI toolchain with pre-built binary and Docker image
-- 40 tests across parser, snapshot, and semantic validation
+
+Phase 2 (complete):
+- AST → Agent IR lowering with `SourceTrace` on every node
+- Structural verification and coherence analysis (verification obligations)
+- CLI: `compile`, `verify`
+
+Phase 3 (in progress):
+- Audit trace maps: spec items → IR constructs with source lines
+- Coverage summaries: entity/action/invariant counts, verification status
+- CLI: `audit`, `coverage`
+
+77 tests across parser, checker, IR, and audit modules.
 
 ### Roadmap
 
 | Phase | Focus | Key Deliverables |
 |-------|-------|-----------------|
-| **2** | Agent IR | Typed intermediate representation, scaffold generation, postcondition verification |
-| **3** | Audit Bridge | Trace maps, diff reports, coverage analysis |
 | **4** | Agent API | Agents read specs and produce IR via structured API, incremental re-verification |
 
 Long-term: IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. See the [self-hosting roadmap](CLAUDE.md) for details.
@@ -218,11 +230,11 @@ Long-term: IntentLang compiles itself. The compiler's spec is written in `.inten
 intent-cli ──→ intent-parser ←── grammar/intent.pest
     │              ↑
     ├──→ intent-check
-    │
-    └──→ intent-render
+    ├──→ intent-render
+    └──→ intent-ir (lowering, verification, audit)
 ```
 
-Four crates in a Cargo workspace. The parser produces a typed AST; the checker validates it; the renderer formats it. The CLI wires them together. See [`AGENTS.md`](AGENTS.md) for architecture details and [`docs/SPEC.md`](docs/SPEC.md) for the full language design.
+Five crates in a Cargo workspace. The parser produces a typed AST; the checker validates it; the renderer formats it; the IR crate lowers to a typed intermediate representation with verification, coherence analysis, and audit bridge. The CLI wires them together. See [`AGENTS.md`](AGENTS.md) for architecture details and [`docs/SPEC.md`](docs/SPEC.md) for the full language design.
 
 ## Prior Art
 
