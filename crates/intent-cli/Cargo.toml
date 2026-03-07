@@ -1,7 +1,12 @@
 [package]
 name = "intent-cli"
+description = "CLI toolchain for IntentLang: check, render, compile, verify, audit"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [[bin]]
 name = "intent"

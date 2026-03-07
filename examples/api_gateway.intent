@@ -1,0 +1,115 @@
+module ApiGateway
+
+--- API gateway with rate limiting, authentication, and routing.
+--- Validates incoming requests against defined routes, enforces
+--- rate limits per client, and forwards authenticated traffic.
+
+entity Route {
+  path: String
+  method: String
+  backend: String
+  requires_auth: Bool
+  rate_limit: Int
+  status: Active | Deprecated | Disabled
+}
+
+entity Client {
+  id: UUID
+  api_key: String
+  name: String
+  tier: Free | Pro | Enterprise
+  request_count: Int
+  window_start: DateTime
+  status: Active | Revoked
+}
+
+entity Request {
+  id: UUID
+  client: Client
+  route: Route
+  timestamp: DateTime
+  status: Pending | Forwarded | Rejected | RateLimited
+}
+
+action ForwardRequest {
+  --- Route an authenticated request to its backend service.
+  client: Client
+  route: Route
+
+  requires {
+    client.status == Active
+    route.status == Active
+    client.request_count < route.rate_limit
+  }
+
+  ensures {
+    client.request_count == old(client.request_count) + 1
+    exists r: Request =>
+      r.client == client &&
+      r.route == route &&
+      r.status == Forwarded
+  }
+
+  properties {
+    atomic: true
+    max_latency_ms: 100
+    audit_logged: true
+  }
+}
+
+action ResetRateLimit {
+  --- Reset request counter for a client at the start of a new window.
+  client: Client
+
+  requires {
+    client.status == Active
+  }
+
+  ensures {
+    client.request_count == 0
+  }
+
+  properties {
+    idempotent: true
+  }
+}
+
+action RevokeClient {
+  --- Revoke a client's API access.
+  client: Client
+  reason: String
+
+  requires {
+    client.status == Active
+  }
+
+  ensures {
+    client.status == Revoked
+  }
+
+  properties {
+    audit_logged: true
+    requires_role: "admin"
+  }
+}
+
+invariant RateLimitRespected {
+  --- No client may exceed their route's rate limit.
+  forall r: Request =>
+    r.status == Forwarded =>
+      r.client.request_count <= r.route.rate_limit
+}
+
+invariant NoRevokedAccess {
+  --- Revoked clients must not have forwarded requests.
+  forall r: Request =>
+    r.client.status == Revoked =>
+      r.status != Forwarded
+}
+
+edge_cases {
+  when client.status == Revoked => reject("API key has been revoked")
+  when route.status == Disabled => reject("This endpoint is disabled")
+  when route.status == Deprecated => allow(note: "Deprecated endpoint, migrate to v2")
+  when client.request_count >= route.rate_limit => reject("Rate limit exceeded. Try again later.")
+}

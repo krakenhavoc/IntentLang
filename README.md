@@ -1,5 +1,8 @@
 # IntentLang
 
+[![CI](https://github.com/krakenhavoc/IntentLang/actions/workflows/ci.yml/badge.svg)](https://github.com/krakenhavoc/IntentLang/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A declarative specification language for human-AI collaboration.
 
 Humans write **what** the system must do and **what constraints must hold**.
@@ -68,7 +71,7 @@ $ intent check examples/transfer.intent
 OK: TransferFunds — 7 top-level item(s), no issues found
 ```
 
-More examples in [`examples/`](examples/): fund transfers, authentication with brute-force protection, shopping cart with inventory rules.
+See [`examples/`](examples/) for more: authentication, shopping cart, RBAC, API gateway, data pipeline.
 
 ## Getting Started
 
@@ -236,10 +239,27 @@ intent-cli ──→ intent-parser ←── grammar/intent.pest
 
 Five crates in a Cargo workspace. The parser produces a typed AST; the checker validates it; the renderer formats it; the IR crate lowers to a typed intermediate representation with verification, coherence analysis, and audit bridge. The CLI wires them together. See [`AGENTS.md`](AGENTS.md) for architecture details and [`docs/SPEC.md`](docs/SPEC.md) for the full language design.
 
+## Examples
+
+The [`examples/`](examples/) directory contains full working specs across different domains:
+
+| Example | Domain |
+|---------|--------|
+| [`transfer.intent`](examples/transfer.intent) | Fund transfers with balance invariants |
+| [`auth.intent`](examples/auth.intent) | Authentication with brute-force protection |
+| [`shopping_cart.intent`](examples/shopping_cart.intent) | Shopping cart with inventory rules |
+| [`rbac.intent`](examples/rbac.intent) | Role-based access control with hierarchical permissions |
+| [`api_gateway.intent`](examples/api_gateway.intent) | API gateway with rate limiting and client tiers |
+| [`data_pipeline.intent`](examples/data_pipeline.intent) | Staged data pipeline with retries and dead-letter queue |
+
 ## Prior Art
 
 IntentLang draws on [Design by Contract](https://en.wikipedia.org/wiki/Design_by_contract) (requires/ensures), [Dafny](https://dafny.org/) (verification-aware programming), [TLA+](https://lamport.azurewebsites.net/tla/tla.html) (system-level invariants), and [Alloy](https://alloytools.org/) (lightweight formal modeling).
 
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for development setup, workflow, and conventions. Questions and ideas welcome in [GitHub Discussions](https://github.com/krakenhavoc/IntentLang/discussions).
+
 ## License
 
-MIT
+[MIT](LICENSE)

@@ -12,6 +12,10 @@ members = [
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
+repository = "https://github.com/krakenhavoc/IntentLang"
+homepage = "https://github.com/krakenhavoc/IntentLang"
+keywords = ["specification", "formal-verification", "design-by-contract", "parser", "dsl"]
+categories = ["compilers", "development-tools", "parser-implementations"]
 
 [workspace.dependencies]
 miette = { version = "7", features = ["fancy"] }
