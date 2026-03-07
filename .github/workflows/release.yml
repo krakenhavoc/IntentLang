@@ -47,6 +47,8 @@ jobs:
           cargo publish -p intent-check
           cargo publish -p intent-render
           cargo publish -p intent-ir
+          cargo publish -p intent-gen
+          cargo publish -p intent-runtime
           cargo publish -p intent-cli
 
   github-release:
