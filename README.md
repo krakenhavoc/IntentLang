@@ -105,13 +105,19 @@ docker run -v $(pwd)/examples:/work intent check /work/transfer.intent
 ## CLI
 
 ```
-intent check <file>         Parse, type-check, and validate constraints
-intent render <file>        Render spec to Markdown
-intent render-html <file>   Render spec to self-contained styled HTML
-intent compile <file>       Compile spec to IR (JSON output)
-intent verify <file>        Verify structural + logical correctness
-intent audit <file>         Show audit trace map (spec → IR)
-intent coverage <file>      Show coverage summary
+intent check <file>                    Parse, type-check, and validate constraints
+intent render <file>                   Render spec to Markdown
+intent render-html <file>              Render spec to self-contained styled HTML
+intent compile <file>                  Compile spec to IR (JSON output)
+intent verify <file>                   Verify structural + logical correctness
+intent verify --incremental <file>     Incremental verify (cache, re-verify only changes)
+intent audit <file>                    Show audit trace map (spec → IR)
+intent coverage <file>                 Show coverage summary
+intent diff <old> <new>                Spec-level diff between two versions
+intent query <file> <target>           Query items (for agent integration)
+intent lock <file> <item> --agent X    Claim a spec item for an agent
+intent unlock <file> <item> --agent X  Release a claimed spec item
+intent status <file>                   Show lock status for all spec items
 ```
 
 ### Semantic Analysis
@@ -200,7 +206,7 @@ intent render-html examples/transfer.intent > transfer.html
 
 ## Project Status
 
-**Current release: [v0.2.0-alpha.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.2.0-alpha.1)** — Phase 2 complete.
+**Current release: [v0.4.0-alpha.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.4.0-alpha.1)** — Phase 4 complete.
 
 Phase 1 (complete):
 - PEG grammar via [pest](https://pest.rs/) with typed AST and source spans
@@ -212,18 +218,17 @@ Phase 2 (complete):
 - Structural verification and coherence analysis (verification obligations)
 - CLI: `compile`, `verify`
 
-Phase 3 (in progress):
+Phase 3 (complete):
 - Audit trace maps: spec items → IR constructs with source lines
-- Coverage summaries: entity/action/invariant counts, verification status
-- CLI: `audit`, `coverage`
+- Coverage summaries and spec-level diffs between versions
+- CLI: `audit`, `coverage`, `diff`
 
-77 tests across parser, checker, IR, and audit modules.
+Phase 4 (complete):
+- Agent API: JSON output (`--output json`), structured queries (`query`)
+- Incremental verification with per-item caching (`verify --incremental`)
+- Multi-agent collaboration: spec-item locking (`lock`, `unlock`, `status`)
 
-### Roadmap
-
-| Phase | Focus | Key Deliverables |
-|-------|-------|-----------------|
-| **4** | Agent API | Agents read specs and produce IR via structured API, incremental re-verification |
+112 tests across parser, checker, and IR modules.
 
 Long-term: IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. See the [self-hosting roadmap](CLAUDE.md) for details.
 

@@ -1,6 +1,6 @@
 [package]
 name = "intent-cli"
-description = "CLI toolchain for IntentLang: check, render, compile, verify, audit"
+description = "CLI toolchain for IntentLang: check, render, compile, verify, audit, query, lock"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -13,10 +13,10 @@ name = "intent"
 path = "src/main.rs"
 
 [dependencies]
-intent-parser = { path = "../intent-parser", version = "0.1.0" }
-intent-check = { path = "../intent-check", version = "0.1.0" }
-intent-render = { path = "../intent-render", version = "0.1.0" }
-intent-ir = { path = "../intent-ir", version = "0.1.0" }
+intent-parser = { path = "../intent-parser", version = "0.4.0-alpha.1" }
+intent-check = { path = "../intent-check", version = "0.4.0-alpha.1" }
+intent-render = { path = "../intent-render", version = "0.4.0-alpha.1" }
+intent-ir = { path = "../intent-ir", version = "0.4.0-alpha.1" }
 serde.workspace = true
 serde_json.workspace = true
 clap.workspace = true

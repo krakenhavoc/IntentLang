@@ -7,9 +7,9 @@ For the full project spec, see `docs/SPEC.md`. For contributor conventions, see 
 
 IntentLang is a declarative specification language for human-AI collaboration. Humans write **what** and **what constraints** in `.intent` files; agents handle **how** via a compiled intermediate representation. Three layers:
 
-1. **Intent Layer** -- The spec language (this is what we're building now)
-2. **Agent IR** -- A verifiable intermediate representation agents generate (future)
-3. **Audit Bridge** -- Maps between layers so humans can review agent work (future)
+1. **Intent Layer** -- The spec language
+2. **Agent IR** -- A verifiable intermediate representation agents generate
+3. **Audit Bridge** -- Maps between layers so humans can review agent work
 
 ## Quick Start
 
@@ -41,6 +41,24 @@ cargo run -p intent-cli -- audit examples/transfer.intent
 
 # Show coverage summary
 cargo run -p intent-cli -- coverage examples/transfer.intent
+
+# Diff two versions of a spec
+cargo run -p intent-cli -- diff old.intent new.intent
+
+# Query specific items (for agent integration)
+cargo run -p intent-cli -- query examples/transfer.intent entities
+cargo run -p intent-cli -- query examples/transfer.intent Transfer
+
+# Incremental verification (caches results, re-verifies only changes)
+cargo run -p intent-cli -- verify --incremental examples/transfer.intent
+
+# Multi-agent collaboration: lock/unlock spec items
+cargo run -p intent-cli -- lock examples/transfer.intent Transfer --agent agent-1
+cargo run -p intent-cli -- status examples/transfer.intent
+cargo run -p intent-cli -- unlock examples/transfer.intent Transfer --agent agent-1
+
+# JSON output (for agent consumption)
+cargo run -p intent-cli -- --output json check examples/transfer.intent
 ```
 
 ## Project Structure
@@ -52,8 +70,8 @@ intentlang/
     intent-parser/           -- Grammar -> typed AST
     intent-check/            -- Semantic analysis & validation
     intent-render/           -- AST -> Markdown/HTML
-    intent-ir/               -- AST -> Agent IR (lowering, verification)
-    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage
+    intent-ir/               -- AST -> Agent IR (lowering, verification, audit, diff, incremental, lock)
+    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status
   examples/                  -- Example .intent files
   tests/valid/               -- Specs that must parse and pass checks
   tests/invalid/             -- Specs that must fail with known errors
@@ -132,9 +150,9 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 
 **Renderer (intent-render)**: Converts AST to Markdown and self-contained HTML. Shared `format_type` helper in lib root.
 
-**IR (intent-ir)**: Lowers AST to a typed intermediate representation (structs, functions, invariants, edge guards). Every IR node carries a `SourceTrace { module, item, part, span }` for audit tracing. The verification pass checks structural correctness (bound variables, `old()` placement, quantifier types, postcondition connectivity) and logical coherence (invariant-action field coverage, verification obligations). The audit module generates trace maps (spec→IR mapping with source lines) and coverage summaries from the IR and verification results.
+**IR (intent-ir)**: Lowers AST to a typed intermediate representation (structs, functions, invariants, edge guards). Every IR node carries a `SourceTrace { module, item, part, span }` for audit tracing. Modules: `lower` (AST→IR), `verify` (structural + coherence), `audit` (trace maps + coverage), `diff` (spec-level diffs), `incremental` (cached per-item verification), `lock` (multi-agent spec-item claiming).
 
-**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify`, `audit`, `coverage`.
+**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`. Global `--output json` flag for agent consumption.
 
 ## Key Dependencies
 
@@ -155,31 +173,21 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage (77 total)
+## Current Test Coverage (112 total)
 
 - 26 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files)
 - 14 parser tests (7 unit + 7 insta snapshot tests for all fixtures and examples)
-- 28 IR tests (11 lowering + 11 verification + 6 coherence, including integration tests for all 3 examples)
-- 9 audit tests (trace map entries, coverage counts, line numbers, obligation display, integration)
+- 72 IR tests: 11 lowering + 11 verification + 6 coherence + 9 audit + 13 diff + 11 incremental + 11 lock
 - Fixtures: 4 valid, 9 invalid + 3 example files
 
 ## Current Phase & Status
 
-Phase 3: Audit Bridge. Building on Phase 2 (IR + verification).
+All four phases complete. Current release: v0.4.0-alpha.1.
 
-Phase 1 (complete):
-- PEG grammar, typed AST with spans, snapshot tests (insta)
-- Six-pass semantic analysis with miette diagnostics
-- Markdown and HTML renderers
-- CLI: `check`, `render`, `render-html`
+Phase 1 (complete): PEG grammar, typed AST with spans, six-pass semantic analysis, Markdown/HTML renderers. CLI: `check`, `render`, `render-html`.
 
-Phase 2 (complete):
-- AST → IR lowering (entities→structs, actions→functions, invariants, edge cases→guards)
-- IR structural verification (bound variables, `old()` placement, quantifier types, postcondition connectivity)
-- IR coherence analysis (invariant-action field coverage, verification obligations)
-- CLI: `compile` (IR JSON output), `verify` (semantic + structural + coherence checks)
+Phase 2 (complete): AST → IR lowering, structural verification, coherence analysis. CLI: `compile`, `verify`.
 
-Phase 3 (in progress):
-- Audit trace maps (spec items → IR constructs with source line numbers)
-- Coverage summaries (entity/action/invariant/edge guard counts, verification status, obligations)
-- CLI: `audit` (trace map view), `coverage` (summary view)
+Phase 3 (complete): Audit trace maps, coverage summaries, spec-level diffs. CLI: `audit`, `coverage`, `diff`.
+
+Phase 4 (complete): Agent API (`--output json`, `query`), incremental verification (`verify --incremental`), multi-agent collaboration (`lock`, `unlock`, `status`).
