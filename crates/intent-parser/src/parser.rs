@@ -927,16 +927,21 @@ action SetTags {
         if let TopLevelItem::Action(a) = &file.items[0] {
             let ensures = a.ensures.as_ref().unwrap();
             // The ensures condition is: item.tags == [1, 2, 3]
-            if let EnsuresItem::Expr(expr) = &ensures.items[0]
-                && let ExprKind::Compare { right, .. } = &expr.kind
-                && let ExprKind::List(items) = &right.kind
-            {
-                assert_eq!(items.len(), 3);
-                assert!(matches!(items[0].kind, ExprKind::Literal(Literal::Int(1))));
-                assert!(matches!(items[1].kind, ExprKind::Literal(Literal::Int(2))));
-                assert!(matches!(items[2].kind, ExprKind::Literal(Literal::Int(3))));
+            if let EnsuresItem::Expr(expr) = &ensures.items[0] {
+                if let ExprKind::Compare { right, .. } = &expr.kind {
+                    if let ExprKind::List(items) = &right.kind {
+                        assert_eq!(items.len(), 3);
+                        assert!(matches!(items[0].kind, ExprKind::Literal(Literal::Int(1))));
+                        assert!(matches!(items[1].kind, ExprKind::Literal(Literal::Int(2))));
+                        assert!(matches!(items[2].kind, ExprKind::Literal(Literal::Int(3))));
+                    } else {
+                        panic!("expected list literal on right side");
+                    }
+                } else {
+                    panic!("expected compare expr");
+                }
             } else {
-                panic!("expected ensures expr with list literal");
+                panic!("expected ensures expr");
             }
         } else {
             panic!("expected action");
@@ -958,13 +963,18 @@ action Clear {
         let file = parse_file(src).unwrap();
         if let TopLevelItem::Action(a) = &file.items[0] {
             let ensures = a.ensures.as_ref().unwrap();
-            if let EnsuresItem::Expr(expr) = &ensures.items[0]
-                && let ExprKind::Compare { right, .. } = &expr.kind
-                && let ExprKind::List(items) = &right.kind
-            {
-                assert!(items.is_empty());
+            if let EnsuresItem::Expr(expr) = &ensures.items[0] {
+                if let ExprKind::Compare { right, .. } = &expr.kind {
+                    if let ExprKind::List(items) = &right.kind {
+                        assert!(items.is_empty());
+                    } else {
+                        panic!("expected empty list literal on right side");
+                    }
+                } else {
+                    panic!("expected compare expr");
+                }
             } else {
-                panic!("expected ensures expr with empty list literal");
+                panic!("expected ensures expr");
             }
         } else {
             panic!("expected action");
