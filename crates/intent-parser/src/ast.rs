@@ -266,6 +266,8 @@ pub enum ExprKind {
         root: Box<Expr>,
         fields: Vec<String>,
     },
+    /// List literal: `[a, b, c]`.
+    List(Vec<Expr>),
     /// A plain identifier: `amount`, `Active`, `email`.
     Ident(String),
     /// A literal value.
@@ -302,6 +304,11 @@ impl Expr {
             }
             ExprKind::FieldAccess { root, .. } => f(root),
             ExprKind::Quantifier { body, .. } => f(body),
+            ExprKind::List(items) => {
+                for item in items {
+                    f(item);
+                }
+            }
             ExprKind::Ident(_) | ExprKind::Literal(_) => {}
         }
     }

@@ -160,3 +160,40 @@ fn lower_zero_arg_call() {
         panic!("expected Compare");
     }
 }
+
+#[test]
+fn lower_list_literal() {
+    let ast = parse("module M action A { x: Item ensures { x.tags == [1, 2, 3] } }");
+    let ir = lower_file(&ast);
+
+    let Postcondition::Always { expr, .. } = &ir.functions[0].postconditions[0] else {
+        panic!("expected Always postcondition");
+    };
+    if let IrExpr::Compare { right, .. } = expr {
+        if let IrExpr::List(items) = right.as_ref() {
+            assert_eq!(items.len(), 3);
+            assert!(matches!(&items[0], IrExpr::Literal(IrLiteral::Int(1))));
+            assert!(matches!(&items[1], IrExpr::Literal(IrLiteral::Int(2))));
+            assert!(matches!(&items[2], IrExpr::Literal(IrLiteral::Int(3))));
+        } else {
+            panic!("expected List, got {:?}", right);
+        }
+    } else {
+        panic!("expected Compare");
+    }
+}
+
+#[test]
+fn lower_empty_list_literal() {
+    let ast = parse("module M action A { x: Item ensures { x.tags == [] } }");
+    let ir = lower_file(&ast);
+
+    let Postcondition::Always { expr, .. } = &ir.functions[0].postconditions[0] else {
+        panic!("expected Always postcondition");
+    };
+    if let IrExpr::Compare { right, .. } = expr {
+        assert!(matches!(right.as_ref(), IrExpr::List(items) if items.is_empty()));
+    } else {
+        panic!("expected Compare");
+    }
+}
