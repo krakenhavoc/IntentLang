@@ -11,6 +11,10 @@ Humans write **what** the system must do and **what constraints must hold**.
 Agents handle **how** — generating verifiable implementations from specs.
 The toolchain proves the implementation satisfies the contract.
 
+## Origin
+
+IntentLang started with a question. After listening to the [Lex Fridman & Peter Steinberger podcast](https://www.youtube.com/watch?v=ghQ7vCAuijk) on OpenClaw and the idea of programming languages designed specifically for AI, I asked Claude: *"What would help me help you program better?"* The answer was clear — don't tell me *how* to write the code; tell me *what* you're trying to accomplish and *what constraints matter*, and let me handle the rest. IntentLang is that idea made concrete: a language where humans own the intent, and agents own the implementation.
+
 ## Why IntentLang?
 
 As AI agents write more code, the bottleneck shifts from *writing* to *verifying*. IntentLang addresses this with four layers:
