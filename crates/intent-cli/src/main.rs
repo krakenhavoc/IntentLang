@@ -24,12 +24,15 @@ enum OutputFormat {
     Json,
 }
 
-#[derive(Clone, Copy, ValueEnum)]
+#[derive(Debug, Clone, Copy, ValueEnum)]
 enum CodegenLang {
     Rust,
     Typescript,
     Python,
     Go,
+    Java,
+    Csharp,
+    Swift,
 }
 
 #[derive(Subcommand)]
@@ -1019,6 +1022,9 @@ fn main() {
                 CodegenLang::Typescript => intent_codegen::Language::TypeScript,
                 CodegenLang::Python => intent_codegen::Language::Python,
                 CodegenLang::Go => intent_codegen::Language::Go,
+                CodegenLang::Java => intent_codegen::Language::Java,
+                CodegenLang::Csharp => intent_codegen::Language::CSharp,
+                CodegenLang::Swift => intent_codegen::Language::Swift,
             };
             let code = intent_codegen::generate(&ast, il_lang);
 
@@ -1129,9 +1135,10 @@ fn main() {
                 CodegenLang::Rust => intent_codegen::Language::Rust,
                 CodegenLang::Typescript => intent_codegen::Language::TypeScript,
                 CodegenLang::Python => intent_codegen::Language::Python,
-                CodegenLang::Go => {
+                CodegenLang::Go | CodegenLang::Java | CodegenLang::Csharp | CodegenLang::Swift => {
                     eprintln!(
-                        "error: Go is not yet supported for `implement` (use `codegen` for skeleton stubs)"
+                        "error: {:?} is not yet supported for `implement` (use `codegen` for skeleton stubs)",
+                        lang
                     );
                     process::exit(1);
                 }
