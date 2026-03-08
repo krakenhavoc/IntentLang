@@ -8,6 +8,7 @@ members = [
     "crates/intent-gen",
     "crates/intent-runtime",
     "crates/intent-cli",
+    "crates/intent-lsp",
 ]
 
 [workspace.package]

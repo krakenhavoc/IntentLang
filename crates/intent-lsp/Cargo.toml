@@ -1,0 +1,19 @@
+[package]
+name = "intent-lsp"
+description = "Language Server Protocol implementation for IntentLang"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "intent-lsp"
+path = "src/main.rs"
+
+[dependencies]
+intent-parser = { path = "../intent-parser", version = "0.6.0-beta.1" }
+intent-check = { path = "../intent-check", version = "0.6.0-beta.1" }
+tower-lsp = "0.20"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std"] }
+dashmap = "6"
+miette = { workspace = true }
