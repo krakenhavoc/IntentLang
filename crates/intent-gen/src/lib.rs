@@ -9,7 +9,7 @@ mod client;
 mod prompt;
 mod validate;
 
-pub use client::{ApiConfig, LlmClient};
+pub use client::{ApiConfig, ApiError, LlmClient, Message};
 pub use validate::GenerateError;
 
 /// Options for spec generation.

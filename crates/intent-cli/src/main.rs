@@ -188,6 +188,26 @@ enum Commands {
         #[arg(short = 'o', long = "out")]
         out: Option<PathBuf>,
     },
+    /// Generate a full implementation from an intent specification using AI
+    Implement {
+        /// Path to the .intent file
+        file: PathBuf,
+        /// Target language: rust, typescript, or python
+        #[arg(long, short = 'l', value_enum, default_value = "rust")]
+        lang: CodegenLang,
+        /// Output directory (default: print to stdout)
+        #[arg(short = 'o', long = "out-dir")]
+        out_dir: Option<PathBuf>,
+        /// LLM model override (default: AI_MODEL env var or gpt-4o)
+        #[arg(long)]
+        model: Option<String>,
+        /// Maximum validation retries (default: 2)
+        #[arg(long, default_value = "2")]
+        max_retries: u32,
+        /// Print raw LLM responses to stderr for debugging
+        #[arg(long)]
+        debug: bool,
+    },
     /// Initialize a new .intent spec file
     Init {
         /// Module name (defaults to directory name)
@@ -1040,6 +1060,95 @@ fn main() {
                 println!("Generated OpenAPI spec: {}", out_path.display());
             } else {
                 println!("{json}");
+            }
+        }
+        Commands::Implement {
+            file,
+            lang,
+            out_dir,
+            model,
+            max_retries,
+            debug,
+        } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+
+            // Run semantic checks (with imports if present)
+            let check_errors = if ast.imports.is_empty() {
+                intent_check::check_file(&ast)
+            } else {
+                let graph = resolve_or_exit(&file);
+                let root_file = &graph.modules[&graph.root];
+                let imported = imported_files_for(root_file, &graph);
+                intent_check::check_file_with_imports(root_file, &imported)
+            };
+            if !check_errors.is_empty() {
+                let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
+                for err in &check_errors {
+                    let mut buf = String::new();
+                    let report = miette::Report::new(err.clone()).with_source_code(source.clone());
+                    handler.render_report(&mut buf, report.as_ref()).ok();
+                    eprint!("{buf}");
+                }
+                eprintln!(
+                    "{} error(s) in {} — fix before generating implementation",
+                    check_errors.len(),
+                    file.display()
+                );
+                process::exit(1);
+            }
+
+            let client = match intent_gen::LlmClient::from_env() {
+                Ok(c) => c,
+                Err(e) => {
+                    eprintln!("error: {e}");
+                    eprintln!(
+                        "hint: set AI_API_KEY (and optionally AI_API_BASE, AI_MODEL) environment variables"
+                    );
+                    process::exit(1);
+                }
+            };
+            let client = if let Some(m) = model {
+                client.with_model(m)
+            } else {
+                client
+            };
+
+            let il_lang = match lang {
+                CodegenLang::Rust => intent_codegen::Language::Rust,
+                CodegenLang::Typescript => intent_codegen::Language::TypeScript,
+                CodegenLang::Python => intent_codegen::Language::Python,
+                CodegenLang::Go => {
+                    eprintln!("error: Go is not yet supported for `implement` (use `codegen` for skeleton stubs)");
+                    process::exit(1);
+                }
+            };
+
+            let options = intent_implement::ImplementOptions {
+                language: il_lang,
+                max_retries,
+                debug,
+            };
+
+            match intent_implement::implement(&client, &ast, &options) {
+                Ok(code) => {
+                    if let Some(out_dir) = out_dir {
+                        let filename =
+                            intent_codegen::output_filename(&ast.module.name, il_lang);
+                        let out_path = out_dir.join(filename);
+                        if let Some(parent) = out_path.parent() {
+                            fs::create_dir_all(parent).ok();
+                        }
+                        write_or_exit(&out_path, &code);
+                        println!("Generated {}", out_path.display());
+                    } else {
+                        print!("{}", code);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("error: {e}");
+                    process::exit(1);
+                }
             }
         }
         Commands::Init { name, out } => {

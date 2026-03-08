@@ -21,6 +21,7 @@ intent-ir = { path = "../intent-ir", version = "0.6.0-beta.1" }
 intent-gen = { path = "../intent-gen", version = "0.6.0-beta.1" }
 intent-runtime = { path = "../intent-runtime", version = "0.6.0-beta.1" }
 intent-codegen = { path = "../intent-codegen", version = "0.6.0-beta.1" }
+intent-implement = { path = "../intent-implement", version = "0.6.0-beta.1" }
 serde.workspace = true
 serde_json.workspace = true
 clap.workspace = true

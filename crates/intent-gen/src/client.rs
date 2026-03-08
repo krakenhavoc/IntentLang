@@ -1,7 +1,11 @@
 //! LLM API client for OpenAI-compatible endpoints.
 //!
 //! Supports any provider that implements the OpenAI chat completions API:
-//! OpenAI, Anthropic (via proxy), Ollama, vLLM, etc.
+//! OpenAI, Azure OpenAI, Anthropic (via proxy), Ollama, vLLM, etc.
+//!
+//! For Azure OpenAI managed deployments, set `AI_API_VERSION` to the API
+//! version (e.g., `2025-01-01-preview`). The client auto-detects Azure
+//! endpoints from the URL and uses `api-key` header auth.
 
 use serde::{Deserialize, Serialize};
 
@@ -14,6 +18,10 @@ pub struct ApiConfig {
     pub api_base: String,
     /// Model identifier (e.g., "gpt-4o", "claude-sonnet-4-20250514").
     pub model: String,
+    /// Azure API version (e.g., "2025-01-01-preview"). When set, enables
+    /// Azure-style auth (`api-key` header) and appends the version as a
+    /// query parameter.
+    pub api_version: Option<String>,
 }
 
 impl ApiConfig {
@@ -22,6 +30,7 @@ impl ApiConfig {
     /// - `AI_API_KEY` — API key (required)
     /// - `AI_API_BASE` — Base URL (default: `https://api.openai.com/v1`)
     /// - `AI_MODEL` — Model name (default: `gpt-4o`)
+    /// - `AI_API_VERSION` — Azure API version (optional, e.g., `2025-01-01-preview`)
     pub fn from_env() -> Result<Self, ConfigError> {
         let api_key =
             std::env::var("AI_API_KEY").map_err(|_| ConfigError::MissingKey("AI_API_KEY"))?;
@@ -31,11 +40,21 @@ impl ApiConfig {
 
         let model = std::env::var("AI_MODEL").unwrap_or_else(|_| "gpt-4o".to_string());
 
+        let api_version = std::env::var("AI_API_VERSION").ok();
+
         Ok(Self {
             api_key,
             api_base,
             model,
+            api_version,
         })
+    }
+
+    /// Returns true if this config targets an Azure OpenAI endpoint.
+    fn is_azure(&self) -> bool {
+        self.api_version.is_some()
+            || self.api_base.contains(".openai.azure.com")
+            || self.api_base.contains(".cognitiveservices.azure.com")
     }
 }
 
@@ -48,7 +67,7 @@ pub enum ConfigError {
 
 /// A message in the chat conversation.
 #[derive(Clone, Serialize)]
-pub(crate) struct Message {
+pub struct Message {
     pub role: &'static str,
     pub content: String,
 }
@@ -61,10 +80,16 @@ pub struct LlmClient {
 
 impl LlmClient {
     /// Create a new client with the given API config.
+    ///
+    /// Read timeout defaults to 300s (5 min) but can be overridden via `AI_TIMEOUT` env var (seconds).
     pub fn new(config: ApiConfig) -> Self {
+        let timeout_secs: u64 = std::env::var("AI_TIMEOUT")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(300);
         let agent = ureq::AgentBuilder::new()
             .timeout_connect(std::time::Duration::from_secs(10))
-            .timeout_read(std::time::Duration::from_secs(120))
+            .timeout_read(std::time::Duration::from_secs(timeout_secs))
             .build();
         Self { config, agent }
     }
@@ -81,11 +106,13 @@ impl LlmClient {
     }
 
     /// Send a chat completion request and return the assistant's response text.
-    pub(crate) fn chat(&self, messages: &[Message]) -> Result<String, ApiError> {
-        let url = format!(
-            "{}/chat/completions",
-            self.config.api_base.trim_end_matches('/')
-        );
+    pub fn chat(&self, messages: &[Message]) -> Result<String, ApiError> {
+        let base = self.config.api_base.trim_end_matches('/');
+        let url = if let Some(version) = &self.config.api_version {
+            format!("{base}/chat/completions?api-version={version}")
+        } else {
+            format!("{base}/chat/completions")
+        };
 
         let body = ChatRequest {
             model: &self.config.model,
@@ -93,11 +120,18 @@ impl LlmClient {
             temperature: 0.2,
         };
 
-        let response = self
+        let mut req = self
             .agent
             .post(&url)
-            .set("Authorization", &format!("Bearer {}", self.config.api_key))
-            .set("Content-Type", "application/json")
+            .set("Content-Type", "application/json");
+
+        req = if self.config.is_azure() {
+            req.set("api-key", &self.config.api_key)
+        } else {
+            req.set("Authorization", &format!("Bearer {}", self.config.api_key))
+        };
+
+        let response = req
             .send_json(serde_json::to_value(&body).map_err(ApiError::Serialization)?);
 
         let response = match response {
