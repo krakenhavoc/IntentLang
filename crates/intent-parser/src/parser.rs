@@ -160,6 +160,7 @@ fn build_file(pair: pest::iterators::Pair<'_, Rule>) -> File {
             Rule::invariant_decl => items.push(TopLevelItem::Invariant(build_invariant_decl(p))),
             Rule::edge_cases_decl => items.push(TopLevelItem::EdgeCases(build_edge_cases_decl(p))),
             Rule::test_decl => items.push(TopLevelItem::Test(build_test_decl(p))),
+            Rule::state_decl => items.push(TopLevelItem::StateMachine(build_state_decl(p))),
             Rule::EOI => {}
             _ => {}
         }
@@ -400,6 +401,51 @@ fn build_action_call(pair: pest::iterators::Pair<'_, Rule>) -> ActionCall {
         .map(|p| p.into_inner().map(build_call_arg).collect())
         .unwrap_or_default();
     ActionCall { name, args, span }
+}
+
+// ── State machine builders ───────────────────────────────────
+
+fn build_state_decl(pair: pest::iterators::Pair<'_, Rule>) -> StateMachineDecl {
+    let span = span_of(&pair);
+    let mut doc = None;
+    let mut name = String::new();
+    let mut states = Vec::new();
+    let mut transitions = Vec::new();
+    let mut chains = Vec::new();
+    let mut seen_states = std::collections::HashSet::new();
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::doc_block => doc = Some(build_doc_block(p)),
+            Rule::type_ident => name = p.as_str().to_string(),
+            Rule::transition_chain => {
+                let chain_states: Vec<String> = p
+                    .into_inner()
+                    .filter(|c| c.as_rule() == Rule::type_ident)
+                    .map(|c| c.as_str().to_string())
+                    .collect();
+                for s in &chain_states {
+                    if seen_states.insert(s.clone()) {
+                        states.push(s.clone());
+                    }
+                }
+                for window in chain_states.windows(2) {
+                    transitions.push((window[0].clone(), window[1].clone()));
+                }
+                chains.push(chain_states);
+            }
+            _ => {}
+        }
+    }
+
+    StateMachineDecl {
+        doc,
+        name,
+        states,
+        transitions,
+        chains,
+        span,
+    }
 }
 
 // ── Type expression builders ─────────────────────────────────
@@ -1120,6 +1166,115 @@ action Clear {
         let file = parse_file(src).unwrap();
         assert!(file.imports.is_empty());
         assert_eq!(file.items.len(), 1);
+    }
+
+    #[test]
+    fn parse_state_machine_linear() {
+        let src = r#"module Test
+
+state TaskStatus {
+  Open -> InProgress -> Done
+}
+"#;
+        let file = parse_file(src).unwrap();
+        assert_eq!(file.items.len(), 1);
+        if let TopLevelItem::StateMachine(sm) = &file.items[0] {
+            assert_eq!(sm.name, "TaskStatus");
+            assert_eq!(sm.states, vec!["Open", "InProgress", "Done"]);
+            assert_eq!(
+                sm.transitions,
+                vec![
+                    ("Open".to_string(), "InProgress".to_string()),
+                    ("InProgress".to_string(), "Done".to_string()),
+                ]
+            );
+            assert_eq!(sm.chains.len(), 1);
+        } else {
+            panic!("expected state machine");
+        }
+    }
+
+    #[test]
+    fn parse_state_machine_branching() {
+        let src = r#"module Test
+
+state OrderStatus {
+  Pending -> Confirmed -> Shipped -> Delivered
+  Pending -> Cancelled
+  Shipped -> Returned
+}
+"#;
+        let file = parse_file(src).unwrap();
+        if let TopLevelItem::StateMachine(sm) = &file.items[0] {
+            assert_eq!(sm.name, "OrderStatus");
+            assert_eq!(
+                sm.states,
+                vec![
+                    "Pending",
+                    "Confirmed",
+                    "Shipped",
+                    "Delivered",
+                    "Cancelled",
+                    "Returned"
+                ]
+            );
+            assert_eq!(sm.chains.len(), 3);
+            // Transitions include all adjacent pairs across all chains
+            assert!(
+                sm.transitions
+                    .contains(&("Pending".to_string(), "Cancelled".to_string()))
+            );
+            assert!(
+                sm.transitions
+                    .contains(&("Shipped".to_string(), "Returned".to_string()))
+            );
+        } else {
+            panic!("expected state machine");
+        }
+    }
+
+    #[test]
+    fn parse_state_machine_with_doc() {
+        // Put an entity first so the doc block isn't consumed as file-level doc
+        let src = r#"module Test
+
+entity Dummy {
+  id: UUID
+}
+
+--- Tracks the lifecycle of a support ticket.
+state TicketStatus {
+  New -> Triaged -> InProgress -> Resolved
+}
+"#;
+        let file = parse_file(src).unwrap();
+        assert_eq!(file.items.len(), 2);
+        if let TopLevelItem::StateMachine(sm) = &file.items[1] {
+            assert!(sm.doc.is_some());
+            assert_eq!(sm.name, "TicketStatus");
+            assert_eq!(sm.states.len(), 4);
+        } else {
+            panic!("expected state machine");
+        }
+    }
+
+    #[test]
+    fn parse_state_machine_with_entity() {
+        let src = r#"module Test
+
+state TaskStatus {
+  Open -> InProgress -> Done
+}
+
+entity Task {
+  id: UUID
+  status: TaskStatus
+}
+"#;
+        let file = parse_file(src).unwrap();
+        assert_eq!(file.items.len(), 2);
+        assert!(matches!(file.items[0], TopLevelItem::StateMachine(_)));
+        assert!(matches!(file.items[1], TopLevelItem::Entity(_)));
     }
 
     #[test]

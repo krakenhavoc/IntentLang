@@ -103,6 +103,7 @@ fn find_last_keyword(text: &str) -> Option<String> {
         "action",
         "invariant",
         "edge_cases",
+        "state",
     ];
 
     let mut best: Option<(usize, &str)> = None;
@@ -138,6 +139,11 @@ fn add_top_level_keywords(items: &mut Vec<CompletionItem>) {
             "edge_cases",
             "edge_cases {\n  when ${1:condition} => ${2:Action}()\n}",
             "Define edge cases",
+        ),
+        (
+            "state",
+            "state ${1:Name} {\n  ${2:Initial} -> ${3:Next}\n}",
+            "Define a state machine",
         ),
         ("use", "use ${1:ModuleName}", "Import a module"),
     ];
@@ -209,16 +215,27 @@ fn add_type_completions(items: &mut Vec<CompletionItem>, doc: &Document) {
         });
     }
 
-    // User-defined entity names as types.
+    // User-defined entity and state machine names as types.
     if let Some(ref ast) = doc.ast {
         for item in &ast.items {
-            if let TopLevelItem::Entity(e) = item {
-                items.push(CompletionItem {
-                    label: e.name.clone(),
-                    kind: Some(CompletionItemKind::CLASS),
-                    detail: Some("Entity".to_string()),
-                    ..CompletionItem::default()
-                });
+            match item {
+                TopLevelItem::Entity(e) => {
+                    items.push(CompletionItem {
+                        label: e.name.clone(),
+                        kind: Some(CompletionItemKind::CLASS),
+                        detail: Some("Entity".to_string()),
+                        ..CompletionItem::default()
+                    });
+                }
+                TopLevelItem::StateMachine(sm) => {
+                    items.push(CompletionItem {
+                        label: sm.name.clone(),
+                        kind: Some(CompletionItemKind::ENUM),
+                        detail: Some(format!("State machine ({})", sm.states.join(", "))),
+                        ..CompletionItem::default()
+                    });
+                }
+                _ => {}
             }
         }
     }

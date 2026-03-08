@@ -32,7 +32,8 @@ pub fn lower_file(file: &ast::File) -> Module {
                     edge_guards.push(lower_edge_rule(module_name, rule));
                 }
             }
-            ast::TopLevelItem::Test(_) => {} // Tests are not lowered to IR
+            ast::TopLevelItem::StateMachine(_) => {} // State machines are type-level; no IR lowering needed
+            ast::TopLevelItem::Test(_) => {}         // Tests are not lowered to IR
         }
     }
 

@@ -148,6 +148,11 @@ action ActionName {
   }
 }
 
+state StatusName {
+  Initial -> Active -> Completed
+  Active -> Cancelled
+}
+
 invariant InvariantName {
   // universal constraints: forall x: Type => predicate
 }
@@ -218,7 +223,7 @@ edge_cases {
 - **Phase 5**: Language Polish & NL Generation — `fmt`, `init`, `completions`, list literals. `intent generate` for NL → `.intent` via LLM (Layer 0).
 - **Phase 6**: Stateless Runtime — expression evaluator, contract evaluation, HTTP server. CLI: `serve`.
 - **Phase 7**: Module Imports — `use` syntax, module resolver (DFS + cycle detection), cross-module type checking, multi-file composition.
-- **Phase 8** (in progress): Code Generation — skeleton codegen (`intent codegen`, Rust/TypeScript/Python/Go/Java/C#/Swift), AI-powered implementation generation (`intent implement`, Rust/TypeScript/Python/Go/Java/C#/Swift).
+- **Phase 8**: Code Generation & Beta Milestone — skeleton codegen (7 languages), AI-powered `intent implement` (7 languages), contract test harness, beta validation system.
 
 ### Codegen Roadmap
 
@@ -236,6 +241,13 @@ edge_cases {
 | IntentLang | Planned (self-hosting) | Generate `.intent` specs from `.intent` specs |
 
 **AI-powered codegen** (`intent implement`) — uses LLM to generate full implementations from specs, with contracts as constraints. Same generate-check loop as `intent-gen` but in reverse (spec → code instead of NL → spec). Supports all 7 target languages.
+
+### Phase 9: Language Ergonomics (in progress)
+
+1. **State machine sugar** (shipped) — `state TaskStatus { Open -> InProgress -> Done }` auto-generates union type + transition constraints. Full pipeline: grammar, parser, checker, formatter, renderers, codegen (all 7 languages with `is_valid_transition`), LSP, VSCode.
+2. **Invariant/property templates** — CLI: `intent add-invariant --pattern <pattern> --entity <Entity> [fields...]`. Built-in patterns: `unique`, `non-negative`, `no-dangling-ref`, `idempotent`.
+3. **`intent suggest`** — Analyze spec, summarize problems, propose candidate `.intent` patches. Builds on Layer 0 NL infrastructure.
+4. **Better error diagnostics** — Counterexample states on test/verify failures.
 
 ### Long-Term: Self-Hosting
 IntentLang compiles itself — the compiler's spec is written in `.intent` files, agents generate the implementation, the audit bridge verifies conformance. Not a near-term priority, but a planned goal. See the Self-Hosting Roadmap section below for stages and invariants.

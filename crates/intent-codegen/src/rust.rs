@@ -47,11 +47,38 @@ pub fn generate(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => generate_action(&mut out, a, &lang),
             ast::TopLevelItem::Invariant(inv) => generate_invariant(&mut out, inv),
             ast::TopLevelItem::EdgeCases(ec) => generate_edge_cases(&mut out, ec),
+            ast::TopLevelItem::StateMachine(sm) => generate_state_machine(&mut out, sm),
             ast::TopLevelItem::Test(_) => {}
         }
     }
 
     out
+}
+
+fn generate_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
+    if let Some(doc) = &sm.doc {
+        out.push_str(&format!("/// {}\n", doc_text(doc)));
+    }
+    out.push_str("#[derive(Debug, Clone, PartialEq, Eq)]\n");
+    out.push_str(&format!("pub enum {} {{\n", sm.name));
+    for state in &sm.states {
+        out.push_str(&format!("    {},\n", state));
+    }
+    out.push_str("}\n\n");
+
+    // Generate is_valid_transition method
+    out.push_str(&format!("impl {} {{\n", sm.name));
+    out.push_str("    pub fn is_valid_transition(&self, to: &Self) -> bool {\n");
+    out.push_str("        matches!((self, to),\n");
+    let arms: Vec<String> = sm
+        .transitions
+        .iter()
+        .map(|(from, to)| format!("            (Self::{}, Self::{})", from, to))
+        .collect();
+    out.push_str(&arms.join(" |\n"));
+    out.push_str("\n        )\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
 }
 
 fn generate_imports(file: &ast::File) -> String {

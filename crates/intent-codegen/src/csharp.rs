@@ -161,10 +161,12 @@ pub fn generate(file: &ast::File) -> String {
         .iter()
         .any(|item| matches!(item, ast::TopLevelItem::EdgeCases(_)));
 
-    // Entities and enums (top-level)
+    // State machines, entities, and enums (top-level)
     for item in &file.items {
-        if let ast::TopLevelItem::Entity(e) = item {
-            generate_entity(&mut out, e, &lang);
+        match item {
+            ast::TopLevelItem::Entity(e) => generate_entity(&mut out, e, &lang),
+            ast::TopLevelItem::StateMachine(sm) => generate_state_machine(&mut out, sm),
+            _ => {}
         }
     }
 
@@ -249,6 +251,37 @@ fn collect_type_name(ty: &ast::TypeExpr, out: &mut String) {
         }
         ast::TypeKind::Union(_) => {}
     }
+}
+
+fn generate_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
+    if let Some(doc) = &sm.doc {
+        out.push_str(&format!(
+            "/// <summary>{}</summary>\n",
+            doc_text(doc).trim()
+        ));
+    }
+    out.push_str(&format!("public enum {}\n{{\n", sm.name));
+    for (i, state) in sm.states.iter().enumerate() {
+        let comma = if i < sm.states.len() - 1 { "," } else { "" };
+        out.push_str(&format!("    {}{}\n", state, comma));
+    }
+    out.push_str("}\n\n");
+
+    // Extension method for transition validation
+    out.push_str(&format!("public static class {}Extensions\n{{\n", sm.name));
+    out.push_str(&format!(
+        "    public static bool CanTransitionTo(this {} from, {} to) =>\n",
+        sm.name, sm.name
+    ));
+    out.push_str("        (from, to) switch\n        {\n");
+    for (from, to) in &sm.transitions {
+        out.push_str(&format!(
+            "            ({}.{}, {}.{}) => true,\n",
+            sm.name, from, sm.name, to
+        ));
+    }
+    out.push_str("            _ => false\n        };\n");
+    out.push_str("}\n\n");
 }
 
 fn generate_entity(out: &mut String, entity: &ast::EntityDecl, lang: &Language) {

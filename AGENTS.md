@@ -152,6 +152,7 @@ module ModuleName           -- required, exactly one, must be first
 use OtherModule             -- zero or more import declarations
 use OtherModule.SpecificItem
 
+state ... { }               -- zero or more state machine declarations
 entity ... { }              -- zero or more entity declarations
 action ... { }              -- zero or more action declarations
 invariant ... { }           -- zero or more invariant declarations
@@ -162,8 +163,29 @@ edge_cases { }              -- zero or one edge_cases block
 - The `module` declaration must come first. The name must be PascalCase (start with uppercase letter).
 - An optional doc block may follow the module declaration.
 - Zero or more `use` declarations may follow (after the doc block, before items).
-- Top-level items (entity, action, invariant, edge_cases) can appear in any order and any quantity.
+- Top-level items (state, entity, action, invariant, edge_cases) can appear in any order and any quantity.
 - Single-line comments use `//`.
+
+### State Machine Declarations
+
+State machines define named state types with valid transitions. Syntactic sugar that replaces manual union types + transition invariants.
+
+```intent
+state TaskStatus {
+  Open -> InProgress -> Done
+  Open -> Cancelled
+  InProgress -> Blocked -> InProgress
+}
+```
+
+**Rules:**
+- State machine names must be PascalCase.
+- Each line is a transition chain: `A -> B -> C` means A can transition to B, B can transition to C.
+- Multiple chains support branching (e.g., `Open -> Cancelled` on a separate line).
+- At least two states required, at least one transition chain.
+- The state machine name is registered as a valid type (use it in entity fields like `status: TaskStatus`).
+- No duplicate names (cannot conflict with entity names).
+- Codegen generates enums with `is_valid_transition` methods in all 7 target languages.
 
 ### Entity Declarations
 
@@ -959,12 +981,12 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - 41 intent-implement tests: prompt building, output validation (all 7 languages), expected names, leftover stub detection, LLM integration, retry with error feedback
 - 23 LSP tests: 8 document/line-index + 5 diagnostics + 4 hover + 3 navigation + 3 completion
 - 6 intent-gen tests: 3 strip_fences + 3 validate_spec
-- 22 beta integration tests: full CLI pipeline against multi-module task tracker system
+- 27 beta integration tests: full CLI pipeline against multi-module task tracker system + state machines
 - Fixtures: 4 valid, 9 invalid + 6 example files + 2 multi-module example files + 3 beta example files
 
 ## Current Phase & Status
 
-Phases 1-8 complete. Current release: v0.7.0-beta.1 (Beta milestone). VSCode extension and LSP server shipped (PR #41).
+Phases 1-8 complete. Phase 9 in progress. Current release: v0.7.0-beta.1 (Beta milestone). VSCode extension and LSP server shipped (PR #41).
 
 Phase 1 (complete): PEG grammar, typed AST with spans, six-pass semantic analysis, Markdown/HTML renderers. CLI: `check`, `render`, `render-html`.
 
@@ -982,4 +1004,6 @@ Phase 7 (complete): Module imports -- `use` syntax, module resolver, cross-modul
 
 Phase 8 (complete): Code Generation -- skeleton codegen for Rust, TypeScript, Python, Go, Java, C#, Swift shipped. AI-powered `intent implement` shipped for all 7 languages. Contract test harness shipped. CLI: `codegen`, `implement`, `test-harness`.
 
-**Beta milestone**: Full-stack validation system (`examples/beta/`) — a multi-module task tracker exercising all CLI commands end-to-end. 22 integration tests cover check, render, compile, verify, audit, coverage, query, codegen (7 langs), openapi, test, test-harness, fmt, diff, lock/unlock/status. Runtime fix: direct field assignments in `ensures` blocks (e.g., `status == Archived`) now correctly applied as state mutations.
+Phase 9 (in progress): Language Ergonomics -- state machine sugar shipped (`state Name { A -> B -> C }`), auto-generates enum types with transition validation in all 7 codegen targets.
+
+**Beta milestone**: Full-stack validation system (`examples/beta/`) — a multi-module task tracker exercising all CLI commands end-to-end. 27 integration tests cover check, render, compile, verify, audit, coverage, query, codegen (7 langs), openapi, test, test-harness, fmt, diff, lock/unlock/status, state machines. Runtime fix: direct field assignments in `ensures` blocks (e.g., `status == Archived`) now correctly applied as state mutations.

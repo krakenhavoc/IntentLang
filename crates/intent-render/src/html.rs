@@ -40,6 +40,7 @@ pub fn render(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => render_action(&mut body, a),
             ast::TopLevelItem::Invariant(i) => render_invariant(&mut body, i),
             ast::TopLevelItem::EdgeCases(ec) => render_edge_cases(&mut body, ec),
+            ast::TopLevelItem::StateMachine(sm) => render_state_machine(&mut body, sm),
             ast::TopLevelItem::Test(_) => {} // Tests are not rendered
         }
     }
@@ -157,6 +158,39 @@ fn render_edge_cases(out: &mut String, ec: &ast::EdgeCasesDecl) {
         ));
     }
     out.push_str("</ul>\n</section>\n");
+}
+
+fn render_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
+    out.push_str(&format!(
+        "<section class=\"state-machine\">\n<h2>State Machine: {}</h2>\n",
+        esc(&sm.name)
+    ));
+    if let Some(doc) = &sm.doc {
+        out.push_str("<p class=\"doc\">");
+        out.push_str(&esc(&doc.lines.join(" ")));
+        out.push_str("</p>\n");
+    }
+    let states_str: Vec<String> = sm
+        .states
+        .iter()
+        .map(|s| format!("<code>{}</code>", esc(s)))
+        .collect();
+    out.push_str(&format!(
+        "<p><strong>States:</strong> {}</p>\n",
+        states_str.join(", ")
+    ));
+    if !sm.transitions.is_empty() {
+        out.push_str("<h3>Transitions</h3>\n<ul>\n");
+        for (from, to) in &sm.transitions {
+            out.push_str(&format!(
+                "<li><code>{}</code> &rarr; <code>{}</code></li>\n",
+                esc(from),
+                esc(to)
+            ));
+        }
+        out.push_str("</ul>\n");
+    }
+    out.push_str("</section>\n");
 }
 
 fn render_doc(out: &mut String, doc: &Option<ast::DocBlock>) {
@@ -288,4 +322,5 @@ section { margin-bottom: 1.5rem; }
 .entity { border-left: 3px solid #3182ce; padding-left: 1rem; }
 .action { border-left: 3px solid #d69e2e; padding-left: 1rem; }
 .invariant { border-left: 3px solid #38a169; padding-left: 1rem; }
-.edge-cases { border-left: 3px solid #e53e3e; padding-left: 1rem; }";
+.edge-cases { border-left: 3px solid #e53e3e; padding-left: 1rem; }
+.state-machine { border-left: 3px solid #805ad5; padding-left: 1rem; }";

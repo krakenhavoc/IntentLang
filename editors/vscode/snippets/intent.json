@@ -72,6 +72,25 @@
     ],
     "description": "Define an action with requires/ensures and properties"
   },
+  "State Machine": {
+    "prefix": "state",
+    "body": [
+      "state ${1:StatusName} {",
+      "  ${2:Initial} -> ${3:Next} -> ${4:Final}",
+      "}"
+    ],
+    "description": "Define a state machine with transitions"
+  },
+  "State Machine (branching)": {
+    "prefix": "stateb",
+    "body": [
+      "state ${1:StatusName} {",
+      "  ${2:Initial} -> ${3:Active} -> ${4:Complete}",
+      "  ${2:Initial} -> ${5:Cancelled}",
+      "}"
+    ],
+    "description": "Define a state machine with branching transitions"
+  },
   "Invariant": {
     "prefix": "invariant",
     "body": [

@@ -44,7 +44,20 @@ doc_block = { doc_line+ }
 doc_line = @{ "---" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
 
 /// Any top-level declaration that may appear after the module header.
-top_level_item = _{ entity_decl | action_decl | invariant_decl | edge_cases_decl | test_decl }
+top_level_item = _{ entity_decl | action_decl | invariant_decl | edge_cases_decl | test_decl | state_decl }
+
+// ─────────────────────────────────────────────────────────────
+// State machine declarations (SPEC.md § Phase 9: State machine sugar)
+// ─────────────────────────────────────────────────────────────
+
+/// `state StateName { chain* }` — State machine sugar.
+/// Defines a named state type with valid transitions.
+/// Auto-generates union type + transition constraints.
+state_decl = { doc_block? ~ "state" ~ type_ident ~ "{" ~ transition_chain+ ~ "}" }
+
+/// A chain of states connected by `->`: `Open -> InProgress -> Done`
+/// Multiple chains support branching: `Pending -> Cancelled` on a separate line.
+transition_chain = { type_ident ~ ("->" ~ type_ident)+ }
 
 // ─────────────────────────────────────────────────────────────
 // Test declarations (spec-level testing)

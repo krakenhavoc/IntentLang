@@ -114,6 +114,7 @@ pub fn generate(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => generate_action(&mut out, a, &lang),
             ast::TopLevelItem::Invariant(inv) => generate_invariant(&mut out, inv),
             ast::TopLevelItem::EdgeCases(ec) => generate_edge_cases(&mut out, ec),
+            ast::TopLevelItem::StateMachine(sm) => generate_state_machine(&mut out, sm),
             ast::TopLevelItem::Test(_) => {}
         }
     }
@@ -207,6 +208,51 @@ fn collect_type_name(ty: &ast::TypeExpr, out: &mut String) {
         }
         ast::TypeKind::Union(_) => {}
     }
+}
+
+fn generate_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
+    if let Some(doc) = &sm.doc {
+        out.push_str(&format!("    /** {} */\n", doc_text(doc).trim()));
+    }
+    out.push_str(&format!("    public enum {} {{\n", sm.name));
+    for (i, state) in sm.states.iter().enumerate() {
+        let comma = if i < sm.states.len() - 1 { "," } else { ";" };
+        out.push_str(&format!("        {}{}\n", state, comma));
+    }
+    out.push('\n');
+    // canTransitionTo method
+    out.push_str(&format!(
+        "        public boolean canTransitionTo({} to) {{\n",
+        sm.name
+    ));
+    out.push_str("            return switch (this) {\n");
+    let mut transition_map: std::collections::HashMap<&str, Vec<&str>> =
+        std::collections::HashMap::new();
+    for (from, to) in &sm.transitions {
+        transition_map
+            .entry(from.as_str())
+            .or_default()
+            .push(to.as_str());
+    }
+    for state in &sm.states {
+        if let Some(targets) = transition_map.get(state.as_str()) {
+            let target_list: Vec<String> = targets.iter().map(|t| t.to_string()).collect();
+            out.push_str(&format!(
+                "                case {} -> to == {};\n",
+                state,
+                target_list
+                    .iter()
+                    .map(|t| t.to_string())
+                    .collect::<Vec<_>>()
+                    .join(" || to == ")
+            ));
+        } else {
+            out.push_str(&format!("                case {} -> false;\n", state));
+        }
+    }
+    out.push_str("            };\n");
+    out.push_str("        }\n");
+    out.push_str("    }\n\n");
 }
 
 fn generate_entity(out: &mut String, entity: &ast::EntityDecl, lang: &Language) {

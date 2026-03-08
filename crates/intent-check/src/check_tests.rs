@@ -378,6 +378,70 @@ action Withdraw {
     assert!(check(src).is_empty());
 }
 
+// ── State machine validation ────────────────────────────────
+
+#[test]
+fn state_machine_registers_as_type() {
+    let src = r#"module SM
+
+state TaskStatus {
+  Open -> InProgress -> Done
+}
+
+entity Task {
+  id: UUID
+  status: TaskStatus
+}
+"#;
+    assert!(check(src).is_empty());
+}
+
+#[test]
+fn state_machine_duplicate_name() {
+    let src = r#"module SM
+
+entity TaskStatus {
+  id: UUID
+}
+
+state TaskStatus {
+  Open -> Done
+}
+"#;
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    assert!(matches!(&errs[0], CheckError::DuplicateEntity { name, .. } if name == "TaskStatus"));
+}
+
+#[test]
+fn state_machine_cross_module_import() {
+    let types_src = r#"module Types
+
+state OrderStatus {
+  Pending -> Confirmed -> Shipped
+}
+"#;
+    let main_src = r#"module Main
+
+use Types
+
+entity Order {
+  id: UUID
+  status: OrderStatus
+}
+"#;
+    let types_file = parse_file(types_src).unwrap();
+    let main_file = parse_file(main_src).unwrap();
+    let errors = check_file_with_imports(&main_file, &[&types_file]);
+    assert!(errors.is_empty(), "expected no errors, got: {:?}", errors);
+}
+
+#[test]
+fn valid_task_states_example() {
+    let src = include_str!("../../../examples/task_states.intent");
+    assert!(check(src).is_empty());
+}
+
 // ── Cross-module imports ────────────────────────────────────
 
 #[test]

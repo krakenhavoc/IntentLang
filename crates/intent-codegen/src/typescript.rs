@@ -27,11 +27,60 @@ pub fn generate(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => generate_action(&mut out, a, &lang),
             ast::TopLevelItem::Invariant(inv) => generate_invariant(&mut out, inv),
             ast::TopLevelItem::EdgeCases(ec) => generate_edge_cases(&mut out, ec),
+            ast::TopLevelItem::StateMachine(sm) => generate_state_machine(&mut out, sm),
             ast::TopLevelItem::Test(_) => {}
         }
     }
 
     out
+}
+
+fn generate_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
+    if let Some(doc) = &sm.doc {
+        out.push_str("/**\n");
+        for line in doc_text(doc).lines() {
+            out.push_str(&format!(" * {line}\n"));
+        }
+        out.push_str(" */\n");
+    }
+    // Union type
+    let variants: Vec<String> = sm.states.iter().map(|s| format!("\"{}\"", s)).collect();
+    out.push_str(&format!(
+        "export type {} = {};\n\n",
+        sm.name,
+        variants.join(" | ")
+    ));
+
+    // Transition validation function
+    let name = &sm.name;
+    out.push_str(&format!(
+        "export function isValid{name}Transition(from: {name}, to: {name}): boolean {{\n"
+    ));
+    out.push_str("  const valid: Record<string, string[]> = {\n");
+    // Group transitions by source state
+    let mut transition_map: std::collections::HashMap<&str, Vec<&str>> =
+        std::collections::HashMap::new();
+    for (from, to) in &sm.transitions {
+        transition_map
+            .entry(from.as_str())
+            .or_default()
+            .push(to.as_str());
+    }
+    for state in &sm.states {
+        let targets = transition_map
+            .get(state.as_str())
+            .map(|v| {
+                v.iter()
+                    .map(|t| format!("\"{}\"", t))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            })
+            .unwrap_or_default();
+        out.push_str(&format!("    \"{}\": [{}],\n", state, targets));
+    }
+    out.push_str("  };\n");
+    out.push_str("  return (valid[from] ?? []).includes(to);\n");
+    out.push_str("}\n\n");
 }
 
 fn generate_entity(out: &mut String, entity: &ast::EntityDecl, lang: &Language) {
