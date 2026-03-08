@@ -12,6 +12,7 @@ pub fn map_type(ty: &TypeExpr, lang: &Language) -> String {
             Language::Rust => format!("Option<{base}>"),
             Language::TypeScript => format!("{base} | null"),
             Language::Python => format!("{base} | None"),
+            Language::Go => format!("*{base}"),
         }
     } else {
         base
@@ -28,6 +29,7 @@ fn map_type_kind(kind: &TypeKind, lang: &Language) -> String {
                 Language::Rust => format!("Vec<{inner_ty}>"),
                 Language::TypeScript => format!("{inner_ty}[]"),
                 Language::Python => format!("list[{inner_ty}]"),
+                Language::Go => format!("[]{inner_ty}"),
             }
         }
         TypeKind::Set(inner) => {
@@ -36,6 +38,7 @@ fn map_type_kind(kind: &TypeKind, lang: &Language) -> String {
                 Language::Rust => format!("HashSet<{inner_ty}>"),
                 Language::TypeScript => format!("Set<{inner_ty}>"),
                 Language::Python => format!("set[{inner_ty}]"),
+                Language::Go => format!("map[{inner_ty}]struct{{}}"),
             }
         }
         TypeKind::Map(k, v) => {
@@ -45,6 +48,7 @@ fn map_type_kind(kind: &TypeKind, lang: &Language) -> String {
                 Language::Rust => format!("HashMap<{key_ty}, {val_ty}>"),
                 Language::TypeScript => format!("Map<{key_ty}, {val_ty}>"),
                 Language::Python => format!("dict[{key_ty}, {val_ty}]"),
+                Language::Go => format!("map[{key_ty}]{val_ty}"),
             }
         }
         TypeKind::Parameterized { name, .. } => map_simple(name, lang),
@@ -79,6 +83,15 @@ fn map_simple(name: &str, lang: &Language) -> String {
             "DateTime" => "datetime",
             other => other,
         },
+        Language::Go => match name {
+            "UUID" => "uuid.UUID",
+            "String" | "CurrencyCode" | "Email" | "URL" => "string",
+            "Int" => "int64",
+            "Decimal" => "decimal.Decimal",
+            "Bool" => "bool",
+            "DateTime" => "time.Time",
+            other => other,
+        },
     }
     .to_string()
 }
@@ -106,5 +119,6 @@ fn map_union(variants: &[TypeKind], lang: &Language) -> String {
                 .join(", ");
             format!("Literal[{inner}]")
         }
+        Language::Go => names.join(" | "), // placeholder, actual const block generated separately
     }
 }

@@ -1,9 +1,10 @@
 //! Skeleton code generator for IntentLang specifications.
 //!
-//! Generates typed stubs in Rust, TypeScript, or Python from a parsed
+//! Generates typed stubs in Rust, TypeScript, Python, or Go from a parsed
 //! `.intent` AST. Entities become structs/classes/dataclasses, actions
 //! become function signatures with contract documentation.
 
+pub mod go;
 pub mod python;
 pub mod rust;
 mod types;
@@ -22,6 +23,7 @@ pub enum Language {
     Rust,
     TypeScript,
     Python,
+    Go,
 }
 
 /// Generate skeleton code from a parsed intent file.
@@ -30,6 +32,7 @@ pub fn generate(file: &ast::File, lang: Language) -> String {
         Language::Rust => rust::generate(file),
         Language::TypeScript => typescript::generate(file),
         Language::Python => python::generate(file),
+        Language::Go => go::generate(file),
     }
 }
 
@@ -183,13 +186,14 @@ pub fn file_extension(lang: Language) -> &'static str {
         Language::Rust => "rs",
         Language::TypeScript => "ts",
         Language::Python => "py",
+        Language::Go => "go",
     }
 }
 
 /// Output file name for a module in the target language.
 pub fn output_filename(module_name: &str, lang: Language) -> String {
     match lang {
-        Language::Rust | Language::Python => {
+        Language::Rust | Language::Python | Language::Go => {
             format!("{}.{}", to_snake_case(module_name), file_extension(lang))
         }
         Language::TypeScript => {
