@@ -138,6 +138,8 @@ intent codegen <file> --lang <lang>    Generate skeleton code (rust, typescript,
 intent codegen <file> -l rust -o ./out Write generated code to output directory
 intent openapi <file>                  Generate OpenAPI 3.0 spec from a spec file
 intent openapi <file> -o api.json      Write OpenAPI spec to file
+intent implement <file> --lang <lang>  Generate full implementation from spec using AI
+intent implement <file> -l python -o ./out  Write implementation to output directory
 ```
 
 ### Editor Support
@@ -273,20 +275,20 @@ intent render-html examples/transfer.intent > transfer.html
 | Phase 5 | Complete | Language polish (`fmt`, `init`, `completions`), NL generation (`intent generate`) |
 | Phase 6 | Complete | Stateless runtime — `intent serve`, expression evaluator, REST API from specs |
 | Phase 7 | Complete | Module imports (`use`), multi-file composition, cross-module type checking |
-| Phase 8 | In progress | Skeleton codegen (Rust, TS, Python, Go shipped). Java, C#, Swift planned. AI-powered `intent implement` next. |
+| Phase 8 | In progress | Skeleton codegen (Rust, TS, Python, Go) and AI-powered `intent implement` (Rust, TS, Python) shipped. Java, C#, Swift planned. |
 
 ### Codegen Targets
 
-| Language | Status | Planned |
-|----------|--------|---------|
-| Rust | Shipped | |
-| TypeScript | Shipped | |
-| Python | Shipped | |
-| Go | | Next |
-| Java | | Planned |
-| C# | | Planned |
-| Swift | | Planned |
-| IntentLang | | Self-hosting milestone |
+| Language | Skeleton | AI Implementation | Planned |
+|----------|----------|-------------------|---------|
+| Rust | Shipped | Shipped | |
+| TypeScript | Shipped | Shipped | |
+| Python | Shipped | Shipped | |
+| Go | Shipped | | Next |
+| Java | | | Planned |
+| C# | | | Planned |
+| Swift | | | Planned |
+| IntentLang | | | Self-hosting milestone |
 
 ### Roadmap to v1.0
 
@@ -296,7 +298,7 @@ intent render-html examples/transfer.intent > transfer.html
 - **Stable (v1.0)** — production-ready runtime, stable API
 - **Long-term** — self-hosting: IntentLang compiles itself (compiler spec in `.intent`, agents generate implementation)
 
-285 tests across parser, checker, IR, runtime, gen, codegen, and LSP modules.
+309 tests across parser, checker, IR, runtime, gen, codegen, and LSP modules.
 
 Long-term: IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. See the [self-hosting roadmap](CLAUDE.md) for details.
 
