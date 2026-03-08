@@ -6,9 +6,17 @@ Humans write **what** the system must do and **what constraints must hold**.
 Agents handle **how** — generating verifiable implementations from specs.
 The toolchain proves the implementation satisfies the contract.
 
-## Why IntentLang?
+## From vibe coding to agentic engineering
 
-As AI agents write more code, the bottleneck shifts from *writing* to *verifying*. IntentLang addresses this with four layers:
+Vibe coding proved something important: you can describe what you want in plain language and an AI will generate code for it. But it also exposed a gap — without formal contracts, you're left eyeballing the output and hoping it works.
+
+IntentLang closes that gap. It keeps the natural language starting point that makes vibe coding accessible, then adds the structure that makes the result trustworthy: formal specs, machine-checked contracts, and an audit trail that traces every line of generated code back to a requirement.
+
+The shift is simple: instead of *prompting and praying*, you **specify and verify**.
+
+## How it works
+
+IntentLang addresses this with four layers:
 
 0. **Natural Language** — Describe what you want in plain English. An AI agent generates a formal spec from your description. The lowest-barrier entry point.
 1. **Intent Layer** — Write or refine declarative specs directly: entities, actions, pre/postconditions, invariants. Readable by anyone on the team, formally parseable by machines.
