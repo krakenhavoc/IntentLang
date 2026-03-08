@@ -24,6 +24,13 @@ enum OutputFormat {
     Json,
 }
 
+#[derive(Clone, Copy, ValueEnum)]
+enum CodegenLang {
+    Rust,
+    Typescript,
+    Python,
+}
+
 #[derive(Subcommand)]
 enum Commands {
     /// Parse and validate an intent specification file
@@ -152,6 +159,17 @@ enum Commands {
         /// Address to bind to (default: 127.0.0.1:3000)
         #[arg(long, default_value = "127.0.0.1:3000")]
         addr: String,
+    },
+    /// Generate skeleton code from an intent specification
+    Codegen {
+        /// Path to the .intent file
+        file: PathBuf,
+        /// Target language: rust, typescript, or python
+        #[arg(long, value_enum)]
+        lang: CodegenLang,
+        /// Output directory (default: print to stdout)
+        #[arg(short = 'o', long = "out-dir")]
+        out_dir: Option<PathBuf>,
     },
     /// Initialize a new .intent spec file
     Init {
@@ -844,6 +862,58 @@ fn main() {
             if let Err(e) = intent_runtime::serve(ir, &addr) {
                 eprintln!("error: {e}");
                 process::exit(1);
+            }
+        }
+        Commands::Codegen {
+            file,
+            lang,
+            out_dir,
+        } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+
+            // Run semantic checks before generating
+            let check_errors = if ast.imports.is_empty() {
+                intent_check::check_file(&ast)
+            } else {
+                let graph = resolve_or_exit(&file);
+                let root_file = &graph.modules[&graph.root];
+                let imported = imported_files_for(root_file, &graph);
+                intent_check::check_file_with_imports(root_file, &imported)
+            };
+            if !check_errors.is_empty() {
+                let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
+                for err in &check_errors {
+                    let mut buf = String::new();
+                    let report = miette::Report::new(err.clone()).with_source_code(source.clone());
+                    handler.render_report(&mut buf, report.as_ref()).ok();
+                    eprint!("{buf}");
+                }
+                eprintln!(
+                    "{} error(s) in {} — fix before generating code",
+                    check_errors.len(),
+                    file.display()
+                );
+                process::exit(1);
+            }
+
+            let il_lang = match lang {
+                CodegenLang::Rust => intent_codegen::Language::Rust,
+                CodegenLang::Typescript => intent_codegen::Language::TypeScript,
+                CodegenLang::Python => intent_codegen::Language::Python,
+            };
+            let code = intent_codegen::generate(&ast, il_lang);
+
+            if let Some(out_dir) = out_dir {
+                let filename = intent_codegen::output_filename(&ast.module.name, il_lang);
+                let out_path = out_dir.join(filename);
+                if let Some(parent) = out_path.parent() {
+                    fs::create_dir_all(parent).ok();
+                }
+                write_or_exit(&out_path, &code);
+                println!("Generated {}", out_path.display());
+            } else {
+                print!("{}", code);
             }
         }
         Commands::Init { name, out } => {
