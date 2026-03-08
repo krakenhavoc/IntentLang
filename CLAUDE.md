@@ -82,10 +82,26 @@ intentlang/
 │   │   │   ├── value.rs   ← Runtime value types
 │   │   │   └── serve.rs   ← HTTP server (auto-generated REST)
 │   │   └── Cargo.toml
+│   ├── intent-lsp/        ← Language Server Protocol (LSP) server
+│   │   ├── src/
+│   │   │   ├── main.rs        ← Binary entry point (tokio + tower-lsp)
+│   │   │   ├── server.rs      ← LanguageServer trait impl
+│   │   │   ├── document.rs    ← Per-file state, LineIndex (byte↔LSP position)
+│   │   │   ├── diagnostics.rs ← Parse/check error → LSP diagnostic conversion
+│   │   │   ├── hover.rs       ← Hover provider (keywords, types, entities)
+│   │   │   ├── navigation.rs  ← Go-to-definition
+│   │   │   └── completion.rs  ← Context-aware completions
+│   │   └── Cargo.toml
 │   └── intent-cli/        ← CLI entry point
 │       ├── src/
 │       │   └── main.rs
 │       └── Cargo.toml
+├── editors/
+│   └── vscode/            ← VSCode extension
+│       ├── syntaxes/      ← TextMate grammar
+│       ├── snippets/      ← Code snippets
+│       ├── src/           ← TypeScript LSP client
+│       └── package.json
 ├── examples/              ← Example .intent files
 │   ├── transfer.intent
 │   ├── auth.intent
@@ -188,6 +204,8 @@ edge_cases {
 | CLI framework | `clap` (derive) | Standard, well-maintained |
 | NL generation API | OpenAI-compatible | Model-agnostic, supports any provider |
 | NL generation crate | `intent-gen` | Separated from core toolchain, optional dependency |
+| LSP server | `tower-lsp` + `tokio` | Standard Rust LSP framework, async runtime |
+| VSCode extension | TextMate + TS client | Syntax highlighting + LSP integration |
 
 ## Completed Phases
 

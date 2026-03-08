@@ -132,6 +132,27 @@ intent generate --edit <file> "desc"   Modify an existing spec from natural lang
 intent serve <file>                    Serve spec as REST API (stateless runtime)
 ```
 
+### Editor Support
+
+A [VSCode extension](editors/vscode/) provides full language support for `.intent` files:
+
+- **Syntax highlighting** — TextMate grammar for all IntentLang constructs
+- **Code snippets** — 15 snippets for entity, action, invariant, imports, and more
+- **Diagnostics** — Real-time parse and semantic errors as you type
+- **Go-to-definition** — Jump from type references to entity/action declarations
+- **Hover** — Keyword help, entity docs with field listings, built-in type descriptions
+- **Completion** — Context-aware suggestions: keywords, types, entity names, action parameters
+
+```bash
+# Install the LSP server
+cargo install --path crates/intent-lsp
+
+# Build the extension
+cd editors/vscode && npm install && npm run compile
+```
+
+The syntax highlighting and snippets work without the LSP server. Diagnostics, hover, go-to-definition, and completion require the `intent-lsp` binary on your PATH.
+
 ### Natural Language Generation (Layer 0)
 
 `intent generate` translates plain English into validated `.intent` specs:
@@ -253,7 +274,7 @@ intent render-html examples/transfer.intent > transfer.html
 - **Stable (v1.0)** — production-ready runtime, stable API
 - **Long-term** — self-hosting: IntentLang compiles itself (compiler spec in `.intent`, agents generate implementation)
 
-188 tests across parser, checker, IR, runtime, and gen modules.
+211 tests across parser, checker, IR, runtime, gen, and LSP modules.
 
 Long-term: IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. See the [self-hosting roadmap](CLAUDE.md) for details.
 
@@ -267,9 +288,11 @@ intent-cli ──→ intent-parser ←── grammar/intent.pest
     ├──→ intent-ir (lowering, verification, audit)
     ├──→ intent-gen (NL → .intent, Layer 0)
     └──→ intent-runtime (stateless execution, HTTP server)
+
+intent-lsp ──→ intent-parser, intent-check (LSP server)
 ```
 
-Seven crates in a Cargo workspace. The parser produces a typed AST and resolves module imports; the checker validates semantics (including cross-module type resolution); the renderer formats output; the IR crate lowers to a typed intermediate representation with verification, coherence analysis, and audit bridge; the gen crate translates natural language to `.intent` specs via LLM; the runtime crate provides a stateless HTTP server that executes specs natively. The CLI wires them together. See [`AGENTS.md`](AGENTS.md) for architecture details and [`docs/SPEC.md`](docs/SPEC.md) for the full language design.
+Eight crates in a Cargo workspace plus a VSCode extension. The parser produces a typed AST and resolves module imports; the checker validates semantics (including cross-module type resolution); the renderer formats output; the IR crate lowers to a typed intermediate representation with verification, coherence analysis, and audit bridge; the gen crate translates natural language to `.intent` specs via LLM; the runtime crate provides a stateless HTTP server that executes specs natively; the LSP crate provides a Language Server with diagnostics, hover, go-to-definition, and completion. The CLI wires them together. See [`AGENTS.md`](AGENTS.md) for architecture details and [`docs/SPEC.md`](docs/SPEC.md) for the full language design.
 
 ## Examples
 
