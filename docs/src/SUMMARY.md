@@ -26,11 +26,14 @@
 - [Verification & Audit](./cli/verify.md)
 - [Agent Tooling](./cli/agent-tools.md)
 - [Generating Specs (Layer 0)](./cli/generate.md)
+- [Serving Specs (Runtime API)](./cli/serve.md)
+- [Scaffolding (init)](./cli/init.md)
+- [Shell Completions](./cli/completions.md)
 - [Editor Integration](./cli/editor.md)
 
 # Architecture
 
-- [Four-Layer Design](./architecture/three-layers.md)
+- [Four-Layer Design](./architecture/four-layers.md)
 - [Crate Structure](./architecture/crates.md)
 
 # Examples
