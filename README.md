@@ -136,6 +136,8 @@ intent generate --edit <file> "desc"   Modify an existing spec from natural lang
 intent serve <file>                    Serve spec as REST API (stateless runtime)
 intent codegen <file> --lang <lang>    Generate skeleton code (rust, typescript, python, go)
 intent codegen <file> -l rust -o ./out Write generated code to output directory
+intent openapi <file>                  Generate OpenAPI 3.0 spec from a spec file
+intent openapi <file> -o api.json      Write OpenAPI spec to file
 ```
 
 ### Editor Support
@@ -294,7 +296,7 @@ intent render-html examples/transfer.intent > transfer.html
 - **Stable (v1.0)** — production-ready runtime, stable API
 - **Long-term** — self-hosting: IntentLang compiles itself (compiler spec in `.intent`, agents generate implementation)
 
-254 tests across parser, checker, IR, runtime, gen, codegen, and LSP modules.
+285 tests across parser, checker, IR, runtime, gen, codegen, and LSP modules.
 
 Long-term: IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. See the [self-hosting roadmap](CLAUDE.md) for details.
 

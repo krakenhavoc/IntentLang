@@ -5,6 +5,7 @@
 //! become function signatures with contract documentation.
 
 pub mod go;
+pub mod openapi;
 pub mod python;
 pub mod rust;
 mod types;
@@ -12,6 +13,8 @@ pub mod typescript;
 
 #[cfg(test)]
 mod codegen_tests;
+#[cfg(test)]
+mod openapi_tests;
 
 use intent_parser::ast::{
     self, ArithOp, CallArg, CmpOp, EnsuresItem, ExprKind, Literal, PropValue, QuantifierKind,

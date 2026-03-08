@@ -77,6 +77,10 @@ cargo run -p intent-cli -- generate --interactive "build a shopping cart"
 cargo run -p intent-cli -- generate --edit examples/transfer.intent "add rate limiting"
 cargo run -p intent-cli -- generate --confidence 2 "patient records system"
 
+# Generate OpenAPI 3.0 spec
+cargo run -p intent-cli -- openapi examples/transfer.intent
+cargo run -p intent-cli -- openapi examples/transfer.intent -o transfer-api.json
+
 # Generate skeleton code (Rust, TypeScript, Python, Go)
 cargo run -p intent-cli -- codegen examples/transfer.intent --lang rust
 cargo run -p intent-cli -- codegen examples/transfer.intent --lang go --out-dir ./generated
@@ -99,7 +103,7 @@ intentlang/
     intent-runtime/          -- Stateless runtime & HTTP server
     intent-lsp/              -- Language Server Protocol server (diagnostics, hover, go-to-def, completion)
     intent-codegen/          -- Skeleton code generator (Rust, TypeScript, Python, Go)
-    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status, fmt, init, completions, generate, serve, codegen
+    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status, fmt, init, completions, generate, serve, codegen, openapi
   editors/vscode/            -- VSCode extension (syntax highlighting, snippets, LSP client)
   examples/                  -- Example .intent files
   tests/valid/               -- Specs that must parse and pass checks
@@ -907,9 +911,9 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 
 **VSCode Extension (editors/vscode/)**: TextMate grammar for syntax highlighting, language configuration (brackets, folding, comments), 15 code snippets, TypeScript LSP client. Install the `intent-lsp` binary (`cargo install --path crates/intent-lsp`), then build the extension (`npm install && npm run compile` in `editors/vscode/`).
 
-**Codegen (intent-codegen)**: Generates typed skeleton code from AST (not IR, to preserve doc blocks and human-readable names). Per-language modules (`rust.rs`, `typescript.rs`, `python.rs`, `go.rs`) with shared type mapping (`types.rs`) and expression formatting (`lib.rs`). Reserved keyword escaping: Rust uses `r#keyword`, Python uses `keyword_` suffix, Go uses `keyword_` suffix. Smart imports, union type mapping (Rust enums, TS string literals, Python Literal types, Go string type aliases with const blocks and validation methods). Go output uses JSON struct tags and PascalCase exported fields.
+**Codegen (intent-codegen)**: Generates typed skeleton code and OpenAPI 3.0 specs from AST (not IR, to preserve doc blocks and human-readable names). Per-language modules (`rust.rs`, `typescript.rs`, `python.rs`, `go.rs`) with shared type mapping (`types.rs`) and expression formatting (`lib.rs`). Reserved keyword escaping: Rust uses `r#keyword`, Python uses `keyword_` suffix, Go uses `keyword_` suffix. Smart imports, union type mapping (Rust enums, TS string literals, Python Literal types, Go string type aliases with const blocks and validation methods). Go output uses JSON struct tags and PascalCase exported fields. OpenAPI generator (`openapi.rs`) maps entities to JSON Schema components and actions to `POST /actions/{Name}` endpoints.
 
-**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`, `generate`, `serve`, `codegen`. Global `--output json` flag for agent consumption. Commands that operate on specs (`check`, `compile`, `verify`, `serve`) automatically resolve module imports when `use` declarations are present.
+**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`, `generate`, `serve`, `codegen`, `openapi`. Global `--output json` flag for agent consumption. Commands that operate on specs (`check`, `compile`, `verify`, `serve`) automatically resolve module imports when `use` declarations are present.
 
 ## Key Dependencies
 
@@ -935,13 +939,13 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage (238 total)
+## Current Test Coverage (285 total)
 
 - 31 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files, 5 cross-module import tests)
 - 28 parser tests (12 unit + 7 insta snapshot + 7 module resolver + 2 example parsing)
 - 74 IR tests: 13 lowering + 11 verification + 6 coherence + 9 audit + 13 diff + 11 incremental + 11 lock
 - 49 runtime tests: 7 contract + 42 expression evaluator
-- 43 codegen tests: naming helpers + Rust/TypeScript/Python/Go entity/action/type mapping + full example files
+- 74 codegen tests (43 skeleton + 31 OpenAPI): naming helpers + Rust/TypeScript/Python/Go entity/action/type mapping + OpenAPI spec generation + full example files
 - 23 LSP tests: 8 document/line-index + 5 diagnostics + 4 hover + 3 navigation + 3 completion
 - 6 intent-gen tests: 3 strip_fences + 3 validate_spec
 - Fixtures: 4 valid, 9 invalid + 6 example files + 2 multi-module example files
