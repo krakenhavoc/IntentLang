@@ -264,7 +264,7 @@ intent render-html examples/transfer.intent > transfer.html
 
 ## Project Status
 
-**Current release: [v0.6.0-beta.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.6.0-beta.1)** — beta: all phases complete, module imports working.
+**Current release: [v0.7.0-beta.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.7.0-beta.1)** — beta milestone complete: full-stack validation, 7-language codegen, contract test harness.
 
 | Phase | Status | What shipped |
 |-------|--------|-------------|
@@ -275,7 +275,9 @@ intent render-html examples/transfer.intent > transfer.html
 | Phase 5 | Complete | Language polish (`fmt`, `init`, `completions`), NL generation (`intent generate`) |
 | Phase 6 | Complete | Stateless runtime — `intent serve`, expression evaluator, REST API from specs |
 | Phase 7 | Complete | Module imports (`use`), multi-file composition, cross-module type checking |
-| Phase 8 | In progress | Skeleton codegen and AI-powered `intent implement` for all 7 targets. Contract test harness. |
+| Phase 8 | Complete | Skeleton codegen & AI `intent implement` (7 languages), contract test harness, beta validation |
+| Phase 9 | Planned | Language ergonomics — state machine sugar, invariant templates, `intent suggest` |
+| Phase 10 | Planned | Adoption — starter templates, watch mode, GitHub Action, improved diagnostics |
 
 ### Codegen Targets
 
@@ -293,12 +295,28 @@ intent render-html examples/transfer.intent > transfer.html
 ### Roadmap to v1.0
 
 - **Alpha** — all phases complete, full toolchain working
-- **Beta** (current) — module imports, multi-file composition, API stabilizing
+- **Beta** (current) — full-stack validated with multi-module task tracker, API stabilizing
+- **Phase 9: Language Ergonomics** — state machine sugar, invariant/property templates, `intent suggest`
+- **Phase 10: Adoption & Polish** — starter templates (`intent init --template`), watch mode, GitHub Action, better error diagnostics
 - **Preview** — post-feedback hardening (if needed)
 - **Stable (v1.0)** — production-ready runtime, stable API
 - **Long-term** — self-hosting: IntentLang compiles itself (compiler spec in `.intent`, agents generate implementation)
 
-309 tests across parser, checker, IR, runtime, gen, codegen, and LSP modules.
+397 tests across parser, checker, IR, runtime, gen, codegen, implement, LSP, and beta integration modules.
+
+### Phase 9: Language Ergonomics (planned)
+
+- **State machine sugar** — `state TaskStatus { Open -> InProgress -> Done }` auto-generates union type, transition invariants, and edge cases. Eliminates the most common boilerplate pattern
+- **Invariant/property templates** — `intent add-invariant --pattern unique --entity Task title project` scaffolds common invariant patterns (unique constraints, non-negative values, no dangling references, idempotent actions)
+- **`intent suggest`** — runs check/verify, summarizes problems in spec terms, proposes candidate `.intent` patches for the user to accept/reject. Builds on the Layer 0 (NL) infrastructure
+- **Better counterexamples** — when `intent test` or `intent verify` fails, show actual entity state vs. expected state with miette-style diagnostic spans
+
+### Phase 10: Adoption & Polish (planned)
+
+- **Starter templates** — `intent init --template payment-service`, `--template workflow-engine`: spec + generated code + runtime glue + tests, ready to run. Full story: `.intent` → codegen → implement → runtime → test → audit
+- **Watch mode** — `intent watch <file>` re-checks on save, streams diagnostics
+- **GitHub Action** — `intent check` as a CI step for `.intent` files in any repo (publish to GitHub Marketplace)
+- **OpenAPI import** — `intent import openapi.yaml` generates `.intent` specs from existing API definitions (reverse bridge)
 
 Long-term: IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. See the [self-hosting roadmap](CLAUDE.md) for details.
 

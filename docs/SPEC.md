@@ -257,14 +257,14 @@ New behavior: Transfers exceeding 100/min per account are queued
 - Incremental verification (re-verify only changed code)
 - Multi-agent collaboration support (lock/claim spec sections)
 
-### Phase 5: Language Polish & Natural Language Generation (in progress)
+### Phase 5: Language Polish & Natural Language Generation (complete)
 - Auto-formatter (`intent fmt`), scaffolding (`intent init`), shell completions
 - Natural language to intent translation (`intent generate`)
 - Interactive and single-shot generation modes with confidence levels
 - Edit existing specs from natural language descriptions
 - Model-agnostic LLM integration (OpenAI-compatible API)
 
-### Phase 6: Stateless Runtime
+### Phase 6: Stateless Runtime (complete)
 - **Expression evaluator** — evaluate `requires`/`ensures`/`invariant` expressions against concrete values
 - **State transformer** — apply `ensures` postconditions to compute new state from old
 - **HTTP server** — auto-generate REST endpoints from actions (`intent serve <file>`)
@@ -272,11 +272,31 @@ New behavior: Transfers exceeding 100/min per account are queued
 - New crate: `intent-runtime`
 - CLI tool: `intent serve`
 
-### Phase 7: Module Imports
+### Phase 7: Module Imports (complete)
 - `use OtherModule.Entity` syntax for cross-file composition
 - Module resolver — loads and parses imported modules
 - Cross-module type checking
 - `intent serve` loads multiple modules together
+
+### Phase 8: Code Generation & Beta Milestone (complete)
+- **Skeleton codegen** — `intent codegen <file> --lang <lang>` generates typed stubs (Rust, TypeScript, Python, Go, Java, C#, Swift)
+- **AI-powered implementation** — `intent implement <file> --lang <lang>` generates full implementations from specs via LLM
+- **Contract test harness** — `intent test-harness <file> --lang rust` generates executable test modules from spec `test` blocks
+- **Beta validation** — multi-module task tracker system (`examples/beta/`) exercises all features end-to-end
+- New crates: `intent-codegen`, `intent-implement`
+- CLI tools: `intent codegen`, `intent implement`, `intent test-harness`
+
+### Phase 9: Language Ergonomics (planned)
+- **State machine sugar** — `state TaskStatus { Open -> InProgress -> Done }` auto-generates union type, transition invariants, and edge cases
+- **Invariant/property templates** — `intent add-invariant --pattern unique --entity Task title project` scaffolds common patterns (unique, non-negative, no-dangling-ref, idempotent)
+- **`intent suggest`** — analyze spec, summarize problems, propose candidate `.intent` patches for accept/reject
+- **Better counterexamples** — show actual entity state vs. expected on test/verify failures
+
+### Phase 10: Adoption & Polish (planned)
+- **Starter templates** — `intent init --template payment-service` with spec + generated code + tests, ready to run
+- **Watch mode** — `intent watch <file>` re-checks on save, streams diagnostics
+- **GitHub Action** — `intent check` as a CI step for `.intent` files in any repo
+- **OpenAPI import** — `intent import openapi.yaml` generates `.intent` specs from existing API definitions
 
 ### Long-Term: Self-Hosting
 IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. Not a near-term priority, but a planned goal. See the [self-hosting roadmap](../CLAUDE.md) for stages and invariants.
@@ -294,32 +314,36 @@ Version numbers are not hardlocked to phases — minor and patch versions (e.g. 
 
 ### Future Considerations
 
-Features under consideration for post-beta phases, grouped by theme.
+Features under consideration for post-beta phases, grouped by theme. Items marked ~~struck~~ have shipped.
 
 #### Language Expressiveness
+- **State machine sugar** — `state TaskStatus { Open -> InProgress -> Done }` auto-generates union + transition invariants + edge cases (Phase 9)
 - **Parameterized entities / generics** — `entity Queue<T> { ... }`
 - **Computed fields** — `derived total: sum(items.price * items.quantity)`
 - **Temporal operators** — `eventually`, `always`, `until` for richer invariants
 - **Enum values with data** — `status: Active(since: DateTime) | Frozen(reason: String)`
 
 #### Verification & Correctness
+- **Invariant/property templates** — `intent add-invariant --pattern unique --entity Task title project` scaffolds common patterns (Phase 9)
+- **Counterexample generation** — show actual entity state vs. expected on test/verify failures (Phase 9)
+- **`intent suggest`** — analyze spec, summarize problems, propose candidate `.intent` patches (Phase 9)
 - **SMT solver integration** — move beyond structural checking to actual constraint solving (Z3/CVC5)
-- **Counterexample generation** — when verification fails, produce a concrete violating state
 - **Property-based test generation** — derive tests from specs (fuzzing action sequences against invariants)
 - **Refinement types** — `amount: Decimal { > 0, <= 100000 }` with solver-backed checking
 
 #### Developer Experience
-- **LSP server** — syntax highlighting, diagnostics, go-to-definition, completions in editors
-- **WASM build** — run `intent check` in the browser, enable a playground site
-- **Watch mode** — `intent watch <file>` re-checks on save
+- ~~**LSP server** — syntax highlighting, diagnostics, go-to-definition, completions in editors~~ (shipped: `intent-lsp` crate)
+- ~~**WASM build** — run `intent check` in the browser, enable a playground site~~ (shipped: IntentLang-Playground)
+- ~~**Test command** — `intent test <file>` runs contract tests from spec `test` blocks~~ (shipped: Phase 8)
+- **Watch mode** — `intent watch <file>` re-checks on save (Phase 10)
 - **Explain command** — `intent explain <file> <item>` gives natural language explanation of a spec item
-- **Test command** — `intent test <file>` generates and runs property-based tests from specs
+- **Starter templates** — `intent init --template payment-service` with spec + code + tests (Phase 10)
 
 #### Ecosystem & Integration
-- **Code generation** — `intent codegen <file> --lang rust/typescript/python` generates skeleton implementations
-- **OpenAPI bridge** — `intent import openapi.yaml` generates specs from existing API definitions
-- **GitHub Action** — `intent check` as a CI step for `.intent` files in any repo
-- **VS Code extension** — syntax highlighting + integrated diagnostics (lighter than full LSP)
+- ~~**Code generation** — `intent codegen <file> --lang rust/typescript/python/go/java/csharp/swift`~~ (shipped: Phase 8, 7 languages)
+- ~~**VS Code extension** — syntax highlighting, snippets, LSP integration~~ (shipped: `editors/vscode/`)
+- **OpenAPI import** — `intent import openapi.yaml` generates specs from existing API definitions (Phase 10)
+- **GitHub Action** — `intent check` as a CI step for `.intent` files in any repo (Phase 10)
 
 ---
 

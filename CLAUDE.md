@@ -218,7 +218,7 @@ edge_cases {
 - **Phase 5**: Language Polish & NL Generation — `fmt`, `init`, `completions`, list literals. `intent generate` for NL → `.intent` via LLM (Layer 0).
 - **Phase 6**: Stateless Runtime — expression evaluator, contract evaluation, HTTP server. CLI: `serve`.
 - **Phase 7**: Module Imports — `use` syntax, module resolver (DFS + cycle detection), cross-module type checking, multi-file composition.
-- **Phase 8** (in progress): Code Generation — skeleton codegen (`intent codegen`, Rust/TypeScript/Python/Go/Java/C#/Swift), AI-powered implementation generation (`intent implement`, Rust/TypeScript/Python/Go/Java/C#/Swift).
+- **Phase 8**: Code Generation & Beta Milestone — skeleton codegen (`intent codegen`, 7 languages), AI-powered `intent implement` (7 languages), contract test harness, beta validation system (`examples/beta/`), 22 CLI integration tests.
 
 ### Codegen Roadmap
 
@@ -240,9 +240,23 @@ edge_cases {
 ### Long-Term: Self-Hosting
 IntentLang compiles itself — the compiler's spec is written in `.intent` files, agents generate the implementation, the audit bridge verifies conformance. Not a near-term priority, but a planned goal. See the Self-Hosting Roadmap section below for stages and invariants.
 
+### Phase 9: Language Ergonomics (planned)
+
+1. **State machine sugar** — `state TaskStatus { Open -> InProgress -> Done }` auto-generates union type + transition invariants + edge cases. Eliminates the most common boilerplate in `.intent` files.
+2. **Invariant/property templates** — CLI: `intent add-invariant --pattern <pattern> --entity <Entity> [fields...]`. Built-in patterns: `unique`, `non-negative`, `no-dangling-ref`, `idempotent`. Scaffolds starter invariants and ensures clauses.
+3. **`intent suggest`** — Analyze spec (check/verify), summarize problems in spec terms, propose candidate `.intent` patches. Builds on Layer 0 NL infrastructure. CLI: `intent suggest <file>`.
+4. **Better error diagnostics** — Counterexample states on test/verify failures. Show actual entity state vs. expected with miette-style spans.
+
+### Phase 10: Adoption & Polish (planned)
+
+1. **Starter templates** — `intent init --template payment-service`, `--template workflow-engine`. Full story: spec + generated code + runtime glue + tests, ready to run.
+2. **Watch mode** — `intent watch <file>` re-checks on save, streams diagnostics.
+3. **GitHub Action** — `intent check` as a CI step for `.intent` files in any repo. Publish to GitHub Marketplace.
+4. **OpenAPI import** — `intent import openapi.yaml` generates `.intent` specs from existing API definitions (reverse bridge).
+
 ### Milestone Definitions
 - **Alpha**: Core features working, API unstable, may have missing pieces
-- **Beta**: Small real-world system runs end-to-end. Module imports working. API stabilizing
+- **Beta** (current): Full-stack validated with multi-module task tracker. API stabilizing. v0.7.0-beta.1
 - **Preview**: Post-feedback hardening between beta and production (if needed)
 - **Stable (v1.0)**: Production-ready runtime, stable API
 
