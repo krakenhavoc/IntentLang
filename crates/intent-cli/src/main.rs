@@ -1135,13 +1135,10 @@ fn main() {
                 CodegenLang::Rust => intent_codegen::Language::Rust,
                 CodegenLang::Typescript => intent_codegen::Language::TypeScript,
                 CodegenLang::Python => intent_codegen::Language::Python,
-                CodegenLang::Go | CodegenLang::Java | CodegenLang::Csharp | CodegenLang::Swift => {
-                    eprintln!(
-                        "error: {:?} is not yet supported for `implement` (use `codegen` for skeleton stubs)",
-                        lang
-                    );
-                    process::exit(1);
-                }
+                CodegenLang::Go => intent_codegen::Language::Go,
+                CodegenLang::Java => intent_codegen::Language::Java,
+                CodegenLang::Csharp => intent_codegen::Language::CSharp,
+                CodegenLang::Swift => intent_codegen::Language::Swift,
             };
 
             let options = intent_implement::ImplementOptions {

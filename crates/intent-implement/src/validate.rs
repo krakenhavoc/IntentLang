@@ -564,4 +564,129 @@ test "happy path" {
         let code = "struct Foo { id: String }\n\nfn bar(x: i64) -> Result<(), String> { Ok(()) }\n\n#[cfg(test)]\nmod contract_tests {\n    use super::*;\n    #[test]\n    fn test_happy_path() { assert!(true); }\n}\n";
         assert!(validate_output(code, &ast, Language::Rust).is_ok());
     }
+
+    // ── Go validation ─────────────────────────────────────
+
+    #[test]
+    fn test_validate_valid_go() {
+        let src =
+            "module Test\n\nentity Foo {\n  id: UUID\n}\n\naction CreateFoo {\n  name: String\n}\n";
+        let ast = parse(src);
+        let code = "package test\n\ntype Foo struct {\n\tID string `json:\"id\"`\n}\n\nfunc create_foo(name string) (*Foo, error) {\n\treturn &Foo{ID: name}, nil\n}\n";
+        assert!(validate_output(code, &ast, Language::Go).is_ok());
+    }
+
+    #[test]
+    fn test_validate_go_leftover_panic() {
+        let src =
+            "module Test\n\nentity Foo {\n  id: UUID\n}\n\naction CreateFoo {\n  name: String\n}\n";
+        let ast = parse(src);
+        let code = "package test\n\ntype Foo struct {\n\tID string\n}\n\nfunc create_foo(name string) (*Foo, error) {\n\tpanic(\"not implemented\")\n}\n";
+        let err = validate_output(code, &ast, Language::Go).unwrap_err();
+        assert!(err.iter().any(|e| e.contains("panic")));
+    }
+
+    #[test]
+    fn test_expected_names_go() {
+        let src = "module Test\n\nentity Account {\n  id: UUID\n}\n\naction FreezeAccount {\n  id: UUID\n}\n";
+        let ast = parse(src);
+        let names = expected_names(&ast, Language::Go);
+        assert!(names.contains(&"Account".to_string()));
+        assert!(names.contains(&"freeze_account".to_string()));
+    }
+
+    // ── Java validation ───────────────────────────────────
+
+    #[test]
+    fn test_validate_valid_java() {
+        let src =
+            "module Test\n\nentity Foo {\n  id: UUID\n}\n\naction CreateFoo {\n  name: String\n}\n";
+        let ast = parse(src);
+        let code = "import java.util.UUID;\n\npublic final class Test {\n    public record Foo(UUID id) {}\n\n    public static Foo createFoo(String name) {\n        return new Foo(UUID.randomUUID());\n    }\n}\n";
+        assert!(validate_output(code, &ast, Language::Java).is_ok());
+    }
+
+    #[test]
+    fn test_validate_java_leftover_stub() {
+        let src =
+            "module Test\n\nentity Foo {\n  id: UUID\n}\n\naction CreateFoo {\n  name: String\n}\n";
+        let ast = parse(src);
+        let code = "public final class Test {\n    public record Foo(String id) {}\n\n    public static Foo createFoo(String name) {\n        throw new UnsupportedOperationException();\n    }\n}\n";
+        let err = validate_output(code, &ast, Language::Java).unwrap_err();
+        assert!(
+            err.iter()
+                .any(|e| e.contains("UnsupportedOperationException"))
+        );
+    }
+
+    #[test]
+    fn test_expected_names_java() {
+        let src = "module Test\n\nentity Account {\n  id: UUID\n}\n\naction FreezeAccount {\n  id: UUID\n}\n";
+        let ast = parse(src);
+        let names = expected_names(&ast, Language::Java);
+        assert!(names.contains(&"Account".to_string()));
+        assert!(names.contains(&"freezeAccount".to_string()));
+    }
+
+    // ── C# validation ─────────────────────────────────────
+
+    #[test]
+    fn test_validate_valid_csharp() {
+        let src =
+            "module Test\n\nentity Foo {\n  id: UUID\n}\n\naction CreateFoo {\n  name: String\n}\n";
+        let ast = parse(src);
+        let code = "namespace Test;\n\npublic record Foo(Guid Id);\n\npublic static class Actions {\n    public static Foo CreateFoo(string name) {\n        return new Foo(Guid.NewGuid());\n    }\n}\n";
+        assert!(validate_output(code, &ast, Language::CSharp).is_ok());
+    }
+
+    #[test]
+    fn test_validate_csharp_leftover_stub() {
+        let src =
+            "module Test\n\nentity Foo {\n  id: UUID\n}\n\naction CreateFoo {\n  name: String\n}\n";
+        let ast = parse(src);
+        let code = "namespace Test;\n\npublic record Foo(Guid Id);\n\npublic static class Actions {\n    public static Foo CreateFoo(string name) {\n        throw new NotImplementedException();\n    }\n}\n";
+        let err = validate_output(code, &ast, Language::CSharp).unwrap_err();
+        assert!(err.iter().any(|e| e.contains("NotImplementedException")));
+    }
+
+    #[test]
+    fn test_expected_names_csharp() {
+        let src = "module Test\n\nentity Account {\n  id: UUID\n}\n\naction FreezeAccount {\n  id: UUID\n}\n";
+        let ast = parse(src);
+        let names = expected_names(&ast, Language::CSharp);
+        assert!(names.contains(&"Account".to_string()));
+        // C# keeps PascalCase
+        assert!(names.contains(&"FreezeAccount".to_string()));
+    }
+
+    // ── Swift validation ──────────────────────────────────
+
+    #[test]
+    fn test_validate_valid_swift() {
+        let src =
+            "module Test\n\nentity Foo {\n  id: UUID\n}\n\naction CreateFoo {\n  name: String\n}\n";
+        let ast = parse(src);
+        let code = "import Foundation\n\nstruct Foo: Codable {\n    let id: UUID\n}\n\nfunc createFoo(name: String) throws -> Foo {\n    return Foo(id: UUID())\n}\n";
+        assert!(validate_output(code, &ast, Language::Swift).is_ok());
+    }
+
+    #[test]
+    fn test_validate_swift_leftover_stub() {
+        let src =
+            "module Test\n\nentity Foo {\n  id: UUID\n}\n\naction CreateFoo {\n  name: String\n}\n";
+        let ast = parse(src);
+        let code = "import Foundation\n\nstruct Foo: Codable {\n    let id: UUID\n}\n\nfunc createFoo(name: String) throws -> Foo {\n    fatalError(\"TODO: implement\")\n}\n";
+        let err = validate_output(code, &ast, Language::Swift).unwrap_err();
+        assert!(err.iter().any(|e| e.contains("fatalError")));
+    }
+
+    #[test]
+    fn test_expected_names_swift() {
+        let src = "module Test\n\nentity Account {\n  id: UUID\n}\n\naction FreezeAccount {\n  id: UUID\n}\n";
+        let ast = parse(src);
+        let names = expected_names(&ast, Language::Swift);
+        assert!(names.contains(&"Account".to_string()));
+        // Swift uses camelCase for functions
+        assert!(names.contains(&"freezeAccount".to_string()));
+    }
 }

@@ -921,7 +921,7 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 
 **Codegen (intent-codegen)**: Generates typed skeleton code and OpenAPI 3.0 specs from AST (not IR, to preserve doc blocks and human-readable names). Per-language modules (`rust.rs`, `typescript.rs`, `python.rs`, `go.rs`) with shared type mapping (`types.rs`) and expression formatting (`lib.rs`). Reserved keyword escaping: Rust uses `r#keyword`, Python uses `keyword_` suffix, Go uses `keyword_` suffix. Smart imports, union type mapping (Rust enums, TS string literals, Python Literal types, Go string type aliases with const blocks and validation methods). Go output uses JSON struct tags and PascalCase exported fields. OpenAPI generator (`openapi.rs`) maps entities to JSON Schema components and actions to `POST /actions/{Name}` endpoints.
 
-**Implement (intent-implement)**: AI-powered full implementation generation from specs. Builds prompt context (spec source, skeleton code, contracts summary), sends to LLM via intent-gen client, validates output (expected names, balanced delimiters, no leftover stubs), retries with error feedback. Supports Rust, TypeScript, Python targets. CLI: `implement`.
+**Implement (intent-implement)**: AI-powered full implementation generation from specs. Builds prompt context (spec source, skeleton code, contracts summary), sends to LLM via intent-gen client, validates output (expected names, balanced delimiters, no leftover stubs), retries with error feedback. Supports all 7 target languages (Rust, TypeScript, Python, Go, Java, C#, Swift). CLI: `implement`.
 
 **CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`, `generate`, `serve`, `codegen`, `openapi`, `implement`. Global `--output json` flag for agent consumption. Commands that operate on specs (`check`, `compile`, `verify`, `serve`) automatically resolve module imports when `use` declarations are present.
 
@@ -956,7 +956,7 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - 74 IR tests: 13 lowering + 11 verification + 6 coherence + 9 audit + 13 diff + 11 incremental + 11 lock
 - 51 runtime tests: 8 contract + 42 expression evaluator + 1 test runner
 - 121 codegen tests: skeleton + OpenAPI for all 7 languages
-- 29 intent-implement tests: prompt building, output validation, LLM integration, retry with error feedback
+- 41 intent-implement tests: prompt building, output validation (all 7 languages), expected names, leftover stub detection, LLM integration, retry with error feedback
 - 23 LSP tests: 8 document/line-index + 5 diagnostics + 4 hover + 3 navigation + 3 completion
 - 6 intent-gen tests: 3 strip_fences + 3 validate_spec
 - 22 beta integration tests: full CLI pipeline against multi-module task tracker system
