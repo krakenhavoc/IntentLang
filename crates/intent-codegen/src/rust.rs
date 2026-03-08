@@ -7,10 +7,10 @@ use crate::{Language, doc_text, format_ensures_item, format_expr, to_snake_case}
 
 /// Rust reserved keywords that cannot be used as identifiers.
 const RUST_KEYWORDS: &[&str] = &[
-    "as", "async", "await", "break", "const", "continue", "crate", "dyn", "else", "enum",
-    "extern", "false", "fn", "for", "gen", "if", "impl", "in", "let", "loop", "match", "mod",
-    "move", "mut", "pub", "ref", "return", "self", "static", "struct", "super", "trait", "true",
-    "type", "unsafe", "use", "where", "while", "yield",
+    "as", "async", "await", "break", "const", "continue", "crate", "dyn", "else", "enum", "extern",
+    "false", "fn", "for", "gen", "if", "impl", "in", "let", "loop", "match", "mod", "move", "mut",
+    "pub", "ref", "return", "self", "static", "struct", "super", "trait", "true", "type", "unsafe",
+    "use", "where", "while", "yield",
 ];
 
 /// Escape a Rust identifier if it collides with a reserved keyword.
@@ -157,11 +157,7 @@ fn generate_entity(out: &mut String, entity: &ast::EntityDecl, lang: &Language) 
         } else {
             map_type(&field.ty, lang)
         };
-        out.push_str(&format!(
-            "    pub {}: {},\n",
-            safe_ident(&field.name),
-            ty
-        ));
+        out.push_str(&format!("    pub {}: {},\n", safe_ident(&field.name), ty));
     }
 
     out.push_str("}\n\n");
