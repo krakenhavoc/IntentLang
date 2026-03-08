@@ -18,6 +18,15 @@ pub fn format(file: &ast::File) -> String {
         }
     }
 
+    for use_decl in &file.imports {
+        out.push('\n');
+        if let Some(item) = &use_decl.item {
+            out.push_str(&format!("use {}.{}\n", use_decl.module_name, item));
+        } else {
+            out.push_str(&format!("use {}\n", use_decl.module_name));
+        }
+    }
+
     for item in &file.items {
         out.push('\n');
         match item {

@@ -148,11 +148,13 @@ fn build_file(pair: pest::iterators::Pair<'_, Rule>) -> File {
     let module = build_module_decl(inner.next().unwrap());
 
     let mut doc = None;
+    let mut imports = Vec::new();
     let mut items = Vec::new();
 
     for p in inner {
         match p.as_rule() {
             Rule::doc_block => doc = Some(build_doc_block(p)),
+            Rule::use_decl => imports.push(build_use_decl(p)),
             Rule::entity_decl => items.push(TopLevelItem::Entity(build_entity_decl(p))),
             Rule::action_decl => items.push(TopLevelItem::Action(build_action_decl(p))),
             Rule::invariant_decl => items.push(TopLevelItem::Invariant(build_invariant_decl(p))),
@@ -165,7 +167,20 @@ fn build_file(pair: pest::iterators::Pair<'_, Rule>) -> File {
     File {
         module,
         doc,
+        imports,
         items,
+        span,
+    }
+}
+
+fn build_use_decl(pair: pest::iterators::Pair<'_, Rule>) -> UseDecl {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let module_name = inner.next().unwrap().as_str().to_string();
+    let item = inner.next().map(|p| p.as_str().to_string());
+    UseDecl {
+        module_name,
+        item,
         span,
     }
 }
@@ -979,6 +994,54 @@ action Clear {
         } else {
             panic!("expected action");
         }
+    }
+
+    #[test]
+    fn parse_use_whole_module() {
+        let src = "module Foo\n\nuse Bar\n";
+        let file = parse_file(src).unwrap();
+        assert_eq!(file.imports.len(), 1);
+        assert_eq!(file.imports[0].module_name, "Bar");
+        assert_eq!(file.imports[0].item, None);
+    }
+
+    #[test]
+    fn parse_use_specific_item() {
+        let src = "module Foo\n\nuse Bar.Account\n";
+        let file = parse_file(src).unwrap();
+        assert_eq!(file.imports.len(), 1);
+        assert_eq!(file.imports[0].module_name, "Bar");
+        assert_eq!(file.imports[0].item.as_deref(), Some("Account"));
+    }
+
+    #[test]
+    fn parse_multiple_imports() {
+        let src = "module Foo\n\nuse Bar\nuse Baz.Entity\nuse Qux.Action\n";
+        let file = parse_file(src).unwrap();
+        assert_eq!(file.imports.len(), 3);
+        assert_eq!(file.imports[0].module_name, "Bar");
+        assert_eq!(file.imports[0].item, None);
+        assert_eq!(file.imports[1].module_name, "Baz");
+        assert_eq!(file.imports[1].item.as_deref(), Some("Entity"));
+        assert_eq!(file.imports[2].module_name, "Qux");
+        assert_eq!(file.imports[2].item.as_deref(), Some("Action"));
+    }
+
+    #[test]
+    fn parse_imports_with_doc_block() {
+        let src = "module Foo\n\n--- A module that imports things.\n\nuse Bar\n\nentity Thing {\n  id: UUID\n}\n";
+        let file = parse_file(src).unwrap();
+        assert!(file.doc.is_some());
+        assert_eq!(file.imports.len(), 1);
+        assert_eq!(file.items.len(), 1);
+    }
+
+    #[test]
+    fn parse_no_imports() {
+        let src = "module Foo\n\nentity Bar {\n  id: UUID\n}\n";
+        let file = parse_file(src).unwrap();
+        assert!(file.imports.is_empty());
+        assert_eq!(file.items.len(), 1);
     }
 
     #[test]

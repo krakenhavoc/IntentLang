@@ -39,8 +39,20 @@ pub struct TypeEnv {
 
 /// Run all semantic checks on a parsed file. Returns a list of diagnostics.
 pub fn check_file(file: &ast::File) -> Vec<CheckError> {
+    check_file_with_imports(file, &[])
+}
+
+/// Run all semantic checks on a parsed file with imported module definitions.
+///
+/// `imported_files` are the parsed ASTs of modules referenced by `use` declarations.
+/// Their entities, actions, and invariants are added to the type environment so that
+/// cross-module references resolve correctly.
+pub fn check_file_with_imports(file: &ast::File, imported_files: &[&ast::File]) -> Vec<CheckError> {
     let mut errors = Vec::new();
     let mut env = TypeEnv::default();
+
+    // Pass 0: Populate env with imported definitions.
+    populate_imports(file, imported_files, &mut env, &mut errors);
 
     // Pass 1: Collect definitions, detect duplicates.
     collect_definitions(file, &mut env, &mut errors);
@@ -61,6 +73,109 @@ pub fn check_file(file: &ast::File) -> Vec<CheckError> {
     errors.extend(crate::constraints::check_constraints(file));
 
     errors
+}
+
+/// Populate the type environment with definitions from imported modules.
+///
+/// For whole-module imports (`use Foo`), all entities, actions, and invariants
+/// from Foo are added. For selective imports (`use Foo.Bar`), only the named
+/// item is added — if it doesn't exist, an error is reported.
+fn populate_imports(
+    file: &ast::File,
+    imported_files: &[&ast::File],
+    env: &mut TypeEnv,
+    errors: &mut Vec<CheckError>,
+) {
+    // Build a lookup: module_name → parsed file
+    let module_map: HashMap<&str, &&ast::File> = imported_files
+        .iter()
+        .map(|f| (f.module.name.as_str(), f))
+        .collect();
+
+    for use_decl in &file.imports {
+        let Some(imported) = module_map.get(use_decl.module_name.as_str()) else {
+            // Module not in the provided imports — the resolver should have caught this,
+            // but if check_file_with_imports is called manually, skip gracefully.
+            continue;
+        };
+
+        match &use_decl.item {
+            None => {
+                // Whole-module import: add all definitions.
+                import_all_from(imported, env);
+            }
+            Some(item_name) => {
+                // Selective import: add only the named item.
+                if !import_item_from(imported, item_name, env) {
+                    errors.push(CheckError::unresolved_import(
+                        item_name,
+                        &use_decl.module_name,
+                        use_decl.span,
+                    ));
+                }
+            }
+        }
+    }
+}
+
+/// Import all entities, actions, and invariants from a module into the env.
+fn import_all_from(file: &ast::File, env: &mut TypeEnv) {
+    for item in &file.items {
+        match item {
+            TopLevelItem::Entity(entity) => {
+                let fields: Vec<(String, Span)> = entity
+                    .fields
+                    .iter()
+                    .map(|f| (f.name.clone(), f.span))
+                    .collect();
+                env.entities
+                    .entry(entity.name.clone())
+                    .or_insert((entity.span, fields));
+            }
+            TopLevelItem::Action(action) => {
+                let params: Vec<String> = action.params.iter().map(|p| p.name.clone()).collect();
+                env.actions
+                    .entry(action.name.clone())
+                    .or_insert((action.span, params));
+            }
+            TopLevelItem::Invariant(inv) => {
+                env.invariants.entry(inv.name.clone()).or_insert(inv.span);
+            }
+            TopLevelItem::EdgeCases(_) => {}
+        }
+    }
+}
+
+/// Import a single named item from a module. Returns true if the item was found.
+fn import_item_from(file: &ast::File, item_name: &str, env: &mut TypeEnv) -> bool {
+    for item in &file.items {
+        match item {
+            TopLevelItem::Entity(entity) if entity.name == item_name => {
+                let fields: Vec<(String, Span)> = entity
+                    .fields
+                    .iter()
+                    .map(|f| (f.name.clone(), f.span))
+                    .collect();
+                env.entities
+                    .entry(entity.name.clone())
+                    .or_insert((entity.span, fields));
+                return true;
+            }
+            TopLevelItem::Action(action) if action.name == item_name => {
+                let params: Vec<String> = action.params.iter().map(|p| p.name.clone()).collect();
+                env.actions
+                    .entry(action.name.clone())
+                    .or_insert((action.span, params));
+                return true;
+            }
+            TopLevelItem::Invariant(inv) if inv.name == item_name => {
+                env.invariants.entry(inv.name.clone()).or_insert(inv.span);
+                return true;
+            }
+            _ => {}
+        }
+    }
+    false
 }
 
 /// Pass 1: Collect all entity, action, and invariant definitions.

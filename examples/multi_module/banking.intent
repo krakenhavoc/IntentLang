@@ -1,0 +1,48 @@
+module Banking
+
+--- Banking operations that use shared types from the Types module.
+
+use Types
+
+action Transfer {
+  --- Move funds between accounts.
+  from: Account
+  to: Account
+  amount: Decimal(precision: 2)
+
+  requires {
+    from.status == Active
+    to.status == Active
+    from.currency == to.currency
+    amount > 0
+    from.balance >= amount
+    from.id != to.id
+  }
+
+  ensures {
+    from.balance == old(from.balance) - amount
+    to.balance == old(to.balance) + amount
+  }
+
+  properties {
+    idempotent: true
+    atomic: true
+  }
+}
+
+action FreezeAccount {
+  --- Freeze an account, preventing all transfers.
+  account: Account
+
+  requires {
+    account.status == Active
+  }
+
+  ensures {
+    account.status == Frozen
+  }
+}
+
+invariant NoNegativeBalances {
+  forall a: Account => a.balance >= 0
+}

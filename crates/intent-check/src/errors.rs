@@ -110,6 +110,18 @@ pub enum CheckError {
         span: SourceSpan,
     },
 
+    #[error("unresolved import `{name}` — item not found in module `{module}`")]
+    #[diagnostic(
+        code(intent::check::unresolved_import),
+        help("check that `{name}` is defined in module `{module}`")
+    )]
+    UnresolvedImport {
+        name: String,
+        module: String,
+        #[label("imported here")]
+        span: SourceSpan,
+    },
+
     #[error("`old()` cannot be used in a `requires` block")]
     #[diagnostic(
         code(intent::check::old_in_requires),
@@ -194,6 +206,14 @@ impl CheckError {
         Self::UnknownField {
             field: field.to_string(),
             entity: entity.to_string(),
+            span: to_source_span(span),
+        }
+    }
+
+    pub fn unresolved_import(name: &str, module: &str, span: Span) -> Self {
+        Self::UnresolvedImport {
+            name: name.to_string(),
+            module: module.to_string(),
             span: to_source_span(span),
         }
     }

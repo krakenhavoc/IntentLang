@@ -20,6 +20,18 @@ pub fn render(file: &ast::File) -> String {
         out.push('\n');
     }
 
+    if !file.imports.is_empty() {
+        out.push_str("**Imports:**\n\n");
+        for use_decl in &file.imports {
+            if let Some(item) = &use_decl.item {
+                out.push_str(&format!("- `{}.{}`\n", use_decl.module_name, item));
+            } else {
+                out.push_str(&format!("- `{}`\n", use_decl.module_name));
+            }
+        }
+        out.push('\n');
+    }
+
     for item in &file.items {
         match item {
             ast::TopLevelItem::Entity(e) => render_entity(&mut out, e),

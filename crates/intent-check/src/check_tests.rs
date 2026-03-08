@@ -2,8 +2,8 @@
 
 use intent_parser::parse_file;
 
-use crate::check_file;
 use crate::errors::CheckError;
+use crate::{check_file, check_file_with_imports};
 
 fn check(src: &str) -> Vec<CheckError> {
     let file = parse_file(src).expect("parse should succeed");
@@ -376,4 +376,152 @@ action Withdraw {
 }
 "#;
     assert!(check(src).is_empty());
+}
+
+// ── Cross-module imports ────────────────────────────────────
+
+#[test]
+fn cross_module_entity_resolves() {
+    let types_src = r#"module Types
+
+entity Account {
+  id: UUID
+  balance: Int
+}
+"#;
+    let main_src = r#"module Main
+
+use Types
+
+action Transfer {
+  from: Account
+  amount: Int
+
+  requires {
+    from.balance >= amount
+  }
+}
+"#;
+    let types_file = parse_file(types_src).unwrap();
+    let main_file = parse_file(main_src).unwrap();
+    let errors = check_file_with_imports(&main_file, &[&types_file]);
+    assert!(errors.is_empty(), "expected no errors, got: {:?}", errors);
+}
+
+#[test]
+fn cross_module_selective_import() {
+    let types_src = r#"module Types
+
+entity Account {
+  id: UUID
+  balance: Int
+}
+
+entity User {
+  name: String
+}
+"#;
+    let main_src = r#"module Main
+
+use Types.Account
+
+action Transfer {
+  from: Account
+  amount: Int
+}
+"#;
+    let types_file = parse_file(types_src).unwrap();
+    let main_file = parse_file(main_src).unwrap();
+    let errors = check_file_with_imports(&main_file, &[&types_file]);
+    assert!(errors.is_empty(), "expected no errors, got: {:?}", errors);
+}
+
+#[test]
+fn cross_module_selective_import_wrong_name() {
+    let types_src = r#"module Types
+
+entity Account {
+  id: UUID
+}
+"#;
+    let main_src = r#"module Main
+
+use Types.NonExistent
+"#;
+    let types_file = parse_file(types_src).unwrap();
+    let main_file = parse_file(main_src).unwrap();
+    let errors = check_file_with_imports(&main_file, &[&types_file]);
+    assert_eq!(errors.len(), 1);
+    assert!(matches!(
+        &errors[0],
+        CheckError::UnresolvedImport { name, module, .. }
+            if name == "NonExistent" && module == "Types"
+    ));
+}
+
+#[test]
+fn cross_module_field_access_works() {
+    let types_src = r#"module Types
+
+entity Account {
+  id: UUID
+  balance: Int
+  status: Active | Frozen
+}
+"#;
+    let main_src = r#"module Main
+
+use Types
+
+action Withdraw {
+  account: Account
+  amount: Int
+
+  requires {
+    account.balance >= amount
+    account.status == Active
+  }
+
+  ensures {
+    account.balance == old(account.balance) - amount
+  }
+}
+"#;
+    let types_file = parse_file(types_src).unwrap();
+    let main_file = parse_file(main_src).unwrap();
+    let errors = check_file_with_imports(&main_file, &[&types_file]);
+    assert!(errors.is_empty(), "expected no errors, got: {:?}", errors);
+}
+
+#[test]
+fn cross_module_unknown_field_detected() {
+    let types_src = r#"module Types
+
+entity Account {
+  id: UUID
+  balance: Int
+}
+"#;
+    let main_src = r#"module Main
+
+use Types
+
+action Withdraw {
+  account: Account
+  amount: Int
+
+  requires {
+    account.credit_limit >= amount
+  }
+}
+"#;
+    let types_file = parse_file(types_src).unwrap();
+    let main_file = parse_file(main_src).unwrap();
+    let errors = check_file_with_imports(&main_file, &[&types_file]);
+    assert_eq!(errors.len(), 1);
+    assert!(matches!(
+        &errors[0],
+        CheckError::UnknownField { field, entity, .. }
+            if field == "credit_limit" && entity == "Account"
+    ));
 }
