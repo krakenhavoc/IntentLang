@@ -82,7 +82,7 @@ intentlang/
 │   │   │   ├── value.rs   ← Runtime value types
 │   │   │   └── serve.rs   ← HTTP server (auto-generated REST)
 │   │   └── Cargo.toml
-│   ├── intent-codegen/    ← Skeleton code generator (Rust, TypeScript, Python)
+│   ├── intent-codegen/    ← Skeleton code generator (Rust, TypeScript, Python, Go)
 │   ├── intent-lsp/        ← Language Server Protocol (LSP) server
 │   │   ├── src/
 │   │   │   ├── main.rs        ← Binary entry point (tokio + tower-lsp)
@@ -229,7 +229,7 @@ edge_cases {
 | Rust | Shipped | Structs, enums, `r#` keyword escaping, smart imports |
 | TypeScript | Shipped | Interfaces, camelCase, inline string literal unions |
 | Python | Shipped | Dataclasses, `keyword_` escaping, Literal types |
-| Go | Planned | Structs, interfaces, `go fmt`-compatible output |
+| Go | Shipped | Structs, `string` union types with const/validation, JSON tags, smart imports |
 | Java | Planned | Records/classes, Builder pattern |
 | C# | Planned | Records, nullable reference types |
 | Swift | Planned | Structs, enums, Codable conformance |

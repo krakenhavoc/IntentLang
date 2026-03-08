@@ -77,9 +77,9 @@ cargo run -p intent-cli -- generate --interactive "build a shopping cart"
 cargo run -p intent-cli -- generate --edit examples/transfer.intent "add rate limiting"
 cargo run -p intent-cli -- generate --confidence 2 "patient records system"
 
-# Generate skeleton code (Rust, TypeScript, Python)
+# Generate skeleton code (Rust, TypeScript, Python, Go)
 cargo run -p intent-cli -- codegen examples/transfer.intent --lang rust
-cargo run -p intent-cli -- codegen examples/transfer.intent --lang python --out-dir ./generated
+cargo run -p intent-cli -- codegen examples/transfer.intent --lang go --out-dir ./generated
 
 # JSON output (for agent consumption)
 cargo run -p intent-cli -- --output json check examples/transfer.intent
@@ -98,7 +98,7 @@ intentlang/
     intent-gen/              -- Natural language -> .intent spec (Layer 0, LLM-powered)
     intent-runtime/          -- Stateless runtime & HTTP server
     intent-lsp/              -- Language Server Protocol server (diagnostics, hover, go-to-def, completion)
-    intent-codegen/          -- Skeleton code generator (Rust, TypeScript, Python)
+    intent-codegen/          -- Skeleton code generator (Rust, TypeScript, Python, Go)
     intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status, fmt, init, completions, generate, serve, codegen
   editors/vscode/            -- VSCode extension (syntax highlighting, snippets, LSP client)
   examples/                  -- Example .intent files
@@ -907,7 +907,7 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 
 **VSCode Extension (editors/vscode/)**: TextMate grammar for syntax highlighting, language configuration (brackets, folding, comments), 15 code snippets, TypeScript LSP client. Install the `intent-lsp` binary (`cargo install --path crates/intent-lsp`), then build the extension (`npm install && npm run compile` in `editors/vscode/`).
 
-**Codegen (intent-codegen)**: Generates typed skeleton code from AST (not IR, to preserve doc blocks and human-readable names). Per-language modules (`rust.rs`, `typescript.rs`, `python.rs`) with shared type mapping (`types.rs`) and expression formatting (`lib.rs`). Reserved keyword escaping: Rust uses `r#keyword`, Python uses `keyword_` suffix. Smart imports, union type mapping (Rust enums, TS string literals, Python Literal types).
+**Codegen (intent-codegen)**: Generates typed skeleton code from AST (not IR, to preserve doc blocks and human-readable names). Per-language modules (`rust.rs`, `typescript.rs`, `python.rs`, `go.rs`) with shared type mapping (`types.rs`) and expression formatting (`lib.rs`). Reserved keyword escaping: Rust uses `r#keyword`, Python uses `keyword_` suffix, Go uses `keyword_` suffix. Smart imports, union type mapping (Rust enums, TS string literals, Python Literal types, Go string type aliases with const blocks and validation methods). Go output uses JSON struct tags and PascalCase exported fields.
 
 **CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`, `generate`, `serve`, `codegen`. Global `--output json` flag for agent consumption. Commands that operate on specs (`check`, `compile`, `verify`, `serve`) automatically resolve module imports when `use` declarations are present.
 
@@ -941,7 +941,7 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - 28 parser tests (12 unit + 7 insta snapshot + 7 module resolver + 2 example parsing)
 - 74 IR tests: 13 lowering + 11 verification + 6 coherence + 9 audit + 13 diff + 11 incremental + 11 lock
 - 49 runtime tests: 7 contract + 42 expression evaluator
-- 27 codegen tests: naming helpers + Rust/TypeScript/Python entity/action/type mapping + full example files
+- 43 codegen tests: naming helpers + Rust/TypeScript/Python/Go entity/action/type mapping + full example files
 - 23 LSP tests: 8 document/line-index + 5 diagnostics + 4 hover + 3 navigation + 3 completion
 - 6 intent-gen tests: 3 strip_fences + 3 validate_spec
 - Fixtures: 4 valid, 9 invalid + 6 example files + 2 multi-module example files
@@ -964,4 +964,4 @@ Phase 6 (complete): Stateless runtime -- expression evaluator, contract evaluati
 
 Phase 7 (complete): Module imports -- `use` syntax, module resolver, cross-module type checking. Multi-file composition for real-world projects.
 
-Phase 8 (in progress): Code Generation -- skeleton codegen for Rust, TypeScript, Python shipped. CLI: `codegen`. Planned: Go, Java, C#, Swift targets. AI-powered `intent implement` (LLM generates full implementations from spec contracts).
+Phase 8 (in progress): Code Generation -- skeleton codegen for Rust, TypeScript, Python, Go shipped. CLI: `codegen`. Planned: Java, C#, Swift targets. AI-powered `intent implement` (LLM generates full implementations from spec contracts).

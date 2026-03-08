@@ -29,6 +29,7 @@ enum CodegenLang {
     Rust,
     Typescript,
     Python,
+    Go,
 }
 
 #[derive(Subcommand)]
@@ -164,7 +165,7 @@ enum Commands {
     Codegen {
         /// Path to the .intent file
         file: PathBuf,
-        /// Target language: rust, typescript, or python
+        /// Target language: rust, typescript, python, or go
         #[arg(long, value_enum)]
         lang: CodegenLang,
         /// Output directory (default: print to stdout)
@@ -901,6 +902,7 @@ fn main() {
                 CodegenLang::Rust => intent_codegen::Language::Rust,
                 CodegenLang::Typescript => intent_codegen::Language::TypeScript,
                 CodegenLang::Python => intent_codegen::Language::Python,
+                CodegenLang::Go => intent_codegen::Language::Go,
             };
             let code = intent_codegen::generate(&ast, il_lang);
 

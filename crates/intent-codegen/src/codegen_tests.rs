@@ -195,6 +195,126 @@ fn python_imports() {
     assert!(out.contains("from decimal import Decimal"));
 }
 
+// ── Go generation ──────────────────────────────────────────
+
+#[test]
+fn go_entity_struct() {
+    let src = "module Test\nentity Item {\n  id: UUID\n  name: String\n}";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("type Item struct {"));
+    assert!(out.contains("Id uuid.UUID `json:\"id\"`"));
+    assert!(out.contains("Name string `json:\"name\"`"));
+}
+
+#[test]
+fn go_package_declaration() {
+    let src = "module Transfer\nentity X { id: UUID }";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("package transfer"));
+}
+
+#[test]
+fn go_optional_field() {
+    let src = "module Test\nentity Item {\n  label: String?\n}";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("*string"));
+}
+
+#[test]
+fn go_union_const_block() {
+    let src = "module Test\nentity Account {\n  status: Active | Frozen\n}";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("type AccountStatus string"));
+    assert!(out.contains("AccountStatusActive AccountStatus = \"Active\""));
+    assert!(out.contains("AccountStatusFrozen AccountStatus = \"Frozen\""));
+    assert!(out.contains("Status AccountStatus"));
+}
+
+#[test]
+fn go_union_valid_method() {
+    let src = "module Test\nentity Account {\n  status: Active | Frozen\n}";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("func (v AccountStatus) Valid() bool {"));
+    assert!(out.contains("func (v *AccountStatus) UnmarshalText(data []byte) error {"));
+}
+
+#[test]
+fn go_action_function() {
+    let src = "module Test\nentity X { id: UUID }\naction DoThing {\n  x: X\n  requires {\n    x.id != x.id\n  }\n}";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("func DoThing("));
+    assert!(out.contains("return errors.New(\"TODO: implement DoThing\")"));
+    assert!(out.contains("Requires:"));
+}
+
+#[test]
+fn go_imports_uuid() {
+    let src = "module Test\nentity Item {\n  id: UUID\n}";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("\"github.com/google/uuid\""));
+}
+
+#[test]
+fn go_imports_decimal() {
+    let src = "module Test\nentity Item {\n  price: Decimal(precision: 2)\n}";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("\"github.com/shopspring/decimal\""));
+}
+
+#[test]
+fn go_imports_time() {
+    let src = "module Test\nentity Item {\n  ts: DateTime\n}";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("\"time\""));
+}
+
+#[test]
+fn go_collection_types() {
+    let src = "module Test\nentity Item {\n  tags: List<String>\n  ids: Set<UUID>\n  meta: Map<String, Int>\n}";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("[]string"));
+    assert!(out.contains("map[uuid.UUID]struct{}"));
+    assert!(out.contains("map[string]int64"));
+}
+
+#[test]
+fn go_doc_block() {
+    let src = "module Test\n--- A test module.\nentity X { id: UUID }";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("// A test module."));
+}
+
+#[test]
+fn go_invariant_comment() {
+    let src =
+        "module Test\nentity X { id: UUID }\ninvariant Unique {\n  forall a: X => a.id == a.id\n}";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("// Invariant: Unique"));
+}
+
+#[test]
+fn go_json_tags() {
+    let src = "module Test\nentity Item {\n  created_at: DateTime\n  full_name: String\n}";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("`json:\"createdAt\"`"));
+    assert!(out.contains("`json:\"fullName\"`"));
+}
+
+#[test]
+fn go_pascal_case_fields() {
+    let src = "module Test\nentity Item {\n  created_at: DateTime\n  full_name: String\n}";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("CreatedAt time.Time"));
+    assert!(out.contains("FullName string"));
+}
+
+#[test]
+fn go_generated_header() {
+    let src = "module Test\nentity X { id: UUID }";
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("// Code generated from Test.intent. DO NOT EDIT."));
+}
+
 // ── Full example files ──────────────────────────────────────
 
 #[test]
@@ -233,7 +353,12 @@ fn transfer_python() {
 #[test]
 fn shopping_cart_all_langs() {
     let src = include_str!("../../../examples/shopping_cart.intent");
-    for lang in [Language::Rust, Language::TypeScript, Language::Python] {
+    for lang in [
+        Language::Rust,
+        Language::TypeScript,
+        Language::Python,
+        Language::Go,
+    ] {
         let out = codegen(src, lang);
         assert!(!out.is_empty(), "output should not be empty for {:?}", lang);
     }
@@ -242,8 +367,26 @@ fn shopping_cart_all_langs() {
 #[test]
 fn auth_all_langs() {
     let src = include_str!("../../../examples/auth.intent");
-    for lang in [Language::Rust, Language::TypeScript, Language::Python] {
+    for lang in [
+        Language::Rust,
+        Language::TypeScript,
+        Language::Python,
+        Language::Go,
+    ] {
         let out = codegen(src, lang);
         assert!(!out.is_empty(), "output should not be empty for {:?}", lang);
     }
+}
+
+#[test]
+fn transfer_go() {
+    let src = include_str!("../../../examples/transfer.intent");
+    let out = codegen(src, Language::Go);
+    assert!(out.contains("type Account struct {"));
+    assert!(out.contains("type TransferRecord struct {"));
+    assert!(out.contains("func Transfer("));
+    assert!(out.contains("func FreezeAccount("));
+    assert!(out.contains("// Invariant: NoNegativeBalances"));
+    assert!(out.contains("// Edge cases:"));
+    assert!(out.contains("package transfer"));
 }
