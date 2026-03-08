@@ -93,7 +93,9 @@ intentlang/
     intent-ir/               -- AST -> Agent IR (lowering, verification, audit, diff, incremental, lock)
     intent-gen/              -- Natural language -> .intent spec (Layer 0, LLM-powered)
     intent-runtime/          -- Stateless runtime & HTTP server
+    intent-lsp/              -- Language Server Protocol server (diagnostics, hover, go-to-def, completion)
     intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status, fmt, init, completions, generate, serve
+  editors/vscode/            -- VSCode extension (syntax highlighting, snippets, LSP client)
   examples/                  -- Example .intent files
   tests/valid/               -- Specs that must parse and pass checks
   tests/invalid/             -- Specs that must fail with known errors
@@ -104,6 +106,7 @@ intentlang/
 
 ```
 intent-cli -> intent-parser, intent-check, intent-render, intent-ir, intent-gen, intent-runtime
+intent-lsp -> intent-parser, intent-check (for diagnostics, hover, navigation)
 intent-gen -> intent-parser, intent-check (for validation loop)
 intent-runtime -> intent-ir (for contract evaluation)
 intent-ir -> intent-parser
@@ -894,6 +897,10 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 
 **Runtime (intent-runtime)**: Stateless execution engine. Evaluates expressions against concrete JSON values, enforces preconditions/postconditions/invariants, and auto-generates REST endpoints from actions. `old()` semantics via snapshot-and-compare.
 
+**LSP (intent-lsp)**: Language Server Protocol server using `tower-lsp` + `tokio`. Provides real-time diagnostics (parse + semantic errors), go-to-definition (entity/action type references), hover (keyword help, entity docs, built-in types), and context-aware completion (keywords, types, entity names, action params). Uses `DashMap<Url, Document>` for concurrent per-file state. Full text sync (re-parse on every change). Cross-module diagnostics via the existing module resolver.
+
+**VSCode Extension (editors/vscode/)**: TextMate grammar for syntax highlighting, language configuration (brackets, folding, comments), 15 code snippets, TypeScript LSP client. Install the `intent-lsp` binary (`cargo install --path crates/intent-lsp`), then build the extension (`npm install && npm run compile` in `editors/vscode/`).
+
 **CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`, `generate`, `serve`. Global `--output json` flag for agent consumption. Commands that operate on specs (`check`, `compile`, `verify`, `serve`) automatically resolve module imports when `use` declarations are present.
 
 ## Key Dependencies
@@ -908,6 +915,9 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 | serde_json | 1.x | IR JSON output |
 | ureq | 2.x | HTTP client for LLM API calls (intent-gen) |
 | similar | 2.x | Diff output for edit mode (intent-cli) |
+| tower-lsp | 0.20.x | LSP server framework (intent-lsp) |
+| tokio | 1.x | Async runtime for LSP server |
+| dashmap | 6.x | Concurrent per-file document state (intent-lsp) |
 
 ## Conventions
 
@@ -917,18 +927,19 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage (188 total)
+## Current Test Coverage (211 total)
 
 - 31 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files, 5 cross-module import tests)
 - 28 parser tests (12 unit + 7 insta snapshot + 7 module resolver + 2 example parsing)
 - 74 IR tests: 13 lowering + 11 verification + 6 coherence + 9 audit + 13 diff + 11 incremental + 11 lock
 - 49 runtime tests: 7 contract + 42 expression evaluator
+- 23 LSP tests: 8 document/line-index + 5 diagnostics + 4 hover + 3 navigation + 3 completion
 - 6 intent-gen tests: 3 strip_fences + 3 validate_spec
 - Fixtures: 4 valid, 9 invalid + 6 example files + 2 multi-module example files
 
 ## Current Phase & Status
 
-Phases 1-7 complete. Current release: v0.5.0-alpha.1.
+Phases 1-7 complete. Current release: v0.6.0-beta.1. VSCode extension and LSP server shipped (PR #41).
 
 Phase 1 (complete): PEG grammar, typed AST with spans, six-pass semantic analysis, Markdown/HTML renderers. CLI: `check`, `render`, `render-html`.
 

@@ -26,6 +26,7 @@
 - [Verification & Audit](./cli/verify.md)
 - [Agent Tooling](./cli/agent-tools.md)
 - [Generating Specs (Layer 0)](./cli/generate.md)
+- [Editor Integration](./cli/editor.md)
 
 # Architecture
 
