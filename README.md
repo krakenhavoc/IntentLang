@@ -130,6 +130,8 @@ intent generate "description"          Generate a spec from natural language (La
 intent generate --interactive "desc"   Interactive mode with clarifying questions
 intent generate --edit <file> "desc"   Modify an existing spec from natural language
 intent serve <file>                    Serve spec as REST API (stateless runtime)
+intent codegen <file> --lang <lang>    Generate skeleton code (rust, typescript, python)
+intent codegen <file> -l rust -o ./out Write generated code to output directory
 ```
 
 ### Editor Support
@@ -265,6 +267,20 @@ intent render-html examples/transfer.intent > transfer.html
 | Phase 5 | Complete | Language polish (`fmt`, `init`, `completions`), NL generation (`intent generate`) |
 | Phase 6 | Complete | Stateless runtime — `intent serve`, expression evaluator, REST API from specs |
 | Phase 7 | Complete | Module imports (`use`), multi-file composition, cross-module type checking |
+| Phase 8 | In progress | Skeleton codegen (Rust, TS, Python shipped). Go, Java, C#, Swift planned. AI-powered `intent implement` next. |
+
+### Codegen Targets
+
+| Language | Status | Planned |
+|----------|--------|---------|
+| Rust | Shipped | |
+| TypeScript | Shipped | |
+| Python | Shipped | |
+| Go | | Next |
+| Java | | Planned |
+| C# | | Planned |
+| Swift | | Planned |
+| IntentLang | | Self-hosting milestone |
 
 ### Roadmap to v1.0
 
@@ -274,7 +290,7 @@ intent render-html examples/transfer.intent > transfer.html
 - **Stable (v1.0)** — production-ready runtime, stable API
 - **Long-term** — self-hosting: IntentLang compiles itself (compiler spec in `.intent`, agents generate implementation)
 
-211 tests across parser, checker, IR, runtime, gen, and LSP modules.
+238 tests across parser, checker, IR, runtime, gen, codegen, and LSP modules.
 
 Long-term: IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. See the [self-hosting roadmap](CLAUDE.md) for details.
 
@@ -287,12 +303,13 @@ intent-cli ──→ intent-parser ←── grammar/intent.pest
     ├──→ intent-render
     ├──→ intent-ir (lowering, verification, audit)
     ├──→ intent-gen (NL → .intent, Layer 0)
+    ├──→ intent-codegen (skeleton code generation)
     └──→ intent-runtime (stateless execution, HTTP server)
 
 intent-lsp ──→ intent-parser, intent-check (LSP server)
 ```
 
-Eight crates in a Cargo workspace plus a VSCode extension. The parser produces a typed AST and resolves module imports; the checker validates semantics (including cross-module type resolution); the renderer formats output; the IR crate lowers to a typed intermediate representation with verification, coherence analysis, and audit bridge; the gen crate translates natural language to `.intent` specs via LLM; the runtime crate provides a stateless HTTP server that executes specs natively; the LSP crate provides a Language Server with diagnostics, hover, go-to-definition, and completion. The CLI wires them together. See [`AGENTS.md`](AGENTS.md) for architecture details and [`docs/SPEC.md`](docs/SPEC.md) for the full language design.
+Nine crates in a Cargo workspace plus a VSCode extension. The parser produces a typed AST and resolves module imports; the checker validates semantics (including cross-module type resolution); the renderer formats output; the IR crate lowers to a typed intermediate representation with verification, coherence analysis, and audit bridge; the gen crate translates natural language to `.intent` specs via LLM; the runtime crate provides a stateless HTTP server that executes specs natively; the LSP crate provides a Language Server with diagnostics, hover, go-to-definition, and completion. The CLI wires them together. See [`AGENTS.md`](AGENTS.md) for architecture details and [`docs/SPEC.md`](docs/SPEC.md) for the full language design.
 
 ## Examples
 
