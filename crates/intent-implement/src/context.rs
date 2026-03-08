@@ -109,8 +109,10 @@ fn build_contracts_summary(file: &ast::File) -> String {
                 }
                 out.push('\n');
             }
-            ast::TopLevelItem::Entity(_) | ast::TopLevelItem::Test(_) => {
-                // Entities are fully covered by the skeleton code; tests are not relevant
+            ast::TopLevelItem::Entity(_)
+            | ast::TopLevelItem::StateMachine(_)
+            | ast::TopLevelItem::Test(_) => {
+                // Entities/state machines are fully covered by the skeleton code; tests are not relevant
             }
         }
     }

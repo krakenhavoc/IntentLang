@@ -38,6 +38,7 @@ pub fn render(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => render_action(&mut out, a),
             ast::TopLevelItem::Invariant(i) => render_invariant(&mut out, i),
             ast::TopLevelItem::EdgeCases(ec) => render_edge_cases(&mut out, ec),
+            ast::TopLevelItem::StateMachine(sm) => render_state_machine(&mut out, sm),
             ast::TopLevelItem::Test(_) => {} // Tests are not rendered
         }
     }
@@ -89,6 +90,26 @@ fn render_invariant(out: &mut String, inv: &ast::InvariantDecl) {
         for line in &doc.lines {
             out.push_str(line);
             out.push('\n');
+        }
+        out.push('\n');
+    }
+}
+
+fn render_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
+    out.push_str(&format!("## State Machine: {}\n\n", sm.name));
+    if let Some(doc) = &sm.doc {
+        for line in &doc.lines {
+            out.push_str(line);
+            out.push('\n');
+        }
+        out.push('\n');
+    }
+    let states_str: Vec<String> = sm.states.iter().map(|s| format!("`{}`", s)).collect();
+    out.push_str(&format!("**States:** {}\n\n", states_str.join(", ")));
+    if !sm.transitions.is_empty() {
+        out.push_str("**Transitions:**\n\n");
+        for (from, to) in &sm.transitions {
+            out.push_str(&format!("- `{}` → `{}`\n", from, to));
         }
         out.push('\n');
     }

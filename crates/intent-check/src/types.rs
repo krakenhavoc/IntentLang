@@ -35,6 +35,8 @@ pub struct TypeEnv {
     pub actions: HashMap<String, (Span, Vec<String>)>,
     /// Invariant name → span.
     pub invariants: HashMap<String, Span>,
+    /// State machine name → (span, variants).
+    pub state_machines: HashMap<String, (Span, Vec<String>)>,
 }
 
 /// Run all semantic checks on a parsed file. Returns a list of diagnostics.
@@ -141,6 +143,11 @@ fn import_all_from(file: &ast::File, env: &mut TypeEnv) {
             TopLevelItem::Invariant(inv) => {
                 env.invariants.entry(inv.name.clone()).or_insert(inv.span);
             }
+            TopLevelItem::StateMachine(sm) => {
+                env.state_machines
+                    .entry(sm.name.clone())
+                    .or_insert((sm.span, sm.states.clone()));
+            }
             TopLevelItem::EdgeCases(_) | TopLevelItem::Test(_) => {}
         }
     }
@@ -170,6 +177,12 @@ fn import_item_from(file: &ast::File, item_name: &str, env: &mut TypeEnv) -> boo
             }
             TopLevelItem::Invariant(inv) if inv.name == item_name => {
                 env.invariants.entry(inv.name.clone()).or_insert(inv.span);
+                return true;
+            }
+            TopLevelItem::StateMachine(sm) if sm.name == item_name => {
+                env.state_machines
+                    .entry(sm.name.clone())
+                    .or_insert((sm.span, sm.states.clone()));
                 return true;
             }
             _ => {}
@@ -250,6 +263,17 @@ fn collect_definitions(file: &ast::File, env: &mut TypeEnv, errors: &mut Vec<Che
                     env.invariants.insert(inv.name.clone(), inv.span);
                 }
             }
+            TopLevelItem::StateMachine(sm) => {
+                // Check duplicate name (against entities and other state machines).
+                if let Some((first_span, _)) = env.entities.get(&sm.name) {
+                    errors.push(CheckError::duplicate_entity(&sm.name, *first_span, sm.span));
+                } else if let Some((first_span, _)) = env.state_machines.get(&sm.name) {
+                    errors.push(CheckError::duplicate_entity(&sm.name, *first_span, sm.span));
+                } else {
+                    env.state_machines
+                        .insert(sm.name.clone(), (sm.span, sm.states.clone()));
+                }
+            }
             TopLevelItem::EdgeCases(_) | TopLevelItem::Test(_) => {}
         }
     }
@@ -318,9 +342,11 @@ fn check_type_kind(
     }
 }
 
-/// Check if a type name is a built-in or a user-defined entity.
+/// Check if a type name is a built-in, user-defined entity, or state machine.
 fn is_known_type(name: &str, env: &TypeEnv) -> bool {
-    BUILTIN_TYPES.contains(&name) || env.entities.contains_key(name)
+    BUILTIN_TYPES.contains(&name)
+        || env.entities.contains_key(name)
+        || env.state_machines.contains_key(name)
 }
 
 /// Pass 3: Walk all expressions looking for quantifier bindings with invalid types.

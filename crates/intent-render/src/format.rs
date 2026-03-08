@@ -34,6 +34,7 @@ pub fn format(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => fmt_action(&mut out, a),
             ast::TopLevelItem::Invariant(i) => fmt_invariant(&mut out, i),
             ast::TopLevelItem::EdgeCases(ec) => fmt_edge_cases(&mut out, ec),
+            ast::TopLevelItem::StateMachine(sm) => fmt_state_machine(&mut out, sm),
             ast::TopLevelItem::Test(_) => {} // Tests are not formatted
         }
     }
@@ -113,6 +114,19 @@ fn fmt_invariant(out: &mut String, inv: &ast::InvariantDecl) {
     out.push_str(&format!("invariant {} {{\n", inv.name));
     fmt_doc(out, &inv.doc);
     out.push_str(&format!("  {}\n", fmt_expr(&inv.body)));
+    out.push_str("}\n");
+}
+
+fn fmt_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
+    if let Some(doc) = &sm.doc {
+        for line in &doc.lines {
+            out.push_str(&format!("--- {}\n", line.trim()));
+        }
+    }
+    out.push_str(&format!("state {} {{\n", sm.name));
+    for chain in &sm.chains {
+        out.push_str(&format!("  {}\n", chain.join(" -> ")));
+    }
     out.push_str("}\n");
 }
 

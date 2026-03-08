@@ -98,11 +98,69 @@ pub fn generate(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => generate_action(&mut out, a, &lang),
             ast::TopLevelItem::Invariant(inv) => generate_invariant(&mut out, inv),
             ast::TopLevelItem::EdgeCases(ec) => generate_edge_cases(&mut out, ec),
+            ast::TopLevelItem::StateMachine(sm) => generate_state_machine(&mut out, sm),
             ast::TopLevelItem::Test(_) => {}
         }
     }
 
     out
+}
+
+fn generate_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
+    if let Some(doc) = &sm.doc {
+        out.push_str(&format!("// {} — {}\n", sm.name, doc_text(doc).trim()));
+    }
+    // String type alias
+    out.push_str(&format!("type {} string\n\n", sm.name));
+
+    // Constants for each state
+    out.push_str("const (\n");
+    for state in &sm.states {
+        out.push_str(&format!(
+            "\t{}{} {} = \"{}\"\n",
+            sm.name, state, sm.name, state
+        ));
+    }
+    out.push_str(")\n\n");
+
+    // Transition validation function
+    out.push_str(&format!(
+        "// IsValidTransition checks if a transition from one {} to another is valid.\n",
+        sm.name
+    ));
+    out.push_str(&format!(
+        "func (s {}) IsValidTransition(to {}) bool {{\n",
+        sm.name, sm.name
+    ));
+    out.push_str("\tvalid := map[string][]string{\n");
+    let mut transition_map: std::collections::HashMap<&str, Vec<&str>> =
+        std::collections::HashMap::new();
+    for (from, to) in &sm.transitions {
+        transition_map
+            .entry(from.as_str())
+            .or_default()
+            .push(to.as_str());
+    }
+    for state in &sm.states {
+        let targets = transition_map
+            .get(state.as_str())
+            .map(|v| {
+                v.iter()
+                    .map(|t| format!("\"{}\"", t))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            })
+            .unwrap_or_default();
+        out.push_str(&format!("\t\t\"{}\": {{{}}},\n", state, targets));
+    }
+    out.push_str("\t}\n");
+    out.push_str("\tfor _, v := range valid[string(s)] {\n");
+    out.push_str("\t\tif v == string(to) {\n");
+    out.push_str("\t\t\treturn true\n");
+    out.push_str("\t\t}\n");
+    out.push_str("\t}\n");
+    out.push_str("\treturn false\n");
+    out.push_str("}\n\n");
 }
 
 fn generate_imports(file: &ast::File) -> String {

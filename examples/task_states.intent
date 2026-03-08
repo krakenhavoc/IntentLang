@@ -1,0 +1,52 @@
+module TaskTracker
+
+--- A simple task tracker demonstrating state machine sugar.
+
+state TaskStatus {
+  Open -> InProgress -> Done
+  Open -> Cancelled
+  InProgress -> Blocked -> InProgress
+}
+
+entity Task {
+  id: UUID
+  title: String
+  status: TaskStatus
+  assigned_to: String?
+}
+
+action StartTask {
+  task: Task
+
+  requires {
+    task.status == Open
+  }
+
+  ensures {
+    task.status == InProgress
+  }
+}
+
+action CompleteTask {
+  task: Task
+
+  requires {
+    task.status == InProgress
+  }
+
+  ensures {
+    task.status == Done
+  }
+}
+
+action CancelTask {
+  task: Task
+
+  requires {
+    task.status == Open
+  }
+
+  ensures {
+    task.status == Cancelled
+  }
+}

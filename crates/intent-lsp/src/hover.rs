@@ -123,6 +123,7 @@ fn find_symbol_name(ast: &ast::File, offset: usize, source: &str) -> Option<Stri
             TopLevelItem::Entity(e) => (&e.name, e.span),
             TopLevelItem::Action(a) => (&a.name, a.span),
             TopLevelItem::Invariant(i) => (&i.name, i.span),
+            TopLevelItem::StateMachine(sm) => (&sm.name, sm.span),
             TopLevelItem::EdgeCases(_) | TopLevelItem::Test(_) => continue,
         };
         if let Some(rel) = source[span.start..span.end.min(source.len())].find(name.as_str()) {

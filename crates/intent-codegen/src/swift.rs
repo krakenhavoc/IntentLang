@@ -112,11 +112,78 @@ pub fn generate(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => generate_action(&mut out, a, &lang),
             ast::TopLevelItem::Invariant(inv) => generate_invariant(&mut out, inv),
             ast::TopLevelItem::EdgeCases(ec) => generate_edge_cases(&mut out, ec),
+            ast::TopLevelItem::StateMachine(sm) => generate_state_machine(&mut out, sm),
             ast::TopLevelItem::Test(_) => {}
         }
     }
 
     out
+}
+
+fn generate_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
+    if let Some(doc) = &sm.doc {
+        out.push_str(&format!("/// {}\n", doc_text(doc).trim()));
+    }
+    out.push_str(&format!(
+        "enum {}: String, Codable, CaseIterable {{\n",
+        sm.name
+    ));
+    for state in &sm.states {
+        out.push_str(&format!(
+            "    case {} = \"{}\"\n",
+            to_lower_camel(state),
+            state
+        ));
+    }
+    out.push('\n');
+    out.push_str(&format!(
+        "    func canTransition(to next: {}) -> Bool {{\n",
+        sm.name
+    ));
+    out.push_str("        switch self {\n");
+    let mut transition_map: std::collections::HashMap<&str, Vec<&str>> =
+        std::collections::HashMap::new();
+    for (from, to) in &sm.transitions {
+        transition_map
+            .entry(from.as_str())
+            .or_default()
+            .push(to.as_str());
+    }
+    for state in &sm.states {
+        if let Some(targets) = transition_map.get(state.as_str()) {
+            let target_list: Vec<String> = targets
+                .iter()
+                .map(|t| format!(".{}", to_lower_camel(t)))
+                .collect();
+            out.push_str(&format!(
+                "        case .{}:\n            return [{}].contains(next)\n",
+                to_lower_camel(state),
+                target_list.join(", ")
+            ));
+        } else {
+            out.push_str(&format!(
+                "        case .{}:\n            return false\n",
+                to_lower_camel(state)
+            ));
+        }
+    }
+    out.push_str("        }\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+}
+
+fn to_lower_camel(s: &str) -> String {
+    let mut result = String::new();
+    let mut first = true;
+    for c in s.chars() {
+        if first {
+            result.push(c.to_ascii_lowercase());
+            first = false;
+        } else {
+            result.push(c);
+        }
+    }
+    result
 }
 
 fn generate_entity(out: &mut String, entity: &ast::EntityDecl, lang: &Language) {

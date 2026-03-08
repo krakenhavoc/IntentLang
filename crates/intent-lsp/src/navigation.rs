@@ -65,6 +65,14 @@ fn collect_definitions(
                     },
                 );
             }
+            TopLevelItem::StateMachine(sm) => {
+                symbols.insert(
+                    sm.name.clone(),
+                    SymbolDef {
+                        range: doc.line_index.span_to_range(sm.span, source),
+                    },
+                );
+            }
             TopLevelItem::EdgeCases(_) | TopLevelItem::Test(_) => {}
         }
     }
@@ -137,17 +145,19 @@ fn find_reference_at(ast: &ast::File, offset: usize, source: &str) -> Option<Str
                     }
                 }
             }
+            TopLevelItem::StateMachine(_) => {}
             TopLevelItem::Test(_) => {}
         }
     }
 
-    // Check entity/action/invariant name references at declarations —
+    // Check entity/action/invariant/state-machine name references at declarations —
     // clicking a declaration name should also work.
     for item in &ast.items {
         let (name, span) = match item {
             TopLevelItem::Entity(e) => (&e.name, e.span),
             TopLevelItem::Action(a) => (&a.name, a.span),
             TopLevelItem::Invariant(i) => (&i.name, i.span),
+            TopLevelItem::StateMachine(sm) => (&sm.name, sm.span),
             TopLevelItem::EdgeCases(_) | TopLevelItem::Test(_) => continue,
         };
         // Check if cursor is on the declaration name (approximate: within the

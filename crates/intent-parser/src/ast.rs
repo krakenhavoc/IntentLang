@@ -54,6 +54,26 @@ pub enum TopLevelItem {
     Invariant(InvariantDecl),
     EdgeCases(EdgeCasesDecl),
     Test(TestDecl),
+    StateMachine(StateMachineDecl),
+}
+
+// ── State Machine ─────────────────────────────────────────────
+
+/// `state StateName { chain* }` — State machine with named variants and transitions.
+///
+/// Syntactic sugar that auto-generates a union type with valid transitions.
+/// `chains` preserves the original declaration for formatting round-trips.
+#[derive(Debug, Clone, Serialize)]
+pub struct StateMachineDecl {
+    pub doc: Option<DocBlock>,
+    pub name: String,
+    /// All unique state variants (in first-seen order).
+    pub states: Vec<String>,
+    /// Valid transitions: `(from_state, to_state)`.
+    pub transitions: Vec<(String, String)>,
+    /// Original transition chains for formatter round-tripping.
+    pub chains: Vec<Vec<String>>,
+    pub span: Span,
 }
 
 // ── Test ────────────────────────────────────────────────────

@@ -239,6 +239,7 @@ intent render-html examples/transfer.intent > transfer.html
 | `entity Name { ... }` | Data structure with typed fields |
 | `action Name { ... }` | Operation with params, pre/postconditions, properties |
 | `invariant Name { ... }` | System-wide constraint (`forall`/`exists`) |
+| `state Name { A -> B -> C }` | State machine with transition validation |
 | `edge_cases { ... }` | Boundary conditions: `when cond => handler` |
 
 ### Type System
@@ -264,7 +265,7 @@ intent render-html examples/transfer.intent > transfer.html
 
 ## Project Status
 
-**Current release: [v0.6.0-beta.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.6.0-beta.1)** — beta: all phases complete, module imports working.
+**Current release: [v0.7.0-beta.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.7.0-beta.1)** — beta: full-stack validated with multi-module task tracker.
 
 | Phase | Status | What shipped |
 |-------|--------|-------------|
@@ -275,7 +276,8 @@ intent render-html examples/transfer.intent > transfer.html
 | Phase 5 | Complete | Language polish (`fmt`, `init`, `completions`), NL generation (`intent generate`) |
 | Phase 6 | Complete | Stateless runtime — `intent serve`, expression evaluator, REST API from specs |
 | Phase 7 | Complete | Module imports (`use`), multi-file composition, cross-module type checking |
-| Phase 8 | In progress | Skeleton codegen and AI-powered `intent implement` for all 7 targets. Contract test harness. |
+| Phase 8 | Complete | Skeleton codegen and AI-powered `intent implement` for all 7 targets. Contract test harness. Beta milestone. |
+| Phase 9 | In progress | Language ergonomics: state machine sugar shipped |
 
 ### Codegen Targets
 
@@ -298,7 +300,7 @@ intent render-html examples/transfer.intent > transfer.html
 - **Stable (v1.0)** — production-ready runtime, stable API
 - **Long-term** — self-hosting: IntentLang compiles itself (compiler spec in `.intent`, agents generate implementation)
 
-309 tests across parser, checker, IR, runtime, gen, codegen, and LSP modules.
+410 tests across parser, checker, IR, runtime, gen, codegen, LSP, implement, and integration modules.
 
 Long-term: IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. See the [self-hosting roadmap](CLAUDE.md) for details.
 
@@ -331,6 +333,7 @@ The [`examples/`](examples/) directory contains full working specs across differ
 | [`rbac.intent`](examples/rbac.intent) | Role-based access control with hierarchical permissions |
 | [`api_gateway.intent`](examples/api_gateway.intent) | API gateway with rate limiting and client tiers |
 | [`data_pipeline.intent`](examples/data_pipeline.intent) | Staged data pipeline with retries and dead-letter queue |
+| [`task_states.intent`](examples/task_states.intent) | Task tracker with state machine transitions |
 | [`multi_module/`](examples/multi_module/) | Multi-file project with shared types and imports |
 
 ## Prior Art

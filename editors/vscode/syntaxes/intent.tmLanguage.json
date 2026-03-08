@@ -12,6 +12,7 @@
     { "include": "#action-declaration" },
     { "include": "#invariant-declaration" },
     { "include": "#edge-cases-declaration" },
+    { "include": "#state-declaration" },
     { "include": "#contract-keywords" },
     { "include": "#expression-keywords" },
     { "include": "#literals" },
@@ -83,6 +84,13 @@
       "match": "\\b(edge_cases)\\b",
       "name": "keyword.other.edge-cases.intent"
     },
+    "state-declaration": {
+      "match": "\\b(state)\\s+([A-Z][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.other.state.intent" },
+        "2": { "name": "entity.name.type.intent" }
+      }
+    },
     "contract-keywords": {
       "match": "\\b(requires|ensures|properties)\\b",
       "name": "keyword.other.contract.intent"
@@ -121,6 +129,10 @@
     },
     "operators": {
       "patterns": [
+        {
+          "match": "->",
+          "name": "keyword.operator.transition.intent"
+        },
         {
           "match": "=>",
           "name": "keyword.operator.implies.intent"

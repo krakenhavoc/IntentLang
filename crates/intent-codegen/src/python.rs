@@ -46,11 +46,70 @@ pub fn generate(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => generate_action(&mut out, a, &lang),
             ast::TopLevelItem::Invariant(inv) => generate_invariant(&mut out, inv),
             ast::TopLevelItem::EdgeCases(ec) => generate_edge_cases(&mut out, ec),
+            ast::TopLevelItem::StateMachine(sm) => generate_state_machine(&mut out, sm),
             ast::TopLevelItem::Test(_) => {}
         }
     }
 
     out
+}
+
+fn generate_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
+    if let Some(doc) = &sm.doc {
+        out.push_str(&format!("\"\"\"{}.\"\"\"\n\n\n", doc_text(doc).trim()));
+    }
+    // StrEnum class
+    out.push_str("from enum import StrEnum\n\n\n");
+    out.push_str(&format!("class {}(StrEnum):\n", sm.name));
+    for state in &sm.states {
+        let upper = to_screaming_snake(state);
+        out.push_str(&format!("    {} = \"{}\"\n", upper, state));
+    }
+    out.push('\n');
+
+    // Transition validation
+    out.push_str(&format!(
+        "    @staticmethod\n    def is_valid_transition(from_state: \"{}\", to_state: \"{}\") -> bool:\n",
+        sm.name, sm.name
+    ));
+    out.push_str("        valid = {\n");
+    let mut transition_map: std::collections::HashMap<&str, Vec<&str>> =
+        std::collections::HashMap::new();
+    for (from, to) in &sm.transitions {
+        transition_map
+            .entry(from.as_str())
+            .or_default()
+            .push(to.as_str());
+    }
+    for state in &sm.states {
+        let targets = transition_map
+            .get(state.as_str())
+            .map(|v| {
+                v.iter()
+                    .map(|t| format!("\"{}\"", t))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            })
+            .unwrap_or_default();
+        let upper = to_screaming_snake(state);
+        out.push_str(&format!(
+            "            {}.{}: [{}],\n",
+            sm.name, upper, targets
+        ));
+    }
+    out.push_str("        }\n");
+    out.push_str("        return to_state.value in valid.get(from_state, [])\n\n\n");
+}
+
+fn to_screaming_snake(s: &str) -> String {
+    let mut result = String::new();
+    for (i, c) in s.chars().enumerate() {
+        if c.is_uppercase() && i > 0 {
+            result.push('_');
+        }
+        result.push(c.to_ascii_uppercase());
+    }
+    result
 }
 
 fn generate_imports(file: &ast::File) -> String {

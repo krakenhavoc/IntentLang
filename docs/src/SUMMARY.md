@@ -14,6 +14,7 @@
 - [Actions](./reference/actions.md)
 - [Invariants](./reference/invariants.md)
 - [Edge Cases](./reference/edge-cases.md)
+- [State Machines](./reference/state-machines.md)
 - [Type System](./reference/types.md)
 - [Expressions](./reference/expressions.md)
 

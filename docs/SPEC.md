@@ -144,11 +144,33 @@ edge_cases {
 }
 ```
 
+### State Machines
+
+State machines define named enum-like types with explicit allowed transitions:
+
+```intent
+state TaskStatus {
+  Open -> InProgress -> Done
+  Open -> Cancelled
+  InProgress -> Blocked -> InProgress
+}
+```
+
+Each `state` declaration:
+- Registers the name as a type (usable in entity fields, action params, etc.)
+- Defines valid states (all identifiers appearing in transition chains)
+- Defines allowed transitions (each `->` in the chain)
+- Supports branching (multiple chains share states)
+- Supports doc blocks (`---` lines before `state`)
+
+Codegen produces language-idiomatic enums with transition validation methods (e.g., `is_valid_transition` in Rust, `canTransitionTo` in Java/Swift).
+
 ### Key Features
 - **`requires` / `ensures`** — Pre/postcondition blocks (Design by Contract)
 - **`properties`** — Declarative behavioral annotations (idempotency, atomicity, etc.)
 - **`invariant`** — System-wide constraints that must always hold
 - **`edge_cases`** — Explicit handling of boundary conditions
+- **`state`** — State machine declarations with transition validation
 - **`old()` references** — Refer to pre-execution state in postconditions
 - **Natural language descriptions** via `---` doc blocks
 

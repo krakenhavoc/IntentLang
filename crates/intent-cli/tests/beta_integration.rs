@@ -304,3 +304,76 @@ fn lock_status_unlock_cycle() {
         .success()
         .stdout(predicate::str::contains("Unlocked"));
 }
+
+// ── State machine sugar ─────────────────────────────────────────
+
+fn example_file(name: &str) -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../examples")
+        .join(name)
+}
+
+#[test]
+fn state_machine_check() {
+    intent_cmd()
+        .args([
+            "check",
+            example_file("task_states.intent").to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("OK: TaskTracker"));
+}
+
+#[test]
+fn state_machine_codegen_rust() {
+    intent_cmd()
+        .args([
+            "codegen",
+            example_file("task_states.intent").to_str().unwrap(),
+            "--lang",
+            "rust",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("pub enum TaskStatus"))
+        .stdout(predicate::str::contains("is_valid_transition"));
+}
+
+#[test]
+fn state_machine_codegen_typescript() {
+    intent_cmd()
+        .args([
+            "codegen",
+            example_file("task_states.intent").to_str().unwrap(),
+            "--lang",
+            "typescript",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("export type TaskStatus"))
+        .stdout(predicate::str::contains("isValidTaskStatusTransition"));
+}
+
+#[test]
+fn state_machine_render() {
+    intent_cmd()
+        .args([
+            "render",
+            example_file("task_states.intent").to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("State Machine: TaskStatus"))
+        .stdout(predicate::str::contains("`Open` → `InProgress`"));
+}
+
+#[test]
+fn state_machine_fmt() {
+    intent_cmd()
+        .args(["fmt", example_file("task_states.intent").to_str().unwrap()])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("state TaskStatus {"))
+        .stdout(predicate::str::contains("Open -> InProgress -> Done"));
+}
