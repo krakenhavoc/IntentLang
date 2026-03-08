@@ -65,7 +65,7 @@ fn collect_definitions(
                     },
                 );
             }
-            TopLevelItem::EdgeCases(_) => {}
+            TopLevelItem::EdgeCases(_) | TopLevelItem::Test(_) => {}
         }
     }
 
@@ -137,6 +137,7 @@ fn find_reference_at(ast: &ast::File, offset: usize, source: &str) -> Option<Str
                     }
                 }
             }
+            TopLevelItem::Test(_) => {}
         }
     }
 
@@ -147,7 +148,7 @@ fn find_reference_at(ast: &ast::File, offset: usize, source: &str) -> Option<Str
             TopLevelItem::Entity(e) => (&e.name, e.span),
             TopLevelItem::Action(a) => (&a.name, a.span),
             TopLevelItem::Invariant(i) => (&i.name, i.span),
-            TopLevelItem::EdgeCases(_) => continue,
+            TopLevelItem::EdgeCases(_) | TopLevelItem::Test(_) => continue,
         };
         // Check if cursor is on the declaration name (approximate: within the
         // first line of the span, after the keyword).

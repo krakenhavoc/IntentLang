@@ -28,6 +28,6 @@ pub use audit::{AuditReport, SpecItemKind, generate_audit};
 pub use diff::{DiffReport, diff_reports};
 pub use incremental::{IncrementalResult, IncrementalStats, VerifyCache, incremental_verify};
 pub use lock::{LockError, LockFile, extract_spec_items, format_status, lock_item, unlock_item};
-pub use lower::lower_file;
+pub use lower::{lower_expr, lower_file};
 pub use types::*;
 pub use verify::{Obligation, ObligationKind, VerifyError, analyze_obligations, verify_module};

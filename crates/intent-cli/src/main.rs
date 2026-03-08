@@ -153,6 +153,14 @@ enum Commands {
         #[arg(long, default_value = "127.0.0.1:3000")]
         addr: String,
     },
+    /// Run spec-level tests defined in test blocks
+    Test {
+        /// Path to the .intent file
+        file: PathBuf,
+        /// Run only tests whose name contains this string
+        #[arg(long)]
+        filter: Option<String>,
+    },
     /// Initialize a new .intent spec file
     Init {
         /// Module name (defaults to directory name)
@@ -846,6 +854,75 @@ fn main() {
                 process::exit(1);
             }
         }
+        Commands::Test { file, filter } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+            let ir = intent_ir::lower_file(&ast);
+
+            // Extract test declarations from AST.
+            let tests: Vec<_> = ast
+                .items
+                .iter()
+                .filter_map(|item| {
+                    if let intent_parser::ast::TopLevelItem::Test(t) = item {
+                        Some(t)
+                    } else {
+                        None
+                    }
+                })
+                .filter(|t| filter.as_ref().is_none_or(|f| t.name.contains(f.as_str())))
+                .collect();
+
+            if tests.is_empty() {
+                if filter.is_some() {
+                    eprintln!("No tests matching filter in {}", file.display());
+                } else {
+                    eprintln!("No test blocks found in {}", file.display());
+                }
+                process::exit(1);
+            }
+
+            let results = intent_runtime::run_tests(&ir, &tests);
+            let passed = results.iter().filter(|r| r.passed).count();
+            let failed = results.iter().filter(|r| !r.passed).count();
+
+            if json {
+                json_out(&TestResultOutput {
+                    total: results.len(),
+                    passed,
+                    failed,
+                    results: results
+                        .iter()
+                        .map(|r| TestResultEntry {
+                            name: r.name.clone(),
+                            passed: r.passed,
+                            message: r.message.clone(),
+                        })
+                        .collect(),
+                });
+                if failed > 0 {
+                    process::exit(1);
+                }
+            } else {
+                for r in &results {
+                    if r.passed {
+                        println!("  PASS  {}", r.name);
+                    } else {
+                        println!("  FAIL  {}", r.name);
+                        if let Some(msg) = &r.message {
+                            println!("        {msg}");
+                        }
+                    }
+                }
+                println!();
+                if failed > 0 {
+                    println!("{passed} passed, {failed} failed ({} total)", results.len());
+                    process::exit(1);
+                } else {
+                    println!("{passed} passed ({} total)", results.len());
+                }
+            }
+        }
         Commands::Init { name, out } => {
             let module_name = name.unwrap_or_else(|| {
                 std::env::current_dir()
@@ -891,6 +968,22 @@ struct VerifyResult {
     obligations: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     incremental: Option<intent_ir::IncrementalStats>,
+}
+
+#[derive(Serialize)]
+struct TestResultOutput {
+    total: usize,
+    passed: usize,
+    failed: usize,
+    results: Vec<TestResultEntry>,
+}
+
+#[derive(Serialize)]
+struct TestResultEntry {
+    name: String,
+    passed: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message: Option<String>,
 }
 
 // ── Cache helpers ─────────────────────────────────────────

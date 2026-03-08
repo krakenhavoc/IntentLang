@@ -40,6 +40,7 @@ pub fn render(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => render_action(&mut body, a),
             ast::TopLevelItem::Invariant(i) => render_invariant(&mut body, i),
             ast::TopLevelItem::EdgeCases(ec) => render_edge_cases(&mut body, ec),
+            ast::TopLevelItem::Test(_) => {} // Tests are not rendered
         }
     }
 

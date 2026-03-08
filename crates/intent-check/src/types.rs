@@ -141,7 +141,7 @@ fn import_all_from(file: &ast::File, env: &mut TypeEnv) {
             TopLevelItem::Invariant(inv) => {
                 env.invariants.entry(inv.name.clone()).or_insert(inv.span);
             }
-            TopLevelItem::EdgeCases(_) => {}
+            TopLevelItem::EdgeCases(_) | TopLevelItem::Test(_) => {}
         }
     }
 }
@@ -250,7 +250,7 @@ fn collect_definitions(file: &ast::File, env: &mut TypeEnv, errors: &mut Vec<Che
                     env.invariants.insert(inv.name.clone(), inv.span);
                 }
             }
-            TopLevelItem::EdgeCases(_) => {}
+            TopLevelItem::EdgeCases(_) | TopLevelItem::Test(_) => {}
         }
     }
 }

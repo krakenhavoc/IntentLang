@@ -1751,10 +1751,1110 @@ expression: ast
           "end": 2256
         }
       }
+    },
+    {
+      "Test": {
+        "name": "successful transfer",
+        "given": [
+          {
+            "name": "from",
+            "value": {
+              "EntityConstructor": {
+                "type_name": "Account",
+                "fields": [
+                  {
+                    "name": "id",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "acc-1"
+                        }
+                      },
+                      "span": {
+                        "start": 2322,
+                        "end": 2329
+                      }
+                    },
+                    "span": {
+                      "start": 2318,
+                      "end": 2329
+                    }
+                  },
+                  {
+                    "name": "owner",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "Alice"
+                        }
+                      },
+                      "span": {
+                        "start": 2338,
+                        "end": 2345
+                      }
+                    },
+                    "span": {
+                      "start": 2331,
+                      "end": 2345
+                    }
+                  },
+                  {
+                    "name": "balance",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "Decimal": "1000.00"
+                        }
+                      },
+                      "span": {
+                        "start": 2356,
+                        "end": 2363
+                      }
+                    },
+                    "span": {
+                      "start": 2347,
+                      "end": 2363
+                    }
+                  },
+                  {
+                    "name": "currency",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "USD"
+                        }
+                      },
+                      "span": {
+                        "start": 2375,
+                        "end": 2380
+                      }
+                    },
+                    "span": {
+                      "start": 2365,
+                      "end": 2380
+                    }
+                  },
+                  {
+                    "name": "status",
+                    "value": {
+                      "kind": {
+                        "Ident": "Active"
+                      },
+                      "span": {
+                        "start": 2390,
+                        "end": 2396
+                      }
+                    },
+                    "span": {
+                      "start": 2382,
+                      "end": 2396
+                    }
+                  },
+                  {
+                    "name": "created_at",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "2024-01-01"
+                        }
+                      },
+                      "span": {
+                        "start": 2410,
+                        "end": 2423
+                      }
+                    },
+                    "span": {
+                      "start": 2398,
+                      "end": 2423
+                    }
+                  }
+                ]
+              }
+            },
+            "span": {
+              "start": 2301,
+              "end": 2424
+            }
+          },
+          {
+            "name": "to",
+            "value": {
+              "EntityConstructor": {
+                "type_name": "Account",
+                "fields": [
+                  {
+                    "name": "id",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "acc-2"
+                        }
+                      },
+                      "span": {
+                        "start": 2448,
+                        "end": 2455
+                      }
+                    },
+                    "span": {
+                      "start": 2444,
+                      "end": 2455
+                    }
+                  },
+                  {
+                    "name": "owner",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "Bob"
+                        }
+                      },
+                      "span": {
+                        "start": 2464,
+                        "end": 2469
+                      }
+                    },
+                    "span": {
+                      "start": 2457,
+                      "end": 2469
+                    }
+                  },
+                  {
+                    "name": "balance",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "Decimal": "500.00"
+                        }
+                      },
+                      "span": {
+                        "start": 2480,
+                        "end": 2486
+                      }
+                    },
+                    "span": {
+                      "start": 2471,
+                      "end": 2486
+                    }
+                  },
+                  {
+                    "name": "currency",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "USD"
+                        }
+                      },
+                      "span": {
+                        "start": 2498,
+                        "end": 2503
+                      }
+                    },
+                    "span": {
+                      "start": 2488,
+                      "end": 2503
+                    }
+                  },
+                  {
+                    "name": "status",
+                    "value": {
+                      "kind": {
+                        "Ident": "Active"
+                      },
+                      "span": {
+                        "start": 2513,
+                        "end": 2519
+                      }
+                    },
+                    "span": {
+                      "start": 2505,
+                      "end": 2519
+                    }
+                  },
+                  {
+                    "name": "created_at",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "2024-01-01"
+                        }
+                      },
+                      "span": {
+                        "start": 2533,
+                        "end": 2546
+                      }
+                    },
+                    "span": {
+                      "start": 2521,
+                      "end": 2546
+                    }
+                  }
+                ]
+              }
+            },
+            "span": {
+              "start": 2429,
+              "end": 2547
+            }
+          }
+        ],
+        "when_action": {
+          "action_name": "Transfer",
+          "args": [
+            {
+              "name": "from",
+              "value": {
+                "kind": {
+                  "Ident": "from"
+                },
+                "span": {
+                  "start": 2580,
+                  "end": 2584
+                }
+              },
+              "span": {
+                "start": 2574,
+                "end": 2584
+              }
+            },
+            {
+              "name": "to",
+              "value": {
+                "kind": {
+                  "Ident": "to"
+                },
+                "span": {
+                  "start": 2594,
+                  "end": 2596
+                }
+              },
+              "span": {
+                "start": 2590,
+                "end": 2596
+              }
+            },
+            {
+              "name": "amount",
+              "value": {
+                "kind": {
+                  "Literal": {
+                    "Decimal": "200.00"
+                  }
+                },
+                "span": {
+                  "start": 2610,
+                  "end": 2616
+                }
+              },
+              "span": {
+                "start": 2602,
+                "end": 2616
+              }
+            },
+            {
+              "name": "request_id",
+              "value": {
+                "kind": {
+                  "Literal": {
+                    "String": "req-1"
+                  }
+                },
+                "span": {
+                  "start": 2634,
+                  "end": 2644
+                }
+              },
+              "span": {
+                "start": 2622,
+                "end": 2644
+              }
+            }
+          ],
+          "span": {
+            "start": 2554,
+            "end": 2645
+          }
+        },
+        "then": {
+          "Asserts": [
+            [
+              {
+                "kind": {
+                  "Compare": {
+                    "left": {
+                      "kind": {
+                        "FieldAccess": {
+                          "root": {
+                            "kind": {
+                              "Ident": "from"
+                            },
+                            "span": {
+                              "start": 2659,
+                              "end": 2663
+                            }
+                          },
+                          "fields": [
+                            "balance"
+                          ]
+                        }
+                      },
+                      "span": {
+                        "start": 2659,
+                        "end": 2671
+                      }
+                    },
+                    "op": "Eq",
+                    "right": {
+                      "kind": {
+                        "Literal": {
+                          "Decimal": "800.00"
+                        }
+                      },
+                      "span": {
+                        "start": 2675,
+                        "end": 2686
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 2659,
+                  "end": 2686
+                }
+              },
+              {
+                "kind": {
+                  "Compare": {
+                    "left": {
+                      "kind": {
+                        "FieldAccess": {
+                          "root": {
+                            "kind": {
+                              "Ident": "to"
+                            },
+                            "span": {
+                              "start": 2686,
+                              "end": 2688
+                            }
+                          },
+                          "fields": [
+                            "balance"
+                          ]
+                        }
+                      },
+                      "span": {
+                        "start": 2686,
+                        "end": 2696
+                      }
+                    },
+                    "op": "Eq",
+                    "right": {
+                      "kind": {
+                        "Literal": {
+                          "Decimal": "700.00"
+                        }
+                      },
+                      "span": {
+                        "start": 2700,
+                        "end": 2709
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 2686,
+                  "end": 2709
+                }
+              }
+            ],
+            {
+              "start": 2653,
+              "end": 2710
+            }
+          ]
+        },
+        "span": {
+          "start": 2258,
+          "end": 2712
+        }
+      }
+    },
+    {
+      "Test": {
+        "name": "insufficient funds",
+        "given": [
+          {
+            "name": "from",
+            "value": {
+              "EntityConstructor": {
+                "type_name": "Account",
+                "fields": [
+                  {
+                    "name": "id",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "acc-1"
+                        }
+                      },
+                      "span": {
+                        "start": 2777,
+                        "end": 2784
+                      }
+                    },
+                    "span": {
+                      "start": 2773,
+                      "end": 2784
+                    }
+                  },
+                  {
+                    "name": "owner",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "Alice"
+                        }
+                      },
+                      "span": {
+                        "start": 2793,
+                        "end": 2800
+                      }
+                    },
+                    "span": {
+                      "start": 2786,
+                      "end": 2800
+                    }
+                  },
+                  {
+                    "name": "balance",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "Decimal": "50.00"
+                        }
+                      },
+                      "span": {
+                        "start": 2811,
+                        "end": 2816
+                      }
+                    },
+                    "span": {
+                      "start": 2802,
+                      "end": 2816
+                    }
+                  },
+                  {
+                    "name": "currency",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "USD"
+                        }
+                      },
+                      "span": {
+                        "start": 2828,
+                        "end": 2833
+                      }
+                    },
+                    "span": {
+                      "start": 2818,
+                      "end": 2833
+                    }
+                  },
+                  {
+                    "name": "status",
+                    "value": {
+                      "kind": {
+                        "Ident": "Active"
+                      },
+                      "span": {
+                        "start": 2843,
+                        "end": 2849
+                      }
+                    },
+                    "span": {
+                      "start": 2835,
+                      "end": 2849
+                    }
+                  },
+                  {
+                    "name": "created_at",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "2024-01-01"
+                        }
+                      },
+                      "span": {
+                        "start": 2863,
+                        "end": 2876
+                      }
+                    },
+                    "span": {
+                      "start": 2851,
+                      "end": 2876
+                    }
+                  }
+                ]
+              }
+            },
+            "span": {
+              "start": 2756,
+              "end": 2877
+            }
+          },
+          {
+            "name": "to",
+            "value": {
+              "EntityConstructor": {
+                "type_name": "Account",
+                "fields": [
+                  {
+                    "name": "id",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "acc-2"
+                        }
+                      },
+                      "span": {
+                        "start": 2901,
+                        "end": 2908
+                      }
+                    },
+                    "span": {
+                      "start": 2897,
+                      "end": 2908
+                    }
+                  },
+                  {
+                    "name": "owner",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "Bob"
+                        }
+                      },
+                      "span": {
+                        "start": 2917,
+                        "end": 2922
+                      }
+                    },
+                    "span": {
+                      "start": 2910,
+                      "end": 2922
+                    }
+                  },
+                  {
+                    "name": "balance",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "Decimal": "500.00"
+                        }
+                      },
+                      "span": {
+                        "start": 2933,
+                        "end": 2939
+                      }
+                    },
+                    "span": {
+                      "start": 2924,
+                      "end": 2939
+                    }
+                  },
+                  {
+                    "name": "currency",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "USD"
+                        }
+                      },
+                      "span": {
+                        "start": 2951,
+                        "end": 2956
+                      }
+                    },
+                    "span": {
+                      "start": 2941,
+                      "end": 2956
+                    }
+                  },
+                  {
+                    "name": "status",
+                    "value": {
+                      "kind": {
+                        "Ident": "Active"
+                      },
+                      "span": {
+                        "start": 2966,
+                        "end": 2972
+                      }
+                    },
+                    "span": {
+                      "start": 2958,
+                      "end": 2972
+                    }
+                  },
+                  {
+                    "name": "created_at",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "2024-01-01"
+                        }
+                      },
+                      "span": {
+                        "start": 2986,
+                        "end": 2999
+                      }
+                    },
+                    "span": {
+                      "start": 2974,
+                      "end": 2999
+                    }
+                  }
+                ]
+              }
+            },
+            "span": {
+              "start": 2882,
+              "end": 3000
+            }
+          }
+        ],
+        "when_action": {
+          "action_name": "Transfer",
+          "args": [
+            {
+              "name": "from",
+              "value": {
+                "kind": {
+                  "Ident": "from"
+                },
+                "span": {
+                  "start": 3033,
+                  "end": 3037
+                }
+              },
+              "span": {
+                "start": 3027,
+                "end": 3037
+              }
+            },
+            {
+              "name": "to",
+              "value": {
+                "kind": {
+                  "Ident": "to"
+                },
+                "span": {
+                  "start": 3047,
+                  "end": 3049
+                }
+              },
+              "span": {
+                "start": 3043,
+                "end": 3049
+              }
+            },
+            {
+              "name": "amount",
+              "value": {
+                "kind": {
+                  "Literal": {
+                    "Decimal": "200.00"
+                  }
+                },
+                "span": {
+                  "start": 3063,
+                  "end": 3069
+                }
+              },
+              "span": {
+                "start": 3055,
+                "end": 3069
+              }
+            },
+            {
+              "name": "request_id",
+              "value": {
+                "kind": {
+                  "Literal": {
+                    "String": "req-2"
+                  }
+                },
+                "span": {
+                  "start": 3087,
+                  "end": 3097
+                }
+              },
+              "span": {
+                "start": 3075,
+                "end": 3097
+              }
+            }
+          ],
+          "span": {
+            "start": 3007,
+            "end": 3098
+          }
+        },
+        "then": {
+          "Fails": [
+            "precondition",
+            {
+              "start": 3106,
+              "end": 3124
+            }
+          ]
+        },
+        "span": {
+          "start": 2714,
+          "end": 3126
+        }
+      }
+    },
+    {
+      "Test": {
+        "name": "frozen account rejected",
+        "given": [
+          {
+            "name": "from",
+            "value": {
+              "EntityConstructor": {
+                "type_name": "Account",
+                "fields": [
+                  {
+                    "name": "id",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "acc-1"
+                        }
+                      },
+                      "span": {
+                        "start": 3196,
+                        "end": 3203
+                      }
+                    },
+                    "span": {
+                      "start": 3192,
+                      "end": 3203
+                    }
+                  },
+                  {
+                    "name": "owner",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "Alice"
+                        }
+                      },
+                      "span": {
+                        "start": 3212,
+                        "end": 3219
+                      }
+                    },
+                    "span": {
+                      "start": 3205,
+                      "end": 3219
+                    }
+                  },
+                  {
+                    "name": "balance",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "Decimal": "1000.00"
+                        }
+                      },
+                      "span": {
+                        "start": 3230,
+                        "end": 3237
+                      }
+                    },
+                    "span": {
+                      "start": 3221,
+                      "end": 3237
+                    }
+                  },
+                  {
+                    "name": "currency",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "USD"
+                        }
+                      },
+                      "span": {
+                        "start": 3249,
+                        "end": 3254
+                      }
+                    },
+                    "span": {
+                      "start": 3239,
+                      "end": 3254
+                    }
+                  },
+                  {
+                    "name": "status",
+                    "value": {
+                      "kind": {
+                        "Ident": "Frozen"
+                      },
+                      "span": {
+                        "start": 3264,
+                        "end": 3270
+                      }
+                    },
+                    "span": {
+                      "start": 3256,
+                      "end": 3270
+                    }
+                  },
+                  {
+                    "name": "created_at",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "2024-01-01"
+                        }
+                      },
+                      "span": {
+                        "start": 3284,
+                        "end": 3297
+                      }
+                    },
+                    "span": {
+                      "start": 3272,
+                      "end": 3297
+                    }
+                  }
+                ]
+              }
+            },
+            "span": {
+              "start": 3175,
+              "end": 3298
+            }
+          },
+          {
+            "name": "to",
+            "value": {
+              "EntityConstructor": {
+                "type_name": "Account",
+                "fields": [
+                  {
+                    "name": "id",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "acc-2"
+                        }
+                      },
+                      "span": {
+                        "start": 3322,
+                        "end": 3329
+                      }
+                    },
+                    "span": {
+                      "start": 3318,
+                      "end": 3329
+                    }
+                  },
+                  {
+                    "name": "owner",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "Bob"
+                        }
+                      },
+                      "span": {
+                        "start": 3338,
+                        "end": 3343
+                      }
+                    },
+                    "span": {
+                      "start": 3331,
+                      "end": 3343
+                    }
+                  },
+                  {
+                    "name": "balance",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "Decimal": "500.00"
+                        }
+                      },
+                      "span": {
+                        "start": 3354,
+                        "end": 3360
+                      }
+                    },
+                    "span": {
+                      "start": 3345,
+                      "end": 3360
+                    }
+                  },
+                  {
+                    "name": "currency",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "USD"
+                        }
+                      },
+                      "span": {
+                        "start": 3372,
+                        "end": 3377
+                      }
+                    },
+                    "span": {
+                      "start": 3362,
+                      "end": 3377
+                    }
+                  },
+                  {
+                    "name": "status",
+                    "value": {
+                      "kind": {
+                        "Ident": "Active"
+                      },
+                      "span": {
+                        "start": 3387,
+                        "end": 3393
+                      }
+                    },
+                    "span": {
+                      "start": 3379,
+                      "end": 3393
+                    }
+                  },
+                  {
+                    "name": "created_at",
+                    "value": {
+                      "kind": {
+                        "Literal": {
+                          "String": "2024-01-01"
+                        }
+                      },
+                      "span": {
+                        "start": 3407,
+                        "end": 3420
+                      }
+                    },
+                    "span": {
+                      "start": 3395,
+                      "end": 3420
+                    }
+                  }
+                ]
+              }
+            },
+            "span": {
+              "start": 3303,
+              "end": 3421
+            }
+          }
+        ],
+        "when_action": {
+          "action_name": "Transfer",
+          "args": [
+            {
+              "name": "from",
+              "value": {
+                "kind": {
+                  "Ident": "from"
+                },
+                "span": {
+                  "start": 3454,
+                  "end": 3458
+                }
+              },
+              "span": {
+                "start": 3448,
+                "end": 3458
+              }
+            },
+            {
+              "name": "to",
+              "value": {
+                "kind": {
+                  "Ident": "to"
+                },
+                "span": {
+                  "start": 3468,
+                  "end": 3470
+                }
+              },
+              "span": {
+                "start": 3464,
+                "end": 3470
+              }
+            },
+            {
+              "name": "amount",
+              "value": {
+                "kind": {
+                  "Literal": {
+                    "Decimal": "100.00"
+                  }
+                },
+                "span": {
+                  "start": 3484,
+                  "end": 3490
+                }
+              },
+              "span": {
+                "start": 3476,
+                "end": 3490
+              }
+            },
+            {
+              "name": "request_id",
+              "value": {
+                "kind": {
+                  "Literal": {
+                    "String": "req-3"
+                  }
+                },
+                "span": {
+                  "start": 3508,
+                  "end": 3518
+                }
+              },
+              "span": {
+                "start": 3496,
+                "end": 3518
+              }
+            }
+          ],
+          "span": {
+            "start": 3428,
+            "end": 3519
+          }
+        },
+        "then": {
+          "Fails": [
+            "precondition",
+            {
+              "start": 3527,
+              "end": 3545
+            }
+          ]
+        },
+        "span": {
+          "start": 3128,
+          "end": 3547
+        }
+      }
     }
   ],
   "span": {
     "start": 0,
-    "end": 2257
+    "end": 3548
   }
 }
