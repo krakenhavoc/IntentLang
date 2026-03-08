@@ -61,6 +61,42 @@ The LSP server (`intent-lsp`) runs as a stdio process. When you open a `.intent`
 
 For files with `use` imports, the server resolves imported modules from disk and runs cross-module type checking.
 
+## Cursor
+
+[Cursor](https://cursor.com/) is a VS Code fork with built-in AI features. The IntentLang extension works identically in Cursor since it is fully compatible with VS Code extensions.
+
+### Setup
+
+The setup process is the same as VS Code:
+
+1. **Install the LSP server** (see [above](#1-install-the-lsp-server))
+2. **Build the extension**:
+   ```bash
+   cd editors/vscode
+   npm install
+   npm run compile
+   ```
+3. **Install the extension**: In Cursor, open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) > "Developer: Install Extension from Location..." > select the `editors/vscode/` directory.
+4. **Open a `.intent` file** and the extension activates automatically.
+
+### Configuration
+
+All VS Code settings work the same in Cursor:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `intentlang.server.path` | `""` (uses PATH) | Path to the `intent-lsp` binary |
+| `intentlang.server.enabled` | `true` | Enable/disable the LSP server |
+
+### Cursor Rules for AI-Assisted Development
+
+The IntentLang repo includes `.cursor/rules/` files that teach Cursor's AI about the project:
+
+- **`intentlang-syntax.mdc`** -- Activates for `.intent` files. Teaches Cursor's AI the IntentLang syntax, type system, expression grammar, and common mistakes to avoid. Enables AI-assisted writing and editing of `.intent` specs.
+- **`project-conventions.mdc`** -- Activates for Rust source files and `.pest` grammar files. Teaches Cursor's AI the codebase structure, crate responsibilities, dependency graph, and development conventions.
+
+These rules are checked into the repository so all contributors get them automatically.
+
 ## Without the LSP
 
 If the `intent-lsp` binary is not installed, you still get:
