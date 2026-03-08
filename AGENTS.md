@@ -85,6 +85,11 @@ cargo run -p intent-cli -- openapi examples/transfer.intent -o transfer-api.json
 cargo run -p intent-cli -- codegen examples/transfer.intent --lang rust
 cargo run -p intent-cli -- codegen examples/transfer.intent --lang go --out-dir ./generated
 
+# Generate a full implementation from a spec using AI
+AI_API_KEY=... cargo run -p intent-cli -- implement examples/transfer.intent --lang rust
+cargo run -p intent-cli -- implement examples/transfer.intent --lang python -o ./generated
+cargo run -p intent-cli -- implement examples/transfer.intent --lang typescript --debug
+
 # JSON output (for agent consumption)
 cargo run -p intent-cli -- --output json check examples/transfer.intent
 ```
@@ -103,7 +108,8 @@ intentlang/
     intent-runtime/          -- Stateless runtime & HTTP server
     intent-lsp/              -- Language Server Protocol server (diagnostics, hover, go-to-def, completion)
     intent-codegen/          -- Skeleton code generator (Rust, TypeScript, Python, Go)
-    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status, fmt, init, completions, generate, serve, codegen, openapi
+    intent-implement/        -- AI-powered implementation generator (LLM + spec -> full code)
+    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status, fmt, init, completions, generate, serve, codegen, openapi, implement
   editors/vscode/            -- VSCode extension (syntax highlighting, snippets, LSP client)
   examples/                  -- Example .intent files
   tests/valid/               -- Specs that must parse and pass checks
@@ -114,8 +120,9 @@ intentlang/
 ### Crate Dependency Graph
 
 ```
-intent-cli -> intent-parser, intent-check, intent-render, intent-ir, intent-gen, intent-runtime, intent-codegen
+intent-cli -> intent-parser, intent-check, intent-render, intent-ir, intent-gen, intent-runtime, intent-codegen, intent-implement
 intent-lsp -> intent-parser, intent-check (for diagnostics, hover, navigation)
+intent-implement -> intent-parser, intent-codegen, intent-gen
 intent-gen -> intent-parser, intent-check (for validation loop)
 intent-runtime -> intent-ir (for contract evaluation)
 intent-ir -> intent-parser
@@ -903,7 +910,7 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 
 **IR (intent-ir)**: Lowers AST to a typed intermediate representation (structs, functions, invariants, edge guards). Every IR node carries a `SourceTrace { module, item, part, span }` for audit tracing. Modules: `lower` (AST->IR), `verify` (structural + coherence), `audit` (trace maps + coverage), `diff` (spec-level diffs), `incremental` (cached per-item verification), `lock` (multi-agent spec-item claiming).
 
-**Generator (intent-gen)**: Translates natural language to `.intent` specs via LLM. Uses OpenAI-compatible chat completions API via `ureq` (configurable base URL + model). Includes a generate-check-retry loop: generates spec, validates via parser/checker, feeds errors back to LLM for correction (max 2 retries). Supports `--confidence 1-5` levels, `--edit` for modifying existing specs, and `--diff` for patch output. Config: `AI_API_KEY`, `AI_API_BASE`, `AI_MODEL` env vars.
+**Generator (intent-gen)**: Translates natural language to `.intent` specs via LLM. Uses OpenAI-compatible chat completions API via `ureq` (configurable base URL + model). Includes a generate-check-retry loop: generates spec, validates via parser/checker, feeds errors back to LLM for correction (max 2 retries). Supports `--confidence 1-5` levels, `--edit` for modifying existing specs, and `--diff` for patch output. Config: `AI_API_KEY`, `AI_API_BASE`, `AI_MODEL`, `AI_TIMEOUT` env vars.
 
 **Runtime (intent-runtime)**: Stateless execution engine. Evaluates expressions against concrete JSON values, enforces preconditions/postconditions/invariants, and auto-generates REST endpoints from actions. `old()` semantics via snapshot-and-compare.
 
@@ -913,7 +920,9 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 
 **Codegen (intent-codegen)**: Generates typed skeleton code and OpenAPI 3.0 specs from AST (not IR, to preserve doc blocks and human-readable names). Per-language modules (`rust.rs`, `typescript.rs`, `python.rs`, `go.rs`) with shared type mapping (`types.rs`) and expression formatting (`lib.rs`). Reserved keyword escaping: Rust uses `r#keyword`, Python uses `keyword_` suffix, Go uses `keyword_` suffix. Smart imports, union type mapping (Rust enums, TS string literals, Python Literal types, Go string type aliases with const blocks and validation methods). Go output uses JSON struct tags and PascalCase exported fields. OpenAPI generator (`openapi.rs`) maps entities to JSON Schema components and actions to `POST /actions/{Name}` endpoints.
 
-**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`, `generate`, `serve`, `codegen`, `openapi`. Global `--output json` flag for agent consumption. Commands that operate on specs (`check`, `compile`, `verify`, `serve`) automatically resolve module imports when `use` declarations are present.
+**Implement (intent-implement)**: AI-powered full implementation generation from specs. Builds prompt context (spec source, skeleton code, contracts summary), sends to LLM via intent-gen client, validates output (expected names, balanced delimiters, no leftover stubs), retries with error feedback. Supports Rust, TypeScript, Python targets. CLI: `implement`.
+
+**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`, `generate`, `serve`, `codegen`, `openapi`, `implement`. Global `--output json` flag for agent consumption. Commands that operate on specs (`check`, `compile`, `verify`, `serve`) automatically resolve module imports when `use` declarations are present.
 
 ## Key Dependencies
 
@@ -939,13 +948,14 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage (285 total)
+## Current Test Coverage (309 total)
 
 - 31 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files, 5 cross-module import tests)
 - 28 parser tests (12 unit + 7 insta snapshot + 7 module resolver + 2 example parsing)
 - 74 IR tests: 13 lowering + 11 verification + 6 coherence + 9 audit + 13 diff + 11 incremental + 11 lock
 - 49 runtime tests: 7 contract + 42 expression evaluator
 - 74 codegen tests (43 skeleton + 31 OpenAPI): naming helpers + Rust/TypeScript/Python/Go entity/action/type mapping + OpenAPI spec generation + full example files
+- 24 intent-implement tests: prompt building, output validation, LLM integration, retry with error feedback
 - 23 LSP tests: 8 document/line-index + 5 diagnostics + 4 hover + 3 navigation + 3 completion
 - 6 intent-gen tests: 3 strip_fences + 3 validate_spec
 - Fixtures: 4 valid, 9 invalid + 6 example files + 2 multi-module example files
@@ -968,4 +978,4 @@ Phase 6 (complete): Stateless runtime -- expression evaluator, contract evaluati
 
 Phase 7 (complete): Module imports -- `use` syntax, module resolver, cross-module type checking. Multi-file composition for real-world projects.
 
-Phase 8 (in progress): Code Generation -- skeleton codegen for Rust, TypeScript, Python, Go shipped. CLI: `codegen`. Planned: Java, C#, Swift targets. AI-powered `intent implement` (LLM generates full implementations from spec contracts).
+Phase 8 (in progress): Code Generation -- skeleton codegen for Rust, TypeScript, Python, Go shipped. AI-powered `intent implement` shipped (LLM generates full implementations from spec contracts). CLI: `codegen`, `implement`. Planned: Java, C#, Swift targets.
