@@ -55,9 +55,7 @@ fn capitalize(s: &str) -> String {
 
 /// Convert a snake_case or lowercase name to PascalCase (exported Go identifier).
 fn to_pascal_case(s: &str) -> String {
-    s.split('_')
-        .map(capitalize)
-        .collect::<String>()
+    s.split('_').map(capitalize).collect::<String>()
 }
 
 /// Convert a field name to a JSON struct tag value (camelCase).
