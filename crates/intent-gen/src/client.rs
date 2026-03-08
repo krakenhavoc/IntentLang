@@ -131,8 +131,7 @@ impl LlmClient {
             req.set("Authorization", &format!("Bearer {}", self.config.api_key))
         };
 
-        let response = req
-            .send_json(serde_json::to_value(&body).map_err(ApiError::Serialization)?);
+        let response = req.send_json(serde_json::to_value(&body).map_err(ApiError::Serialization)?);
 
         let response = match response {
             Ok(r) => r,

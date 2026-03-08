@@ -1119,7 +1119,9 @@ fn main() {
                 CodegenLang::Typescript => intent_codegen::Language::TypeScript,
                 CodegenLang::Python => intent_codegen::Language::Python,
                 CodegenLang::Go => {
-                    eprintln!("error: Go is not yet supported for `implement` (use `codegen` for skeleton stubs)");
+                    eprintln!(
+                        "error: Go is not yet supported for `implement` (use `codegen` for skeleton stubs)"
+                    );
                     process::exit(1);
                 }
             };
@@ -1133,8 +1135,7 @@ fn main() {
             match intent_implement::implement(&client, &ast, &options) {
                 Ok(code) => {
                     if let Some(out_dir) = out_dir {
-                        let filename =
-                            intent_codegen::output_filename(&ast.module.name, il_lang);
+                        let filename = intent_codegen::output_filename(&ast.module.name, il_lang);
                         let out_path = out_dir.join(filename);
                         if let Some(parent) = out_path.parent() {
                             fs::create_dir_all(parent).ok();
