@@ -100,6 +100,7 @@ pub fn implement_with_retry(
 /// 1. Expected entity/action names are present
 /// 2. Delimiters are balanced
 /// 3. No leftover `todo!()` / `throw "not implemented"` / `raise NotImplementedError` stubs
+/// 4. Contract test functions are present (if spec has test blocks)
 pub fn validate_output(code: &str, file: &ast::File, lang: Language) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
 
@@ -120,6 +121,14 @@ pub fn validate_output(code: &str, file: &ast::File, lang: Language) -> Result<(
     let stubs = leftover_stubs(code, lang);
     for stub in stubs {
         errors.push(format!("leftover stub found: {stub}"));
+    }
+
+    // Check that contract test functions are present
+    let test_names = intent_codegen::test_harness::expected_test_names(file);
+    for name in &test_names {
+        if !code.contains(name.as_str()) {
+            errors.push(format!("missing contract test: {name}"));
+        }
     }
 
     if errors.is_empty() {
@@ -509,5 +518,50 @@ mod tests {
         assert_eq!(b, 0);
         assert_eq!(p, 0);
         assert_eq!(br, 0);
+    }
+
+    // ── contract test validation ──────────────────────────────
+
+    #[test]
+    fn test_validate_missing_contract_test() {
+        let src = r#"module Test
+
+entity Foo { id: UUID }
+
+action Bar { x: Int }
+
+test "happy path" {
+  given { x = 42 }
+  when Bar { x: x }
+  then { x == 42 }
+}
+"#;
+        let ast = parse(src);
+        // Code has entity + action but missing the contract test function
+        let code = "struct Foo { id: String }\n\nfn bar(x: i64) -> Result<(), String> { Ok(()) }\n";
+        let err = validate_output(code, &ast, Language::Rust).unwrap_err();
+        assert!(
+            err.iter()
+                .any(|e| e.contains("missing contract test: test_happy_path"))
+        );
+    }
+
+    #[test]
+    fn test_validate_with_contract_test_present() {
+        let src = r#"module Test
+
+entity Foo { id: UUID }
+
+action Bar { x: Int }
+
+test "happy path" {
+  given { x = 42 }
+  when Bar { x: x }
+  then { x == 42 }
+}
+"#;
+        let ast = parse(src);
+        let code = "struct Foo { id: String }\n\nfn bar(x: i64) -> Result<(), String> { Ok(()) }\n\n#[cfg(test)]\nmod contract_tests {\n    use super::*;\n    #[test]\n    fn test_happy_path() { assert!(true); }\n}\n";
+        assert!(validate_output(code, &ast, Language::Rust).is_ok());
     }
 }

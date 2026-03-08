@@ -211,6 +211,17 @@ enum Commands {
         #[arg(long)]
         debug: bool,
     },
+    /// Generate contract test harness from spec test blocks
+    TestHarness {
+        /// Path to the .intent file
+        file: PathBuf,
+        /// Target language: rust (default)
+        #[arg(long, short = 'l', value_enum, default_value = "rust")]
+        lang: CodegenLang,
+        /// Output file (default: print to stdout)
+        #[arg(short = 'o', long = "out")]
+        out: Option<PathBuf>,
+    },
     /// Initialize a new .intent spec file
     Init {
         /// Module name (defaults to directory name)
@@ -1157,6 +1168,33 @@ fn main() {
                     eprintln!("error: {e}");
                     process::exit(1);
                 }
+            }
+        }
+        Commands::TestHarness { file, lang, out } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+
+            let il_lang = match lang {
+                CodegenLang::Rust => intent_codegen::Language::Rust,
+                _ => {
+                    eprintln!(
+                        "error: only Rust is currently supported for test harness generation"
+                    );
+                    process::exit(1);
+                }
+            };
+
+            let harness = intent_codegen::test_harness::generate(&ast, il_lang);
+            if harness.is_empty() {
+                eprintln!("No test blocks found in {}", file.display());
+                process::exit(0);
+            }
+
+            if let Some(out_path) = out {
+                write_or_exit(&out_path, &harness);
+                println!("Generated test harness: {}", out_path.display());
+            } else {
+                print!("{harness}");
             }
         }
         Commands::Init { name, out } => {

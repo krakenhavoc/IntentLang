@@ -10,7 +10,9 @@ pub mod java;
 pub mod openapi;
 pub mod python;
 pub mod rust;
+pub mod rust_tests;
 pub mod swift;
+pub mod test_harness;
 mod types;
 pub mod typescript;
 

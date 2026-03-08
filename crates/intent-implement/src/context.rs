@@ -14,6 +14,8 @@ pub struct PromptContext {
     pub skeleton: String,
     /// Human-readable contracts summary.
     pub contracts: String,
+    /// Generated contract test harness (empty if no test blocks in spec).
+    pub test_harness: String,
 }
 
 /// Build the full prompt context from an AST and target language.
@@ -21,11 +23,13 @@ pub fn build_context(file: &ast::File, lang: Language) -> PromptContext {
     let spec_source = intent_render::format::format(file);
     let skeleton = intent_codegen::generate(file, lang);
     let contracts = build_contracts_summary(file);
+    let test_harness = intent_codegen::test_harness::generate(file, lang);
 
     PromptContext {
         spec_source,
         skeleton,
         contracts,
+        test_harness,
     }
 }
 
@@ -137,6 +141,18 @@ mod tests {
         assert!(ctx.skeleton.contains("struct Foo"));
         assert!(ctx.contracts.contains("Action: CreateFoo"));
         assert!(ctx.contracts.contains("name != \"\""));
+        // No test blocks in this spec, so harness is empty
+        assert!(ctx.test_harness.is_empty());
+    }
+
+    #[test]
+    fn test_build_context_includes_test_harness() {
+        let src = "module Test\n\nentity Foo {\n  id: UUID\n}\n\naction CreateFoo {\n  name: String\n}\n\ntest \"creates foo\" {\n  given { n = \"hello\" }\n  when CreateFoo { name: n }\n  then fails\n}\n";
+        let ast = parse(src);
+        let ctx = build_context(&ast, Language::Rust);
+
+        assert!(ctx.test_harness.contains("mod contract_tests"));
+        assert!(ctx.test_harness.contains("test_creates_foo"));
     }
 
     #[test]

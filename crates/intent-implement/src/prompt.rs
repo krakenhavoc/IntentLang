@@ -19,11 +19,12 @@ pub fn system_prompt(lang: Language) -> String {
     )
 }
 
-/// Build the user message with spec, skeleton, and contracts.
+/// Build the user message with spec, skeleton, contracts, and test harness.
 pub fn user_message(context: &PromptContext, lang: Language) -> String {
     let lang_name = language_name(lang);
+    let lang_tag = language_tag(lang);
 
-    format!(
+    let mut msg = format!(
         "Generate a complete {lang_name} implementation for the following IntentLang specification.\n\n\
          ## Specification\n\n\
          ```intent\n{spec}\n```\n\n\
@@ -31,13 +32,28 @@ pub fn user_message(context: &PromptContext, lang: Language) -> String {
          Start from this skeleton and implement all function bodies:\n\n\
          ```{lang_tag}\n{skeleton}\n```\n\n\
          ## Contracts\n\n\
-         {contracts}\n\n\
-         Respond with ONLY the complete source file. No markdown fences, no explanation.",
+         {contracts}",
         spec = context.spec_source.trim(),
-        lang_tag = language_tag(lang),
         skeleton = context.skeleton.trim(),
         contracts = context.contracts.trim(),
-    )
+    );
+
+    if !context.test_harness.is_empty() {
+        msg.push_str(&format!(
+            "\n\n## Contract Tests\n\n\
+             Include this test module at the bottom of your file. \
+             Your implementation MUST make all tests pass. \
+             Entity-typed parameters must accept `&mut` references so tests can \
+             verify postconditions on the mutated state.\n\n\
+             ```{lang_tag}\n{harness}\n```",
+            harness = context.test_harness.trim(),
+        ));
+    }
+
+    msg.push_str(
+        "\n\nRespond with ONLY the complete source file. No markdown fences, no explanation.",
+    );
+    msg
 }
 
 /// Build a retry message with validation errors.
@@ -202,6 +218,7 @@ mod tests {
             spec_source: "module Test\n".to_string(),
             skeleton: "struct Test {}\n".to_string(),
             contracts: "### Action: Foo\n".to_string(),
+            test_harness: String::new(),
         };
         let msg = user_message(&ctx, Language::Rust);
 
@@ -209,6 +226,36 @@ mod tests {
         assert!(msg.contains("struct Test"));
         assert!(msg.contains("Action: Foo"));
         assert!(msg.contains("No markdown fences"));
+    }
+
+    #[test]
+    fn test_user_message_includes_test_harness() {
+        let ctx = crate::context::PromptContext {
+            spec_source: "module Test\n".to_string(),
+            skeleton: "struct Test {}\n".to_string(),
+            contracts: "### Action: Foo\n".to_string(),
+            test_harness: "#[cfg(test)]\nmod contract_tests {\n    fn test_foo() {}\n}\n"
+                .to_string(),
+        };
+        let msg = user_message(&ctx, Language::Rust);
+
+        assert!(msg.contains("Contract Tests"));
+        assert!(msg.contains("mod contract_tests"));
+        assert!(msg.contains("&mut"));
+        assert!(msg.contains("MUST make all tests pass"));
+    }
+
+    #[test]
+    fn test_user_message_skips_empty_harness() {
+        let ctx = crate::context::PromptContext {
+            spec_source: "module Test\n".to_string(),
+            skeleton: "struct Test {}\n".to_string(),
+            contracts: "### Action: Foo\n".to_string(),
+            test_harness: String::new(),
+        };
+        let msg = user_message(&ctx, Language::Rust);
+
+        assert!(!msg.contains("Contract Tests"));
     }
 
     #[test]
