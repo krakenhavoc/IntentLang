@@ -1,3 +1,5 @@
+mod suggest;
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
@@ -261,6 +263,11 @@ enum Commands {
         /// Preview the generated invariant without modifying the file
         #[arg(long)]
         dry_run: bool,
+    },
+    /// Analyze a spec and suggest improvements
+    Suggest {
+        /// Path to the .intent file
+        file: PathBuf,
     },
 }
 
@@ -1317,6 +1324,19 @@ fn main() {
                         dry_run,
                     );
                 }
+            }
+        }
+        Commands::Suggest { file } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+            let result = suggest::analyze(&ast);
+
+            if json {
+                json_out(&result);
+            } else {
+                let output =
+                    suggest::format_human(&result, &file.display().to_string(), &ast.module.name);
+                print!("{output}");
             }
         }
     }
