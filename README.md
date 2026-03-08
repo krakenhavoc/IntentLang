@@ -233,7 +233,7 @@ intent render-html examples/transfer.intent > transfer.html
 
 ## Project Status
 
-**Current release: [v0.5.0-alpha.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.5.0-alpha.1)** — all phases complete, approaching beta.
+**Current release: [v0.6.0-beta.1](https://github.com/krakenhavoc/IntentLang/releases/tag/v0.6.0-beta.1)** — beta: all phases complete, module imports working.
 
 | Phase | Status | What shipped |
 |-------|--------|-------------|
@@ -247,8 +247,8 @@ intent render-html examples/transfer.intent > transfer.html
 
 ### Roadmap to v1.0
 
-- **Alpha** (current) — all phases complete, full toolchain working
-- **Beta** — a small real-world system runs end-to-end
+- **Alpha** — all phases complete, full toolchain working
+- **Beta** (current) — module imports, multi-file composition, API stabilizing
 - **Preview** — post-feedback hardening (if needed)
 - **Stable (v1.0)** — production-ready runtime, stable API
 - **Long-term** — self-hosting: IntentLang compiles itself (compiler spec in `.intent`, agents generate implementation)
