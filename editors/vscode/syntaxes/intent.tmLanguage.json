@@ -1,0 +1,177 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "IntentLang",
+  "scopeName": "source.intent",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#doc-blocks" },
+    { "include": "#strings" },
+    { "include": "#module-declaration" },
+    { "include": "#use-declaration" },
+    { "include": "#entity-declaration" },
+    { "include": "#action-declaration" },
+    { "include": "#invariant-declaration" },
+    { "include": "#edge-cases-declaration" },
+    { "include": "#contract-keywords" },
+    { "include": "#expression-keywords" },
+    { "include": "#literals" },
+    { "include": "#operators" },
+    { "include": "#collection-types" },
+    { "include": "#builtin-types" },
+    { "include": "#type-identifiers" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "match": "//.*$",
+      "name": "comment.line.double-slash.intent"
+    },
+    "doc-blocks": {
+      "match": "^\\s*(---.*)$",
+      "captures": {
+        "1": { "name": "comment.block.documentation.intent" }
+      }
+    },
+    "strings": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.intent",
+      "patterns": [
+        {
+          "match": "\\\\.",
+          "name": "constant.character.escape.intent"
+        }
+      ]
+    },
+    "module-declaration": {
+      "match": "\\b(module)\\s+([A-Z][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.other.module.intent" },
+        "2": { "name": "entity.name.type.module.intent" }
+      }
+    },
+    "use-declaration": {
+      "match": "\\b(use)\\s+([A-Z][A-Za-z0-9_]*)(?:\\.([A-Z][A-Za-z0-9_]*))?",
+      "captures": {
+        "1": { "name": "keyword.control.import.intent" },
+        "2": { "name": "entity.name.type.module.intent" },
+        "3": { "name": "entity.name.type.intent" }
+      }
+    },
+    "entity-declaration": {
+      "match": "\\b(entity)\\s+([A-Z][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.other.entity.intent" },
+        "2": { "name": "entity.name.type.intent" }
+      }
+    },
+    "action-declaration": {
+      "match": "\\b(action)\\s+([A-Z][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.other.action.intent" },
+        "2": { "name": "entity.name.type.intent" }
+      }
+    },
+    "invariant-declaration": {
+      "match": "\\b(invariant)\\s+([A-Z][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.other.invariant.intent" },
+        "2": { "name": "entity.name.type.intent" }
+      }
+    },
+    "edge-cases-declaration": {
+      "match": "\\b(edge_cases)\\b",
+      "name": "keyword.other.edge-cases.intent"
+    },
+    "contract-keywords": {
+      "match": "\\b(requires|ensures|properties)\\b",
+      "name": "keyword.other.contract.intent"
+    },
+    "expression-keywords": {
+      "patterns": [
+        {
+          "match": "\\b(forall|exists)\\b",
+          "name": "keyword.other.quantifier.intent"
+        },
+        {
+          "match": "\\b(old)(?=\\s*\\()",
+          "name": "keyword.other.old.intent"
+        },
+        {
+          "match": "\\b(when)\\b",
+          "name": "keyword.control.when.intent"
+        }
+      ]
+    },
+    "literals": {
+      "patterns": [
+        {
+          "match": "\\b(null)\\b",
+          "name": "constant.language.null.intent"
+        },
+        {
+          "match": "\\b(true|false)\\b",
+          "name": "constant.language.boolean.intent"
+        },
+        {
+          "match": "-?\\b[0-9]+(\\.[0-9]+)?\\b",
+          "name": "constant.numeric.intent"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "match": "=>",
+          "name": "keyword.operator.implies.intent"
+        },
+        {
+          "match": "\\|\\|",
+          "name": "keyword.operator.logical.or.intent"
+        },
+        {
+          "match": "&&",
+          "name": "keyword.operator.logical.and.intent"
+        },
+        {
+          "match": "!(?!=)",
+          "name": "keyword.operator.logical.not.intent"
+        },
+        {
+          "match": "==|!=|>=|<=|>|<",
+          "name": "keyword.operator.comparison.intent"
+        },
+        {
+          "match": "[+\\-]",
+          "name": "keyword.operator.arithmetic.intent"
+        },
+        {
+          "match": "\\?",
+          "name": "keyword.operator.optional.intent"
+        },
+        {
+          "comment": "Union type separator — single pipe, not double",
+          "match": "\\|(?!\\|)",
+          "name": "keyword.operator.union.intent"
+        }
+      ]
+    },
+    "collection-types": {
+      "match": "\\b(List|Set|Map)\\b",
+      "name": "support.type.collection.intent"
+    },
+    "builtin-types": {
+      "match": "\\b(UUID|String|Int|Decimal|Bool|DateTime|CurrencyCode|Email|URL)\\b",
+      "name": "support.type.builtin.intent"
+    },
+    "type-identifiers": {
+      "comment": "PascalCase identifiers in non-declaration positions — type references, union variants",
+      "match": "\\b([A-Z][A-Za-z0-9_]*)\\b",
+      "name": "entity.name.type.intent"
+    },
+    "identifiers": {
+      "match": "\\b([a-z_][a-zA-Z0-9_]*)\\b",
+      "name": "variable.other.intent"
+    }
+  }
+}

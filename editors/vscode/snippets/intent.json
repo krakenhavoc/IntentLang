@@ -1,0 +1,149 @@
+{
+  "Module Declaration": {
+    "prefix": "module",
+    "body": [
+      "module ${1:ModuleName}",
+      "",
+      "--- ${2:Module description}",
+      "",
+      "$0"
+    ],
+    "description": "Declare a new IntentLang module"
+  },
+  "Import Module": {
+    "prefix": "use",
+    "body": [
+      "use ${1:ModuleName}"
+    ],
+    "description": "Import a module"
+  },
+  "Import Selective": {
+    "prefix": "use.",
+    "body": [
+      "use ${1:ModuleName}.${2:ItemName}"
+    ],
+    "description": "Import a specific item from a module"
+  },
+  "Entity": {
+    "prefix": "entity",
+    "body": [
+      "entity ${1:EntityName} {",
+      "  ${2:field}: ${3:Type}",
+      "  $0",
+      "}"
+    ],
+    "description": "Define an entity with typed fields"
+  },
+  "Action": {
+    "prefix": "action",
+    "body": [
+      "action ${1:ActionName} {",
+      "  ${2:param}: ${3:Type}",
+      "",
+      "  requires {",
+      "    ${4:// preconditions}",
+      "  }",
+      "",
+      "  ensures {",
+      "    ${5:// postconditions}",
+      "  }",
+      "}"
+    ],
+    "description": "Define an action with requires/ensures contracts"
+  },
+  "Action with Properties": {
+    "prefix": "actionp",
+    "body": [
+      "action ${1:ActionName} {",
+      "  ${2:param}: ${3:Type}",
+      "",
+      "  requires {",
+      "    ${4:// preconditions}",
+      "  }",
+      "",
+      "  ensures {",
+      "    ${5:// postconditions}",
+      "  }",
+      "",
+      "  properties {",
+      "    ${6:key}: ${7:value}",
+      "  }",
+      "}"
+    ],
+    "description": "Define an action with requires/ensures and properties"
+  },
+  "Invariant": {
+    "prefix": "invariant",
+    "body": [
+      "invariant ${1:InvariantName} {",
+      "  forall ${2:x}: ${3:Type} => ${4:predicate}",
+      "}"
+    ],
+    "description": "Define an invariant with a universal constraint"
+  },
+  "Edge Cases": {
+    "prefix": "edge_cases",
+    "body": [
+      "edge_cases {",
+      "  when ${1:condition} => ${2:ActionName}",
+      "  $0",
+      "}"
+    ],
+    "description": "Define edge case handlers"
+  },
+  "Requires Block": {
+    "prefix": "requires",
+    "body": [
+      "requires {",
+      "  ${1:// preconditions}",
+      "}"
+    ],
+    "description": "Precondition block"
+  },
+  "Ensures Block": {
+    "prefix": "ensures",
+    "body": [
+      "ensures {",
+      "  ${1:// postconditions}",
+      "}"
+    ],
+    "description": "Postcondition block"
+  },
+  "Properties Block": {
+    "prefix": "properties",
+    "body": [
+      "properties {",
+      "  ${1:key}: ${2:value}",
+      "}"
+    ],
+    "description": "Properties block for metadata"
+  },
+  "Forall": {
+    "prefix": "forall",
+    "body": [
+      "forall ${1:x}: ${2:Type} => ${3:predicate}"
+    ],
+    "description": "Universal quantifier"
+  },
+  "Exists": {
+    "prefix": "exists",
+    "body": [
+      "exists ${1:x}: ${2:Type} => ${3:predicate}"
+    ],
+    "description": "Existential quantifier"
+  },
+  "Doc Block": {
+    "prefix": "---",
+    "body": [
+      "--- ${1:Documentation text}"
+    ],
+    "description": "Documentation block"
+  },
+  "Decimal Type": {
+    "prefix": "Decimal",
+    "body": [
+      "Decimal(precision: ${1:2})"
+    ],
+    "description": "Decimal type with precision"
+  }
+}
