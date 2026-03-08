@@ -210,6 +210,22 @@ mod tests {
         let py = system_prompt(Language::Python);
         assert!(py.contains("Python"));
         assert!(py.contains("raise ValueError"));
+
+        let go = system_prompt(Language::Go);
+        assert!(go.contains("Go"));
+        assert!(go.contains("fmt.Errorf"));
+
+        let java = system_prompt(Language::Java);
+        assert!(java.contains("Java"));
+        assert!(java.contains("IllegalArgumentException"));
+
+        let cs = system_prompt(Language::CSharp);
+        assert!(cs.contains("C#"));
+        assert!(cs.contains("ArgumentException"));
+
+        let swift = system_prompt(Language::Swift);
+        assert!(swift.contains("Swift"));
+        assert!(swift.contains("preconditionFailure"));
     }
 
     #[test]

@@ -218,7 +218,7 @@ edge_cases {
 - **Phase 5**: Language Polish & NL Generation — `fmt`, `init`, `completions`, list literals. `intent generate` for NL → `.intent` via LLM (Layer 0).
 - **Phase 6**: Stateless Runtime — expression evaluator, contract evaluation, HTTP server. CLI: `serve`.
 - **Phase 7**: Module Imports — `use` syntax, module resolver (DFS + cycle detection), cross-module type checking, multi-file composition.
-- **Phase 8** (in progress): Code Generation — skeleton codegen (`intent codegen`, Rust/TypeScript/Python/Go/Java/C#/Swift), AI-powered implementation generation (`intent implement`, Rust/TypeScript/Python).
+- **Phase 8** (in progress): Code Generation — skeleton codegen (`intent codegen`, Rust/TypeScript/Python/Go/Java/C#/Swift), AI-powered implementation generation (`intent implement`, Rust/TypeScript/Python/Go/Java/C#/Swift).
 
 ### Codegen Roadmap
 
@@ -235,7 +235,7 @@ edge_cases {
 | Swift | Shipped | Structs with Codable, String-backed enums, `throws` functions, Foundation imports |
 | IntentLang | Planned (self-hosting) | Generate `.intent` specs from `.intent` specs |
 
-**AI-powered codegen** (`intent implement`, planned) — uses LLM to generate full implementations from specs, with contracts as constraints. Same generate-check loop as `intent-gen` but in reverse (spec → code instead of NL → spec).
+**AI-powered codegen** (`intent implement`) — uses LLM to generate full implementations from specs, with contracts as constraints. Same generate-check loop as `intent-gen` but in reverse (spec → code instead of NL → spec). Supports all 7 target languages.
 
 ### Long-Term: Self-Hosting
 IntentLang compiles itself — the compiler's spec is written in `.intent` files, agents generate the implementation, the audit bridge verifies conformance. Not a near-term priority, but a planned goal. See the Self-Hosting Roadmap section below for stages and invariants.

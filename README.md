@@ -275,20 +275,20 @@ intent render-html examples/transfer.intent > transfer.html
 | Phase 5 | Complete | Language polish (`fmt`, `init`, `completions`), NL generation (`intent generate`) |
 | Phase 6 | Complete | Stateless runtime — `intent serve`, expression evaluator, REST API from specs |
 | Phase 7 | Complete | Module imports (`use`), multi-file composition, cross-module type checking |
-| Phase 8 | In progress | Skeleton codegen (Rust, TS, Python, Go) and AI-powered `intent implement` (Rust, TS, Python) shipped. Java, C#, Swift planned. |
+| Phase 8 | In progress | Skeleton codegen and AI-powered `intent implement` for all 7 targets. Contract test harness. |
 
 ### Codegen Targets
 
-| Language | Skeleton | AI Implementation | Planned |
-|----------|----------|-------------------|---------|
-| Rust | Shipped | Shipped | |
-| TypeScript | Shipped | Shipped | |
-| Python | Shipped | Shipped | |
-| Go | Shipped | | Next |
-| Java | | | Planned |
-| C# | | | Planned |
-| Swift | | | Planned |
-| IntentLang | | | Self-hosting milestone |
+| Language | Skeleton | AI Implementation |
+|----------|----------|-------------------|
+| Rust | Shipped | Shipped |
+| TypeScript | Shipped | Shipped |
+| Python | Shipped | Shipped |
+| Go | Shipped | Shipped |
+| Java | Shipped | Shipped |
+| C# | Shipped | Shipped |
+| Swift | Shipped | Shipped |
+| IntentLang | Planned | Planned (self-hosting) |
 
 ### Roadmap to v1.0
 
