@@ -358,6 +358,9 @@ fn shopping_cart_all_langs() {
         Language::TypeScript,
         Language::Python,
         Language::Go,
+        Language::Java,
+        Language::CSharp,
+        Language::Swift,
     ] {
         let out = codegen(src, lang);
         assert!(!out.is_empty(), "output should not be empty for {:?}", lang);
@@ -372,6 +375,9 @@ fn auth_all_langs() {
         Language::TypeScript,
         Language::Python,
         Language::Go,
+        Language::Java,
+        Language::CSharp,
+        Language::Swift,
     ] {
         let out = codegen(src, lang);
         assert!(!out.is_empty(), "output should not be empty for {:?}", lang);
@@ -389,4 +395,316 @@ fn transfer_go() {
     assert!(out.contains("// Invariant: NoNegativeBalances"));
     assert!(out.contains("// Edge cases:"));
     assert!(out.contains("package transfer"));
+}
+
+// ── Java generation ────────────────────────────────────────
+
+#[test]
+fn java_entity_record() {
+    let src = "module Test\nentity Item {\n  id: UUID\n  name: String\n}";
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("public record Item("));
+    assert!(out.contains("UUID id"));
+    assert!(out.contains("String name"));
+}
+
+#[test]
+fn java_package_declaration() {
+    let src = "module Transfer\nentity X { id: UUID }";
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("package transfer;"));
+}
+
+#[test]
+fn java_module_class() {
+    let src = "module Transfer\nentity X { id: UUID }";
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("public final class Transfer {"));
+    assert!(out.contains("private Transfer() {}"));
+}
+
+#[test]
+fn java_optional_field() {
+    let src = "module Test\nentity Item {\n  label: String?\n  count: Int?\n}";
+    let out = codegen(src, Language::Java);
+    // String stays String (reference type, nullable by default)
+    assert!(out.contains("String label"));
+    // Int? becomes Long (boxed primitive)
+    assert!(out.contains("Long count"));
+}
+
+#[test]
+fn java_union_generates_enum() {
+    let src = "module Test\nentity Account {\n  status: Active | Frozen\n}";
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("public enum AccountStatus {"));
+    assert!(out.contains("Active"));
+    assert!(out.contains("Frozen"));
+    assert!(out.contains("AccountStatus status"));
+}
+
+#[test]
+fn java_action_method() {
+    let src = "module Test\nentity X { id: UUID }\naction DoThing {\n  x: X\n  requires {\n    x.id != x.id\n  }\n}";
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("public static void doThing("));
+    assert!(out.contains("throw new UnsupportedOperationException(\"TODO: implement doThing\")"));
+    assert!(out.contains("Requires:"));
+}
+
+#[test]
+fn java_imports_uuid() {
+    let src = "module Test\nentity Item {\n  id: UUID\n}";
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("import java.util.UUID;"));
+}
+
+#[test]
+fn java_imports_bigdecimal() {
+    let src = "module Test\nentity Item {\n  price: Decimal(precision: 2)\n}";
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("import java.math.BigDecimal;"));
+}
+
+#[test]
+fn java_imports_instant() {
+    let src = "module Test\nentity Item {\n  ts: DateTime\n}";
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("import java.time.Instant;"));
+}
+
+#[test]
+fn java_collection_types() {
+    let src = "module Test\nentity Item {\n  tags: List<String>\n  ids: Set<UUID>\n  meta: Map<String, Int>\n}";
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("List<String>"));
+    assert!(out.contains("Set<UUID>"));
+    assert!(out.contains("Map<String, Long>"));
+}
+
+#[test]
+fn java_doc_block() {
+    let src = "module Test\n--- A test module.\nentity X { id: UUID }";
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("// A test module."));
+}
+
+#[test]
+fn java_invariant_comment() {
+    let src =
+        "module Test\nentity X { id: UUID }\ninvariant Unique {\n  forall a: X => a.id == a.id\n}";
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("// Invariant: Unique"));
+}
+
+#[test]
+fn java_generated_header() {
+    let src = "module Test\nentity X { id: UUID }";
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("// Generated from Test.intent. DO NOT EDIT."));
+}
+
+#[test]
+fn transfer_java() {
+    let src = include_str!("../../../examples/transfer.intent");
+    let out = codegen(src, Language::Java);
+    assert!(out.contains("public record Account("));
+    assert!(out.contains("public record TransferRecord("));
+    assert!(out.contains("public static void transfer("));
+    assert!(out.contains("public static void freezeAccount("));
+    assert!(out.contains("// Invariant: NoNegativeBalances"));
+    assert!(out.contains("// Edge cases:"));
+    assert!(out.contains("package transferfunds;"));
+}
+
+// ── C# generation ──────────────────────────────────────────
+
+#[test]
+fn csharp_entity_record() {
+    let src = "module Test\nentity Item {\n  id: UUID\n  name: String\n}";
+    let out = codegen(src, Language::CSharp);
+    assert!(out.contains("public record Item("));
+    assert!(out.contains("Guid Id"));
+    assert!(out.contains("string Name"));
+}
+
+#[test]
+fn csharp_namespace() {
+    let src = "module Transfer\nentity X { id: UUID }";
+    let out = codegen(src, Language::CSharp);
+    assert!(out.contains("namespace Transfer;"));
+}
+
+#[test]
+fn csharp_nullable_enable() {
+    let src = "module Test\nentity X { id: UUID }";
+    let out = codegen(src, Language::CSharp);
+    assert!(out.contains("#nullable enable"));
+}
+
+#[test]
+fn csharp_optional_field() {
+    let src = "module Test\nentity Item {\n  label: String?\n  count: Int?\n}";
+    let out = codegen(src, Language::CSharp);
+    assert!(out.contains("string? Label"));
+    assert!(out.contains("long? Count"));
+}
+
+#[test]
+fn csharp_union_generates_enum() {
+    let src = "module Test\nentity Account {\n  status: Active | Frozen\n}";
+    let out = codegen(src, Language::CSharp);
+    assert!(out.contains("public enum AccountStatus"));
+    assert!(out.contains("Active"));
+    assert!(out.contains("Frozen"));
+    assert!(out.contains("AccountStatus Status"));
+}
+
+#[test]
+fn csharp_action_method() {
+    let src = "module Test\nentity X { id: UUID }\naction DoThing {\n  x: X\n  requires {\n    x.id != x.id\n  }\n}";
+    let out = codegen(src, Language::CSharp);
+    assert!(out.contains("public static void DoThing("));
+    assert!(out.contains("throw new NotImplementedException(\"TODO: implement DoThing\")"));
+    assert!(out.contains("Requires:"));
+}
+
+#[test]
+fn csharp_static_actions_class() {
+    let src = "module Test\nentity X { id: UUID }\naction DoThing {\n  x: X\n}";
+    let out = codegen(src, Language::CSharp);
+    assert!(out.contains("public static class TestActions"));
+}
+
+#[test]
+fn csharp_collection_types() {
+    let src = "module Test\nentity Item {\n  tags: List<String>\n  ids: Set<UUID>\n  meta: Map<String, Int>\n}";
+    let out = codegen(src, Language::CSharp);
+    assert!(out.contains("List<string>"));
+    assert!(out.contains("HashSet<Guid>"));
+    assert!(out.contains("Dictionary<string, long>"));
+}
+
+#[test]
+fn csharp_doc_block() {
+    let src = "module Test\n--- A test module.\nentity X { id: UUID }";
+    let out = codegen(src, Language::CSharp);
+    assert!(out.contains("// A test module."));
+}
+
+#[test]
+fn csharp_invariant_comment() {
+    let src =
+        "module Test\nentity X { id: UUID }\ninvariant Unique {\n  forall a: X => a.id == a.id\n}";
+    let out = codegen(src, Language::CSharp);
+    assert!(out.contains("// Invariant: Unique"));
+}
+
+#[test]
+fn csharp_generated_header() {
+    let src = "module Test\nentity X { id: UUID }";
+    let out = codegen(src, Language::CSharp);
+    assert!(out.contains("// Generated from Test.intent. DO NOT EDIT."));
+}
+
+#[test]
+fn transfer_csharp() {
+    let src = include_str!("../../../examples/transfer.intent");
+    let out = codegen(src, Language::CSharp);
+    assert!(out.contains("public record Account("));
+    assert!(out.contains("public record TransferRecord("));
+    assert!(out.contains("public static void Transfer("));
+    assert!(out.contains("public static void FreezeAccount("));
+    assert!(out.contains("// Invariant: NoNegativeBalances"));
+    assert!(out.contains("// Edge cases:"));
+    assert!(out.contains("namespace TransferFunds;"));
+}
+
+// ── Swift generation ───────────────────────────────────────
+
+#[test]
+fn swift_entity_struct() {
+    let src = "module Test\nentity Item {\n  id: UUID\n  name: String\n}";
+    let out = codegen(src, Language::Swift);
+    assert!(out.contains("struct Item: Codable {"));
+    assert!(out.contains("let id: UUID"));
+    assert!(out.contains("let name: String"));
+}
+
+#[test]
+fn swift_import_foundation() {
+    let src = "module Test\nentity X { id: UUID }";
+    let out = codegen(src, Language::Swift);
+    assert!(out.contains("import Foundation"));
+}
+
+#[test]
+fn swift_optional_field() {
+    let src = "module Test\nentity Item {\n  label: String?\n  count: Int?\n}";
+    let out = codegen(src, Language::Swift);
+    assert!(out.contains("String?"));
+    assert!(out.contains("Int?"));
+}
+
+#[test]
+fn swift_union_generates_enum() {
+    let src = "module Test\nentity Account {\n  status: Active | Frozen\n}";
+    let out = codegen(src, Language::Swift);
+    assert!(out.contains("enum AccountStatus: String, Codable {"));
+    assert!(out.contains("case active = \"Active\""));
+    assert!(out.contains("case frozen = \"Frozen\""));
+    assert!(out.contains("AccountStatus"));
+}
+
+#[test]
+fn swift_action_function() {
+    let src = "module Test\nentity X { id: UUID }\naction DoThing {\n  x: X\n  requires {\n    x.id != x.id\n  }\n}";
+    let out = codegen(src, Language::Swift);
+    assert!(out.contains("func doThing("));
+    assert!(out.contains("throws {"));
+    assert!(out.contains("fatalError(\"TODO: implement doThing\")"));
+    assert!(out.contains("Requires:"));
+}
+
+#[test]
+fn swift_collection_types() {
+    let src = "module Test\nentity Item {\n  tags: List<String>\n  ids: Set<UUID>\n  meta: Map<String, Int>\n}";
+    let out = codegen(src, Language::Swift);
+    assert!(out.contains("[String]"));
+    assert!(out.contains("Set<UUID>"));
+    assert!(out.contains("[String: Int]"));
+}
+
+#[test]
+fn swift_doc_block() {
+    let src = "module Test\n--- A test module.\nentity X { id: UUID }";
+    let out = codegen(src, Language::Swift);
+    assert!(out.contains("// A test module."));
+}
+
+#[test]
+fn swift_invariant_comment() {
+    let src =
+        "module Test\nentity X { id: UUID }\ninvariant Unique {\n  forall a: X => a.id == a.id\n}";
+    let out = codegen(src, Language::Swift);
+    assert!(out.contains("// Invariant: Unique"));
+}
+
+#[test]
+fn swift_generated_header() {
+    let src = "module Test\nentity X { id: UUID }";
+    let out = codegen(src, Language::Swift);
+    assert!(out.contains("// Generated from Test.intent. DO NOT EDIT."));
+}
+
+#[test]
+fn transfer_swift() {
+    let src = include_str!("../../../examples/transfer.intent");
+    let out = codegen(src, Language::Swift);
+    assert!(out.contains("struct Account: Codable {"));
+    assert!(out.contains("struct TransferRecord: Codable {"));
+    assert!(out.contains("func transfer("));
+    assert!(out.contains("func freezeAccount("));
+    assert!(out.contains("// Invariant: NoNegativeBalances"));
+    assert!(out.contains("// Edge cases:"));
 }
