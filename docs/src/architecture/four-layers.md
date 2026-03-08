@@ -45,3 +45,9 @@ Tooling that maps between the two layers so humans can review, approve, and unde
 ## The analogy
 
 Humans describe the **idea**. The system formalizes it into a **contract**. Agents write the **implementation**. The toolchain **proves** the implementation satisfies the contract.
+
+## Why four layers?
+
+Vibe coding collapses everything into a single step: prompt in, code out. That works for prototypes, but breaks down when correctness matters — there's nothing to verify against, no way to audit what the agent did, and no shared artifact for the team to review.
+
+IntentLang separates concerns so that each participant works at the right level of abstraction. Humans own the spec (Layers 0–1). Agents own the implementation (Layer 2). The audit bridge (Layer 3) keeps both sides honest. The result is agentic engineering: AI-generated code with the same rigor you'd expect from a human-authored system.

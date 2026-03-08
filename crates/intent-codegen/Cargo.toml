@@ -1,0 +1,12 @@
+[package]
+name = "intent-codegen"
+description = "Skeleton code generator for IntentLang specifications (Rust, TypeScript, Python)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+intent-parser = { path = "../intent-parser", version = "0.6.0-beta.1" }

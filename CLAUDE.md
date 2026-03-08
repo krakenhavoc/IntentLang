@@ -82,6 +82,7 @@ intentlang/
 │   │   │   ├── value.rs   ← Runtime value types
 │   │   │   └── serve.rs   ← HTTP server (auto-generated REST)
 │   │   └── Cargo.toml
+│   ├── intent-codegen/    ← Skeleton code generator (Rust, TypeScript, Python, Go)
 │   ├── intent-lsp/        ← Language Server Protocol (LSP) server
 │   │   ├── src/
 │   │   │   ├── main.rs        ← Binary entry point (tokio + tower-lsp)
@@ -206,6 +207,7 @@ edge_cases {
 | NL generation crate | `intent-gen` | Separated from core toolchain, optional dependency |
 | LSP server | `tower-lsp` + `tokio` | Standard Rust LSP framework, async runtime |
 | VSCode extension | TextMate + TS client | Syntax highlighting + LSP integration |
+| Skeleton codegen | `intent-codegen` crate | Deterministic typed stubs, no API key needed |
 
 ## Completed Phases
 
@@ -216,6 +218,24 @@ edge_cases {
 - **Phase 5**: Language Polish & NL Generation — `fmt`, `init`, `completions`, list literals. `intent generate` for NL → `.intent` via LLM (Layer 0).
 - **Phase 6**: Stateless Runtime — expression evaluator, contract evaluation, HTTP server. CLI: `serve`.
 - **Phase 7**: Module Imports — `use` syntax, module resolver (DFS + cycle detection), cross-module type checking, multi-file composition.
+- **Phase 8** (in progress): Code Generation — skeleton codegen (`intent codegen`, Rust/TypeScript/Python), AI-powered implementation generation (planned).
+
+### Codegen Roadmap
+
+**Skeleton codegen** (`intent codegen`) generates deterministic typed stubs from specs. Current and planned target languages:
+
+| Language | Status | Notes |
+|----------|--------|-------|
+| Rust | Shipped | Structs, enums, `r#` keyword escaping, smart imports |
+| TypeScript | Shipped | Interfaces, camelCase, inline string literal unions |
+| Python | Shipped | Dataclasses, `keyword_` escaping, Literal types |
+| Go | Shipped | Structs, `string` union types with const/validation, JSON tags, smart imports |
+| Java | Planned | Records/classes, Builder pattern |
+| C# | Planned | Records, nullable reference types |
+| Swift | Planned | Structs, enums, Codable conformance |
+| IntentLang | Planned (self-hosting) | Generate `.intent` specs from `.intent` specs |
+
+**AI-powered codegen** (`intent implement`, planned) — uses LLM to generate full implementations from specs, with contracts as constraints. Same generate-check loop as `intent-gen` but in reverse (spec → code instead of NL → spec).
 
 ### Long-Term: Self-Hosting
 IntentLang compiles itself — the compiler's spec is written in `.intent` files, agents generate the implementation, the audit bridge verifies conformance. Not a near-term priority, but a planned goal. See the Self-Hosting Roadmap section below for stages and invariants.
