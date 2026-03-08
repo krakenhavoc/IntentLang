@@ -11,8 +11,8 @@ name = "intent-lsp"
 path = "src/main.rs"
 
 [dependencies]
-intent-parser = { path = "../intent-parser", version = "0.6.0-beta.1" }
-intent-check = { path = "../intent-check", version = "0.6.0-beta.1" }
+intent-parser = { path = "../intent-parser", version = "0.7.0-beta.1" }
+intent-check = { path = "../intent-check", version = "0.7.0-beta.1" }
 tower-lsp = "0.20"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std"] }
 dashmap = "6"

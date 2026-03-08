@@ -1,0 +1,165 @@
+module Tracking
+
+--- Time tracking and task state transitions.
+--- Manages how tasks move through their lifecycle
+--- and tracks time spent on each task.
+
+use Core
+use Projects
+
+entity TimeEntry {
+  id: UUID
+  task: Task
+  user: User
+  hours: Decimal(precision: 1)
+  description: String
+  logged_at: DateTime
+}
+
+entity StatusTransition {
+  id: UUID
+  task: Task
+  from_status: String
+  to_status: String
+  changed_by: User
+  timestamp: DateTime
+}
+
+action LogTime {
+  --- Record time spent on a task.
+  task: Task
+  user: User
+  hours: Decimal(precision: 1)
+  description: String
+
+  requires {
+    task.status != Done
+    task.status != Cancelled
+    user.status == Active
+    hours > 0
+  }
+
+  ensures {
+    exists entry: TimeEntry =>
+      entry.task == task &&
+      entry.user == user &&
+      entry.hours == hours
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action StartTask {
+  --- Move a task from Open to InProgress.
+  task: Task
+  user: User
+
+  requires {
+    task.status == Open
+    user.status == Active
+  }
+
+  ensures {
+    task.status == InProgress
+    task.assignee == user
+  }
+}
+
+action CompleteTask {
+  --- Mark a task as done.
+  task: Task
+  user: User
+
+  requires {
+    task.status == InProgress
+    user.status == Active
+  }
+
+  ensures {
+    task.status == Done
+  }
+}
+
+action CancelTask {
+  --- Cancel a task that is no longer needed.
+  task: Task
+  reason: String
+
+  requires {
+    task.status != Done
+    task.status != Cancelled
+  }
+
+  ensures {
+    task.status == Cancelled
+  }
+
+  properties {
+    audit_logged: true
+    requires_role: "manager"
+  }
+}
+
+invariant PositiveHours {
+  --- All time entries must have positive hours.
+  forall e: TimeEntry => e.hours > 0
+}
+
+invariant ActiveUserOnly {
+  --- Only active users can have time entries.
+  forall e: TimeEntry => e.user.status == Active
+}
+
+edge_cases {
+  when task.status == Done => reject("Cannot modify completed task")
+  when hours > 24 => reject("Cannot log more than 24 hours in a single entry")
+}
+
+test "log time on active task" {
+  given {
+    owner = User { id: "u-1", email: "alice@example.com", name: "Alice", role: Admin, status: Active }
+    project = Project { id: "p-1", name: "Beta", description: "Beta project", owner: owner, status: Active, created_at: "2024-01-01", updated_at: "2024-01-01" }
+    task = Task { id: "t-1", title: "Implement feature", project: project, priority: High, status: InProgress, story_points: 5, created_at: "2024-01-01", updated_at: "2024-01-01" }
+    user = User { id: "u-1", email: "alice@example.com", name: "Alice", role: Admin, status: Active }
+  }
+  when LogTime {
+    task: task,
+    user: user,
+    hours: 2.5,
+    description: "Worked on feature"
+  }
+  then {
+    task.status == InProgress
+  }
+}
+
+test "complete open task fails" {
+  given {
+    owner = User { id: "u-1", email: "alice@example.com", name: "Alice", role: Admin, status: Active }
+    project = Project { id: "p-1", name: "Beta", description: "Beta project", owner: owner, status: Active, created_at: "2024-01-01", updated_at: "2024-01-01" }
+    task = Task { id: "t-1", title: "Implement feature", project: project, priority: High, status: Open, story_points: 5, created_at: "2024-01-01", updated_at: "2024-01-01" }
+    user = User { id: "u-1", email: "alice@example.com", name: "Alice", role: Admin, status: Active }
+  }
+  when CompleteTask {
+    task: task,
+    user: user
+  }
+  then fails precondition
+}
+
+test "cancel in-progress task" {
+  given {
+    owner = User { id: "u-1", email: "alice@example.com", name: "Alice", role: Admin, status: Active }
+    project = Project { id: "p-1", name: "Beta", description: "Beta project", owner: owner, status: Active, created_at: "2024-01-01", updated_at: "2024-01-01" }
+    task = Task { id: "t-1", title: "Implement feature", project: project, priority: High, status: InProgress, story_points: 5, created_at: "2024-01-01", updated_at: "2024-01-01" }
+  }
+  when CancelTask {
+    task: task,
+    reason: "No longer needed"
+  }
+  then {
+    task.status == Cancelled
+  }
+}

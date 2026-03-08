@@ -13,8 +13,8 @@ default = ["server"]
 server = ["tiny_http"]
 
 [dependencies]
-intent-ir = { path = "../intent-ir", version = "0.6.0-beta.1" }
-intent-parser = { path = "../intent-parser", version = "0.6.0-beta.1" }
+intent-ir = { path = "../intent-ir", version = "0.7.0-beta.1" }
+intent-parser = { path = "../intent-parser", version = "0.7.0-beta.1" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

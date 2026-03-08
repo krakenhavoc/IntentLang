@@ -1,0 +1,203 @@
+module Projects
+
+--- Project and task management.
+--- Handles creation, assignment, and lifecycle of projects and tasks.
+
+use Core
+
+entity Project {
+  id: UUID
+  name: String
+  description: String
+  owner: User
+  status: Draft | Active | Archived
+  created_at: DateTime
+  updated_at: DateTime
+}
+
+entity Task {
+  id: UUID
+  title: String
+  project: Project
+  assignee: User?
+  priority: Low | Medium | High | Critical
+  status: Open | InProgress | InReview | Done | Cancelled
+  story_points: Int
+  created_at: DateTime
+  updated_at: DateTime
+  due_date: DateTime?
+}
+
+action CreateProject {
+  --- Create a new project in Draft status.
+  name: String
+  description: String
+  owner: User
+
+  requires {
+    owner.status == Active
+  }
+
+  ensures {
+    exists p: Project =>
+      p.name == name &&
+      p.owner == owner &&
+      p.status == Draft
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action ActivateProject {
+  --- Move a project from Draft to Active.
+  project: Project
+
+  requires {
+    project.status == Draft
+  }
+
+  ensures {
+    project.status == Active
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action ArchiveProject {
+  --- Archive a completed project.
+  project: Project
+
+  requires {
+    project.status == Active
+  }
+
+  ensures {
+    project.status == Archived
+  }
+
+  properties {
+    audit_logged: true
+    requires_role: "manager"
+  }
+}
+
+action CreateTask {
+  --- Create a new task within an active project.
+  title: String
+  project: Project
+  story_points: Int
+  priority: String
+
+  requires {
+    project.status == Active
+    story_points > 0
+  }
+
+  ensures {
+    exists t: Task =>
+      t.title == title &&
+      t.project == project &&
+      t.status == Open &&
+      t.story_points == story_points
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action AssignTask {
+  --- Assign a task to a team member.
+  task: Task
+  assignee: User
+
+  requires {
+    task.status != Done
+    task.status != Cancelled
+    assignee.status == Active
+  }
+
+  ensures {
+    task.assignee == assignee
+  }
+}
+
+action UpdatePriority {
+  --- Change the priority of a task.
+  task: Task
+  new_priority: String
+
+  requires {
+    task.status != Done
+    task.status != Cancelled
+  }
+
+  ensures {
+    task.priority == Critical
+  }
+}
+
+invariant ActiveProjectOnly {
+  --- Tasks not in a terminal state must belong to an active project.
+  forall t: Task =>
+    t.status != Done && t.status != Cancelled =>
+      t.project.status == Active
+}
+
+invariant PositiveStoryPoints {
+  --- All tasks must have positive story points.
+  forall t: Task => t.story_points > 0
+}
+
+edge_cases {
+  when project.status == Archived => reject("Cannot modify archived project")
+  when assignee.status == Suspended => reject("Cannot assign to suspended user")
+  when story_points > 100 => require_approval(level: "manager")
+}
+
+test "create task in active project" {
+  given {
+    owner = User { id: "u-1", email: "alice@example.com", name: "Alice", role: Admin, status: Active }
+    project = Project { id: "p-1", name: "Beta", description: "Beta project", owner: owner, status: Active, created_at: "2024-01-01", updated_at: "2024-01-01" }
+  }
+  when CreateTask {
+    title: "Write tests",
+    project: project,
+    story_points: 5,
+    priority: "High"
+  }
+  then {
+    project.status == Active
+  }
+}
+
+test "assign to suspended user fails" {
+  given {
+    owner = User { id: "u-1", email: "alice@example.com", name: "Alice", role: Admin, status: Active }
+    project = Project { id: "p-1", name: "Beta", description: "Beta project", owner: owner, status: Active, created_at: "2024-01-01", updated_at: "2024-01-01" }
+    task = Task { id: "t-1", title: "Fix bug", project: project, priority: High, status: Open, story_points: 3, created_at: "2024-01-01", updated_at: "2024-01-01" }
+    user = User { id: "u-2", email: "bob@example.com", name: "Bob", role: Member, status: Suspended }
+  }
+  when AssignTask {
+    task: task,
+    assignee: user
+  }
+  then fails precondition
+}
+
+test "archive active project" {
+  given {
+    owner = User { id: "u-1", email: "alice@example.com", name: "Alice", role: Manager, status: Active }
+    project = Project { id: "p-1", name: "Beta", description: "Beta project", owner: owner, status: Active, created_at: "2024-01-01", updated_at: "2024-01-01" }
+  }
+  when ArchiveProject {
+    project: project
+  }
+  then {
+    project.status == Archived
+  }
+}

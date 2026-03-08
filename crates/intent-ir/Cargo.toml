@@ -10,6 +10,6 @@ categories.workspace = true
 readme = "README.md"
 
 [dependencies]
-intent-parser = { path = "../intent-parser", version = "0.6.0-beta.1" }
+intent-parser = { path = "../intent-parser", version = "0.7.0-beta.1" }
 serde.workspace = true
 serde_json.workspace = true

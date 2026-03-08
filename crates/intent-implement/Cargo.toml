@@ -9,9 +9,9 @@ keywords = ["specification", "code-generation", "llm", "implementation", "dsl"]
 categories = ["development-tools", "compilers"]
 
 [dependencies]
-intent-parser = { path = "../intent-parser", version = "0.6.0-beta.1" }
-intent-check = { path = "../intent-check", version = "0.6.0-beta.1" }
-intent-codegen = { path = "../intent-codegen", version = "0.6.0-beta.1" }
-intent-render = { path = "../intent-render", version = "0.6.0-beta.1" }
-intent-gen = { path = "../intent-gen", version = "0.6.0-beta.1" }
+intent-parser = { path = "../intent-parser", version = "0.7.0-beta.1" }
+intent-check = { path = "../intent-check", version = "0.7.0-beta.1" }
+intent-codegen = { path = "../intent-codegen", version = "0.7.0-beta.1" }
+intent-render = { path = "../intent-render", version = "0.7.0-beta.1" }
+intent-gen = { path = "../intent-gen", version = "0.7.0-beta.1" }
 thiserror.workspace = true
