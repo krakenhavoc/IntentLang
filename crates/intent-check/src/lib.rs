@@ -6,4 +6,4 @@ pub mod types;
 mod check_tests;
 
 pub use errors::CheckError;
-pub use types::check_file;
+pub use types::{check_file, check_file_with_imports};

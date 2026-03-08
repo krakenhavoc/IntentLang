@@ -15,6 +15,25 @@ pub fn render(file: &ast::File) -> String {
         body.push_str("</p>\n");
     }
 
+    if !file.imports.is_empty() {
+        body.push_str("<section class=\"imports\">\n<h2>Imports</h2>\n<ul>\n");
+        for use_decl in &file.imports {
+            if let Some(item) = &use_decl.item {
+                body.push_str(&format!(
+                    "<li><code>{}.{}</code></li>\n",
+                    esc(&use_decl.module_name),
+                    esc(item)
+                ));
+            } else {
+                body.push_str(&format!(
+                    "<li><code>{}</code></li>\n",
+                    esc(&use_decl.module_name)
+                ));
+            }
+        }
+        body.push_str("</ul>\n</section>\n");
+    }
+
     for item in &file.items {
         match item {
             ast::TopLevelItem::Entity(e) => render_entity(&mut body, e),

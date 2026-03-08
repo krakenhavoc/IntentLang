@@ -19,7 +19,16 @@ pub struct Span {
 pub struct File {
     pub module: ModuleDecl,
     pub doc: Option<DocBlock>,
+    pub imports: Vec<UseDecl>,
     pub items: Vec<TopLevelItem>,
+    pub span: Span,
+}
+
+/// `use ModuleName` or `use ModuleName.ItemName`
+#[derive(Debug, Clone, Serialize)]
+pub struct UseDecl {
+    pub module_name: String,
+    pub item: Option<String>,
     pub span: Span,
 }
 

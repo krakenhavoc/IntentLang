@@ -25,8 +25,12 @@ COMMENT = _{ "//" ~ (!NEWLINE ~ ANY)* }
 // ─────────────────────────────────────────────────────────────
 
 /// A complete `.intent` file: one module declaration, an optional doc block,
-/// and zero or more top-level items.
-file = { SOI ~ module_decl ~ doc_block? ~ top_level_item* ~ EOI }
+/// zero or more `use` imports, and zero or more top-level items.
+file = { SOI ~ module_decl ~ doc_block? ~ use_decl* ~ top_level_item* ~ EOI }
+
+/// `use ModuleName` or `use ModuleName.ItemName` — import from another module.
+/// (SPEC.md § Phase 7: Module Imports)
+use_decl = { "use" ~ type_ident ~ ("." ~ type_ident)? }
 
 /// Module declaration — every file begins with `module ModuleName`.
 /// (SPEC.md § Composable Contracts)

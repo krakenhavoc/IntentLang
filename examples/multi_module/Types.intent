@@ -1,0 +1,18 @@
+module Types
+
+--- Shared domain types used across modules.
+
+entity Account {
+  id: UUID
+  owner: String
+  balance: Decimal(precision: 2)
+  currency: CurrencyCode
+  status: Active | Frozen | Closed
+}
+
+entity AuditEntry {
+  id: UUID
+  action_name: String
+  actor: String
+  timestamp: DateTime
+}

@@ -189,6 +189,33 @@ fn parse_or_exit(source: &str, file: &Path) -> intent_parser::ast::File {
     }
 }
 
+/// Resolve a module graph (root + all transitive imports) or exit on error.
+fn resolve_or_exit(file: &Path) -> intent_parser::ModuleGraph {
+    match intent_parser::resolve(file) {
+        Ok(graph) => graph,
+        Err(e) => {
+            eprintln!("error: {e}");
+            process::exit(1);
+        }
+    }
+}
+
+/// Get the imported files for a given file from a module graph.
+fn imported_files_for<'a>(
+    file: &'a intent_parser::ast::File,
+    graph: &'a intent_parser::ModuleGraph,
+) -> Vec<&'a intent_parser::ast::File> {
+    file.imports
+        .iter()
+        .filter_map(|use_decl| {
+            graph
+                .modules
+                .values()
+                .find(|m| m.module.name == use_decl.module_name)
+        })
+        .collect()
+}
+
 /// Helper to build an audit report from a file.
 fn build_audit(source: &str, file: &Path) -> intent_ir::AuditReport {
     let ast = parse_or_exit(source, file);
@@ -214,7 +241,14 @@ fn main() {
             let source = read_source(&file);
             let ast = parse_or_exit(&source, &file);
 
-            let errors = intent_check::check_file(&ast);
+            let errors = if ast.imports.is_empty() {
+                intent_check::check_file(&ast)
+            } else {
+                let graph = resolve_or_exit(&file);
+                let root_file = &graph.modules[&graph.root];
+                let imported = imported_files_for(root_file, &graph);
+                intent_check::check_file_with_imports(root_file, &imported)
+            };
             if json {
                 json_out(&CheckResult {
                     ok: errors.is_empty(),
@@ -258,6 +292,32 @@ fn main() {
         Commands::Compile { file } => {
             let source = read_source(&file);
             let ast = parse_or_exit(&source, &file);
+
+            // Run semantic checks (with imports if present)
+            let check_errors = if ast.imports.is_empty() {
+                intent_check::check_file(&ast)
+            } else {
+                let graph = resolve_or_exit(&file);
+                let root_file = &graph.modules[&graph.root];
+                let imported = imported_files_for(root_file, &graph);
+                intent_check::check_file_with_imports(root_file, &imported)
+            };
+            if !check_errors.is_empty() {
+                let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
+                for err in &check_errors {
+                    let mut buf = String::new();
+                    let report = miette::Report::new(err.clone()).with_source_code(source.clone());
+                    handler.render_report(&mut buf, report.as_ref()).ok();
+                    eprint!("{buf}");
+                }
+                eprintln!(
+                    "{} error(s) in {} — fix before compiling",
+                    check_errors.len(),
+                    file.display()
+                );
+                process::exit(1);
+            }
+
             let ir = intent_ir::lower_file(&ast);
             json_out(&ir);
         }
@@ -265,8 +325,15 @@ fn main() {
             let source = read_source(&file);
             let ast = parse_or_exit(&source, &file);
 
-            // Run semantic checks first
-            let check_errors = intent_check::check_file(&ast);
+            // Run semantic checks first (with imports if present)
+            let check_errors = if ast.imports.is_empty() {
+                intent_check::check_file(&ast)
+            } else {
+                let graph = resolve_or_exit(&file);
+                let root_file = &graph.modules[&graph.root];
+                let imported = imported_files_for(root_file, &graph);
+                intent_check::check_file_with_imports(root_file, &imported)
+            };
             if !check_errors.is_empty() {
                 if json {
                     json_out(&VerifyResult {
@@ -749,7 +816,14 @@ fn main() {
             let source = read_source(&file);
             let ast = parse_or_exit(&source, &file);
 
-            let check_errors = intent_check::check_file(&ast);
+            let check_errors = if ast.imports.is_empty() {
+                intent_check::check_file(&ast)
+            } else {
+                let graph = resolve_or_exit(&file);
+                let root_file = &graph.modules[&graph.root];
+                let imported = imported_files_for(root_file, &graph);
+                intent_check::check_file_with_imports(root_file, &imported)
+            };
             if !check_errors.is_empty() {
                 let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
                 for err in &check_errors {
