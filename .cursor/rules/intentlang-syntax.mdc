@@ -1,0 +1,209 @@
+---
+description: Syntax and conventions for writing IntentLang .intent specification files
+globs:
+  - "*.intent"
+alwaysApply: false
+---
+
+# IntentLang Syntax Guide
+
+For full context, read `AGENTS.md` (the "IntentLang Complete Language Reference" section) and `docs/SPEC.md`.
+
+## File Structure
+
+Every `.intent` file follows this order:
+
+```intent
+module ModuleName              // required, PascalCase, must be first
+
+--- Optional module documentation.
+--- Multiple lines, each starting with triple-dash.
+
+use OtherModule                // imports (optional, before items)
+use OtherModule.SpecificItem
+
+// Then any number of: entity, action, invariant, edge_cases
+```
+
+Single-line comments use `//`.
+
+## Entity Declarations
+
+Define domain objects with typed fields.
+
+```intent
+entity Account {
+  id: UUID
+  balance: Decimal(precision: 2)
+  status: Active | Frozen | Closed    // union type (enum-like variants)
+  email: Email?                       // optional type
+  items: List<CartItem>               // collection with entity type param
+}
+```
+
+- Entity names: PascalCase. No duplicates within a module.
+- Field names: snake_case. No duplicates within an entity.
+
+## Action Declarations
+
+Define operations with parameters, preconditions, postconditions, and metadata.
+
+```intent
+action Transfer {
+  --- Move funds between accounts.
+  from: Account
+  to: Account
+  amount: Decimal(precision: 2)
+
+  requires {
+    from.status == Active
+    to.status == Active
+    amount > 0
+    from.balance >= amount
+  }
+
+  ensures {
+    from.balance == old(from.balance) - amount
+    to.balance == old(to.balance) + amount
+    exists r: TransferRecord =>
+      r.request_id == request_id &&
+      r.status == Completed
+  }
+
+  properties {
+    idempotent: true
+    atomic: true
+    max_latency_ms: 500
+  }
+}
+```
+
+- Action names: PascalCase. No duplicates.
+- Blocks must appear in order: parameters, requires, ensures, properties.
+- Each block appears at most once.
+
+## Invariant Declarations
+
+System-wide constraints that must always hold.
+
+```intent
+invariant NoNegativeBalances {
+  --- No account may ever have a negative balance.
+  forall a: Account => a.balance >= 0
+}
+```
+
+- Invariant names: PascalCase. Body is a single expression (usually a `forall`).
+- Quantifier types must be defined entities or actions (not primitives like String or Int).
+
+## Edge Cases Block
+
+One per module. Handles boundary conditions.
+
+```intent
+edge_cases {
+  when amount > 10000.00 => require_approval(level: "manager")
+  when from == to => reject("Cannot transfer to same account")
+}
+```
+
+- Form: `when condition => action_call(args)`.
+- Uppercase action names must reference a defined action in the module.
+
+## Type System
+
+**Primitives:** `UUID`, `String`, `Int`, `Decimal(precision: N)`, `Bool`, `DateTime`
+
+**Domain types:** `Email`, `URL`, `CurrencyCode`
+
+**Collections:** `List<T>`, `Set<T>`, `Map<K, V>`
+
+**Optional:** Append `?` to any type -- `DateTime?`, `String?`
+
+**Union:** `A | B | C` -- enum-like variant labels, not type references. Variants do not need to be defined as entities.
+
+**Entity references:** Any defined entity name can be used as a type -- `from: Account`
+
+## Expressions and Operators
+
+**Precedence (lowest to highest):**
+1. Implies: `a => b`
+2. Or: `a || b`
+3. And: `a && b`
+4. Not: `!a`
+5. Comparison: `==`, `!=`, `>`, `<`, `>=`, `<=`
+6. Additive: `a + b`, `a - b`
+
+**Special expressions:**
+- `old(expr)` -- value before action execution. Only valid in `ensures` blocks.
+- `forall x: Type => body` -- universal quantifier.
+- `exists x: Type => body` -- existential quantifier.
+- `field.access.chain` -- dot notation for nested field access.
+- Function calls: `now()`, `reject("reason")`, `require_approval(level: "manager")`
+
+## Annotated Example
+
+```intent
+module TaskManager
+
+--- A simple task management system.
+
+entity Task {
+  id: UUID
+  title: String
+  assignee: String?
+  status: Open | InProgress | Done
+  priority: Int
+}
+
+action AssignTask {
+  --- Assign a task to a user.
+  task: Task
+  assignee: String
+
+  requires {
+    task.status != Done
+  }
+
+  ensures {
+    task.assignee == assignee
+    task.status == InProgress
+  }
+
+  properties {
+    audit_logged: true
+  }
+}
+
+action CompleteTask {
+  task: Task
+
+  requires {
+    task.status == InProgress
+  }
+
+  ensures {
+    task.status == Done
+  }
+}
+
+invariant PriorityPositive {
+  forall t: Task => t.priority > 0
+}
+
+edge_cases {
+  when task.status == Done => reject("Task is already completed")
+}
+```
+
+## Common Mistakes to Avoid
+
+- **`old()` in `requires`**: Not allowed. There is no pre-state before execution. Use `old()` only in `ensures`.
+- **Tautological comparisons**: `x == x` is flagged as always-true.
+- **Duplicate names**: No two entities, actions, or invariants can share a name within a module. No duplicate fields within an entity.
+- **Undefined type references**: Every type used in a field or parameter must be a built-in type or a defined entity.
+- **Quantifier over primitives**: `forall x: String => ...` is invalid. Use a defined entity or action name.
+- **Uppercase edge case actions**: `when x => DoThing()` requires `DoThing` to be a defined action. Use lowercase for built-ins like `reject()`, `allow()`.
+- **Missing module declaration**: Every file must start with `module Name` (PascalCase).
+- **Wrong block order**: Parameters must come before `requires`, which comes before `ensures`, which comes before `properties`.
+- **Accessing undefined fields**: `account.email` fails if `Account` has no `email` field. Check the entity definition.

@@ -1,0 +1,97 @@
+---
+description: Conventions for contributing to the IntentLang Rust codebase
+globs:
+  - "crates/**/*.rs"
+  - "grammar/**/*.pest"
+alwaysApply: false
+---
+
+# IntentLang Codebase Conventions
+
+For full project instructions, read `CLAUDE.md`. For architecture and language reference, read `AGENTS.md`.
+
+## Workspace Structure
+
+Rust workspace with 8 crates:
+
+| Crate | Purpose |
+|-------|---------|
+| `intent-parser` | PEG grammar (pest) to typed AST, module resolver |
+| `intent-check` | Six-pass semantic analysis and validation |
+| `intent-render` | AST to Markdown, HTML, and formatted source |
+| `intent-ir` | AST to Agent IR (lowering, verification, audit, diff) |
+| `intent-gen` | Natural language to .intent spec via LLM |
+| `intent-runtime` | Stateless runtime, expression evaluator, HTTP server |
+| `intent-lsp` | Language Server Protocol server |
+| `intent-cli` | CLI binary (all user-facing commands) |
+
+## Crate Dependency Graph
+
+```
+intent-cli -> intent-parser, intent-check, intent-render, intent-ir, intent-gen, intent-runtime
+intent-lsp -> intent-parser, intent-check
+intent-gen -> intent-parser, intent-check
+intent-runtime -> intent-ir
+intent-ir -> intent-parser
+intent-check -> intent-parser
+intent-render -> intent-parser
+intent-parser -> pest (grammar/intent.pest)
+```
+
+## Key Conventions
+
+- **Tests first**: Write a failing test before implementing. Every AST node, validation rule, and error case needs a test.
+- **Error messages matter**: Use `miette` with source spans, labels, and help text. Users are humans writing specs -- they need actionable feedback.
+- **Crates stay focused**: The parser does not validate semantics. The checker does not render. The renderer does not compile to IR.
+- **Grammar documentation**: Every rule in `grammar/intent.pest` should have a comment explaining what it matches.
+- **PEG grammar**: The grammar file lives at `crates/intent-parser/src/intent.pest`, symlinked from `grammar/intent.pest`. Uses `pest` / `pest_derive`.
+
+## Build and Test
+
+```bash
+# Source Rust environment (required in devcontainer)
+source ~/.cargo/env
+
+# Run all tests
+cargo test --workspace
+
+# Build everything
+cargo build --workspace
+
+# Check a spec file
+cargo run -p intent-cli -- check examples/transfer.intent
+
+# Run clippy
+cargo clippy --workspace -- -D warnings
+
+# Format check
+cargo fmt --check
+```
+
+Always run `cargo test --workspace` before committing. All tests must pass.
+
+## Key Technical Details
+
+- **AST spans**: Every AST node carries `Span { start, end }` for source location tracking.
+- **Grammar quirk**: Uses `or_expr` (not `expr`) for `when`/`edge_rule` conditions to avoid ambiguity with the `=>` operator.
+- **Union variants**: Treated as enum-like labels, not type references. The checker skips type resolution inside unions.
+- **Module imports**: `use Module` and `use Module.Item`. Resolver uses DFS with cycle detection. File-system based: `use Foo` resolves to `Foo.intent` in the same directory.
+- **Error crate**: `miette` 7.x for diagnostic errors. `thiserror` 2.x for error type derivation.
+- **CLI framework**: `clap` 4.x with derive macros.
+
+## Adding a New Language Feature
+
+1. Add example usage to an `.intent` file in `examples/`
+2. Add the grammar rule to `grammar/intent.pest`
+3. Add AST nodes to `crates/intent-parser/src/ast.rs`
+4. Add parser logic and tests in `crates/intent-parser/`
+5. Add semantic checks and tests in `crates/intent-check/`
+6. Update the renderer in `crates/intent-render/`
+7. Run `cargo test --workspace`
+
+## Fixing a Bug
+
+1. Write a failing test that reproduces the bug
+2. Fix the issue
+3. Confirm the test passes
+4. Check for similar patterns elsewhere in the codebase
