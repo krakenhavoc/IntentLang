@@ -34,6 +34,7 @@ pub fn format(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => fmt_action(&mut out, a),
             ast::TopLevelItem::Invariant(i) => fmt_invariant(&mut out, i),
             ast::TopLevelItem::EdgeCases(ec) => fmt_edge_cases(&mut out, ec),
+            ast::TopLevelItem::Test(_) => {} // Tests are not formatted
         }
     }
 

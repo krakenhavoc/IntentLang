@@ -44,7 +44,39 @@ doc_block = { doc_line+ }
 doc_line = @{ "---" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
 
 /// Any top-level declaration that may appear after the module header.
-top_level_item = _{ entity_decl | action_decl | invariant_decl | edge_cases_decl }
+top_level_item = _{ entity_decl | action_decl | invariant_decl | edge_cases_decl | test_decl }
+
+// ─────────────────────────────────────────────────────────────
+// Test declarations (spec-level testing)
+// ─────────────────────────────────────────────────────────────
+
+/// `test "name" { given { ... } when Action { ... } then { ... } }`
+/// Defines a test scenario that exercises an action with concrete values.
+test_decl = { "test" ~ string_literal ~ "{" ~ given_block ~ when_block ~ then_block ~ "}" }
+
+/// `given { bindings }` — concrete variable bindings for test setup.
+given_block = { "given" ~ "{" ~ given_binding* ~ "}" }
+
+/// `name = TypeName { field: value, ... }` or `name = expr` — a single test binding.
+given_binding = { ident ~ "=" ~ (entity_constructor | expr) }
+
+/// `TypeName { field: value, ... }` — constructs an entity instance with concrete values.
+entity_constructor = { type_ident ~ "{" ~ constructor_field ~ ("," ~ constructor_field)* ~ ","? ~ "}" }
+
+/// `name: expr` — a field inside an entity constructor or when block.
+constructor_field = { ident ~ ":" ~ expr }
+
+/// `when ActionName { param: value, ... }` — the action to invoke.
+when_block = { "when" ~ type_ident ~ "{" ~ constructor_field ~ ("," ~ constructor_field)* ~ ","? ~ "}" }
+
+/// `then { assertions }` or `then fails` — expected outcome.
+then_block = { "then" ~ (then_fails | then_asserts) }
+
+/// `fails` with optional violation kind (e.g. `fails precondition`).
+then_fails = { "fails" ~ ident? }
+
+/// `{ expr* }` — assertions to check against new state.
+then_asserts = { "{" ~ expr* ~ "}" }
 
 // ─────────────────────────────────────────────────────────────
 // Entity declarations (SPEC.md § entity)

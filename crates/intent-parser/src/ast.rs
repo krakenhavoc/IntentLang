@@ -53,6 +53,64 @@ pub enum TopLevelItem {
     Action(ActionDecl),
     Invariant(InvariantDecl),
     EdgeCases(EdgeCasesDecl),
+    Test(TestDecl),
+}
+
+// ── Test ────────────────────────────────────────────────────
+
+/// `test "name" { given { ... } when Action { ... } then { ... } }`
+#[derive(Debug, Clone, Serialize)]
+pub struct TestDecl {
+    pub name: String,
+    pub given: Vec<GivenBinding>,
+    pub when_action: WhenAction,
+    pub then: ThenClause,
+    pub span: Span,
+}
+
+/// `name = TypeName { ... }` or `name = expr` — a concrete binding in a test.
+#[derive(Debug, Clone, Serialize)]
+pub struct GivenBinding {
+    pub name: String,
+    pub value: GivenValue,
+    pub span: Span,
+}
+
+/// The right-hand side of a given binding.
+#[derive(Debug, Clone, Serialize)]
+pub enum GivenValue {
+    /// `TypeName { field: value, ... }` — an entity instance.
+    EntityConstructor {
+        type_name: String,
+        fields: Vec<ConstructorField>,
+    },
+    /// A plain expression (number, string, identifier, etc.).
+    Expr(Expr),
+}
+
+/// `name: expr` inside an entity constructor or when block.
+#[derive(Debug, Clone, Serialize)]
+pub struct ConstructorField {
+    pub name: String,
+    pub value: Expr,
+    pub span: Span,
+}
+
+/// `when ActionName { param: value, ... }` — the action invocation in a test.
+#[derive(Debug, Clone, Serialize)]
+pub struct WhenAction {
+    pub action_name: String,
+    pub args: Vec<ConstructorField>,
+    pub span: Span,
+}
+
+/// The expected outcome of a test.
+#[derive(Debug, Clone, Serialize)]
+pub enum ThenClause {
+    /// `then { expr* }` — assertions to check against new state.
+    Asserts(Vec<Expr>, Span),
+    /// `then fails` with optional violation kind filter.
+    Fails(Option<String>, Span),
 }
 
 // ── Entity ───────────────────────────────────────────────────

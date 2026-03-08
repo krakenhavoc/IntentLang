@@ -38,6 +38,7 @@ pub fn render(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => render_action(&mut out, a),
             ast::TopLevelItem::Invariant(i) => render_invariant(&mut out, i),
             ast::TopLevelItem::EdgeCases(ec) => render_edge_cases(&mut out, ec),
+            ast::TopLevelItem::Test(_) => {} // Tests are not rendered
         }
     }
 

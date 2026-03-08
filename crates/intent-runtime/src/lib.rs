@@ -9,6 +9,7 @@ mod error;
 mod eval;
 #[cfg(feature = "server")]
 mod server;
+pub mod test_runner;
 mod value;
 
 pub use contract::{ActionRequest, ActionResult, Violation, ViolationKind, execute_action};
@@ -16,4 +17,5 @@ pub use error::RuntimeError;
 pub use eval::evaluate;
 #[cfg(feature = "server")]
 pub use server::serve;
+pub use test_runner::{TestResult, run_tests};
 pub use value::EvalContext;

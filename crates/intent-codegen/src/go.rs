@@ -98,6 +98,7 @@ pub fn generate(file: &ast::File) -> String {
             ast::TopLevelItem::Action(a) => generate_action(&mut out, a, &lang),
             ast::TopLevelItem::Invariant(inv) => generate_invariant(&mut out, inv),
             ast::TopLevelItem::EdgeCases(ec) => generate_edge_cases(&mut out, ec),
+            ast::TopLevelItem::Test(_) => {}
         }
     }
 

@@ -159,6 +159,7 @@ fn build_file(pair: pest::iterators::Pair<'_, Rule>) -> File {
             Rule::action_decl => items.push(TopLevelItem::Action(build_action_decl(p))),
             Rule::invariant_decl => items.push(TopLevelItem::Invariant(build_invariant_decl(p))),
             Rule::edge_cases_decl => items.push(TopLevelItem::EdgeCases(build_edge_cases_decl(p))),
+            Rule::test_decl => items.push(TopLevelItem::Test(build_test_decl(p))),
             Rule::EOI => {}
             _ => {}
         }
@@ -807,6 +808,83 @@ fn build_expr_kind(pair: pest::iterators::Pair<'_, Rule>) -> ExprKind {
     }
 }
 
+// ── Test declaration builders ─────────────────────────────────
+
+fn build_test_decl(pair: pest::iterators::Pair<'_, Rule>) -> TestDecl {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+
+    let name = extract_string(inner.next().unwrap()); // string_literal
+    let given = build_given_block(inner.next().unwrap());
+    let when_action = build_when_block(inner.next().unwrap());
+    let then = build_then_block(inner.next().unwrap());
+
+    TestDecl {
+        name,
+        given,
+        when_action,
+        then,
+        span,
+    }
+}
+
+fn build_given_block(pair: pest::iterators::Pair<'_, Rule>) -> Vec<GivenBinding> {
+    pair.into_inner().map(build_given_binding).collect()
+}
+
+fn build_given_binding(pair: pest::iterators::Pair<'_, Rule>) -> GivenBinding {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let name = inner.next().unwrap().as_str().to_string();
+    let value_pair = inner.next().unwrap();
+    let value = match value_pair.as_rule() {
+        Rule::entity_constructor => {
+            let mut ci = value_pair.into_inner();
+            let type_name = ci.next().unwrap().as_str().to_string();
+            let fields = ci.map(build_constructor_field).collect();
+            GivenValue::EntityConstructor { type_name, fields }
+        }
+        _ => GivenValue::Expr(build_expr(value_pair)),
+    };
+    GivenBinding { name, value, span }
+}
+
+fn build_constructor_field(pair: pest::iterators::Pair<'_, Rule>) -> ConstructorField {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let name = inner.next().unwrap().as_str().to_string();
+    let value = build_expr(inner.next().unwrap());
+    ConstructorField { name, value, span }
+}
+
+fn build_when_block(pair: pest::iterators::Pair<'_, Rule>) -> WhenAction {
+    let span = span_of(&pair);
+    let mut inner = pair.into_inner();
+    let action_name = inner.next().unwrap().as_str().to_string();
+    let args = inner.map(build_constructor_field).collect();
+    WhenAction {
+        action_name,
+        args,
+        span,
+    }
+}
+
+fn build_then_block(pair: pest::iterators::Pair<'_, Rule>) -> ThenClause {
+    let inner = pair.into_inner().next().unwrap();
+    let span = span_of(&inner);
+    match inner.as_rule() {
+        Rule::then_fails => {
+            let kind = inner.into_inner().next().map(|p| p.as_str().to_string());
+            ThenClause::Fails(kind, span)
+        }
+        Rule::then_asserts => {
+            let exprs = inner.into_inner().map(build_expr).collect();
+            ThenClause::Asserts(exprs, span)
+        }
+        _ => unreachable!("then_block must contain then_fails or then_asserts"),
+    }
+}
+
 // ── Helpers ──────────────────────────────────────────────────
 
 fn parse_number_literal(s: &str) -> Literal {
@@ -1049,8 +1127,8 @@ action Clear {
         let src = include_str!("../../../examples/transfer.intent");
         let file = parse_file(src).unwrap();
         assert_eq!(file.module.name, "TransferFunds");
-        // 2 entities + 2 actions + 2 invariants + 1 edge_cases = 7 items
-        assert_eq!(file.items.len(), 7);
+        // 2 entities + 2 actions + 2 invariants + 1 edge_cases + 3 tests = 10 items
+        assert_eq!(file.items.len(), 10);
     }
 
     #[test]
