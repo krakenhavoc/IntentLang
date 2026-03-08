@@ -8,12 +8,16 @@ repository.workspace = true
 keywords.workspace = true
 categories.workspace = true
 
+[features]
+default = ["server"]
+server = ["tiny_http"]
+
 [dependencies]
 intent-ir = { path = "../intent-ir", version = "0.5.0-alpha.1" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
-tiny_http = "0.12"
+tiny_http = { version = "0.12", optional = true }
 
 [dev-dependencies]
 intent-parser = { path = "../intent-parser", version = "0.5.0-alpha.1" }

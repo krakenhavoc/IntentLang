@@ -47,7 +47,7 @@ pub(crate) fn retry_message(spec: &str, errors: &[String]) -> String {
          Here was the spec:\n```\n{spec}\n```\n\n\
          Common mistakes to avoid:\n\
          - `---` is a LINE PREFIX, not a separator. Write `--- text here` NOT `---` alone on a line\n\
-         - Do NOT use import/use/fn/let/return/if-else — IntentLang has none of these\n\
+         - Do NOT use fn/let/return/if-else — IntentLang has none of these\n\
          - Do NOT wrap output in markdown code fences\n\
          - Each requires/ensures condition must be on its own line\n\
          - Union variants are bare identifiers (Active, not \"Active\")\n\
@@ -95,8 +95,9 @@ actions (operations with pre/postconditions), invariants (universal rules), and 
 edge cases.
 
 ## Structure
-Every file starts with `module ModuleName` (PascalCase). Nothing else may appear \
-before the module declaration.
+Every file starts with `module ModuleName` (PascalCase). An optional doc block \
+and `use` imports may follow, then top-level items (entities, actions, invariants, \
+edge_cases).
 
 Documentation blocks use `---` as a LINE PREFIX (not a separator). Each doc line \
 must start with `--- ` followed by text on the SAME line. Example:
@@ -169,6 +170,14 @@ edge_cases {
 }
 ```
 
+## Imports
+Import definitions from other modules:
+```
+use OtherModule          -- import all entities/actions/invariants from OtherModule
+use OtherModule.Account  -- import only Account from OtherModule
+```
+The imported module must exist as `OtherModule.intent` in the same directory.
+
 ## Types
 - Primitives: UUID, String, Int, Decimal(precision: N), Bool, DateTime
 - Domain types: CurrencyCode, Email, URL
@@ -191,7 +200,8 @@ edge_cases {
 - old() is ONLY valid inside `ensures` blocks
 - forall/exists bind a variable to an entity or action type defined in the same file
 - properties values can be: true, false, quoted strings, or numbers
-- There is NO `import`, `use`, `fn`, `let`, `return`, `if/else`, or `match` syntax
+- `use Module` and `use Module.Item` are supported for multi-module specs
+- There is NO `fn`, `let`, `return`, `if/else`, or `match` syntax
 - Do NOT wrap output in markdown code fences";
 
 const GENERATION_RULES: &str = "\

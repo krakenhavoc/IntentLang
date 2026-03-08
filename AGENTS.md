@@ -87,12 +87,13 @@ cargo run -p intent-cli -- --output json check examples/transfer.intent
 intentlang/
   grammar/intent.pest        -- PEG grammar (pest)
   crates/
-    intent-parser/           -- Grammar -> typed AST
-    intent-check/            -- Semantic analysis & validation
+    intent-parser/           -- Grammar -> typed AST + module resolver
+    intent-check/            -- Semantic analysis & validation (incl. cross-module)
     intent-render/           -- AST -> Markdown/HTML/formatted source
     intent-ir/               -- AST -> Agent IR (lowering, verification, audit, diff, incremental, lock)
     intent-gen/              -- Natural language -> .intent spec (Layer 0, LLM-powered)
-    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status, fmt, init, completions, generate
+    intent-runtime/          -- Stateless runtime & HTTP server
+    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status, fmt, init, completions, generate, serve
   examples/                  -- Example .intent files
   tests/valid/               -- Specs that must parse and pass checks
   tests/invalid/             -- Specs that must fail with known errors
@@ -102,8 +103,9 @@ intentlang/
 ### Crate Dependency Graph
 
 ```
-intent-cli -> intent-parser, intent-check, intent-render, intent-ir, intent-gen
+intent-cli -> intent-parser, intent-check, intent-render, intent-ir, intent-gen, intent-runtime
 intent-gen -> intent-parser, intent-check (for validation loop)
+intent-runtime -> intent-ir (for contract evaluation)
 intent-ir -> intent-parser
 intent-check -> intent-parser
 intent-render -> intent-parser
@@ -126,6 +128,9 @@ module ModuleName           -- required, exactly one, must be first
 --- Optional documentation block.
 --- Multiple lines allowed. Each starts with triple-dash.
 
+use OtherModule             -- zero or more import declarations
+use OtherModule.SpecificItem
+
 entity ... { }              -- zero or more entity declarations
 action ... { }              -- zero or more action declarations
 invariant ... { }           -- zero or more invariant declarations
@@ -135,6 +140,7 @@ edge_cases { }              -- zero or one edge_cases block
 **Rules:**
 - The `module` declaration must come first. The name must be PascalCase (start with uppercase letter).
 - An optional doc block may follow the module declaration.
+- Zero or more `use` declarations may follow (after the doc block, before items).
 - Top-level items (entity, action, invariant, edge_cases) can appear in any order and any quantity.
 - Single-line comments use `//`.
 
@@ -866,15 +872,17 @@ invariant FailedRecordsTracked {
 
 ## Architecture Notes
 
-**Parser (intent-parser)**: PEG grammar via `pest`. Every AST node carries a `Span { start, end }` for source locations. The grammar uses `or_expr` (not `expr`) for `when`/`edge_rule` conditions to avoid ambiguity with the `=>` operator. Union variants like `Active | Frozen` are treated as enum-like labels, not type references.
+**Parser (intent-parser)**: PEG grammar via `pest`. Every AST node carries a `Span { start, end }` for source locations. The grammar uses `or_expr` (not `expr`) for `when`/`edge_rule` conditions to avoid ambiguity with the `=>` operator. Union variants like `Active | Frozen` are treated as enum-like labels, not type references. Includes a module resolver (`resolve.rs`) that loads and parses imported modules via DFS with cycle detection and topological ordering.
 
-**Checker (intent-check)**: Six-pass semantic analysis:
+**Checker (intent-check)**: Six-pass semantic analysis with cross-module support:
 1. Collect definitions + detect duplicates (entities, actions, invariants, fields)
 2. Resolve type references (verify all types exist as builtins or defined entities)
 3. Validate quantifier bindings (forall/exists variable types must be entities or actions)
 4. Validate edge case action references (uppercase names must be defined actions)
 5. Validate field access on entity-typed parameters (e.g., `from.balance` checks `balance` exists on the entity)
 6. Constraint validation (`old()` not in requires, tautological self-comparisons)
+
+`check_file_with_imports()` pre-populates the type environment with definitions from imported modules, enabling cross-module type resolution and field access validation.
 
 Both parse and check errors use `miette` diagnostics with source spans, labels, and help text.
 
@@ -884,7 +892,9 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 
 **Generator (intent-gen)**: Translates natural language to `.intent` specs via LLM. Uses OpenAI-compatible chat completions API via `ureq` (configurable base URL + model). Includes a generate-check-retry loop: generates spec, validates via parser/checker, feeds errors back to LLM for correction (max 2 retries). Supports `--confidence 1-5` levels, `--edit` for modifying existing specs, and `--diff` for patch output. Config: `AI_API_KEY`, `AI_API_BASE`, `AI_MODEL` env vars.
 
-**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`, `generate`. Global `--output json` flag for agent consumption.
+**Runtime (intent-runtime)**: Stateless execution engine. Evaluates expressions against concrete JSON values, enforces preconditions/postconditions/invariants, and auto-generates REST endpoints from actions. `old()` semantics via snapshot-and-compare.
+
+**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`, `generate`, `serve`. Global `--output json` flag for agent consumption. Commands that operate on specs (`check`, `compile`, `verify`, `serve`) automatically resolve module imports when `use` declarations are present.
 
 ## Key Dependencies
 
@@ -907,17 +917,18 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage (122 total)
+## Current Test Coverage (188 total)
 
-- 26 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files)
-- 16 parser tests (9 unit + 7 insta snapshot tests for all fixtures and examples)
+- 31 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files, 5 cross-module import tests)
+- 28 parser tests (12 unit + 7 insta snapshot + 7 module resolver + 2 example parsing)
 - 74 IR tests: 13 lowering + 11 verification + 6 coherence + 9 audit + 13 diff + 11 incremental + 11 lock
+- 49 runtime tests: 7 contract + 42 expression evaluator
 - 6 intent-gen tests: 3 strip_fences + 3 validate_spec
-- Fixtures: 4 valid, 9 invalid + 6 example files
+- Fixtures: 4 valid, 9 invalid + 6 example files + 2 multi-module example files
 
 ## Current Phase & Status
 
-All four phases complete. Phase 5 (language polish) in progress. Current release: v0.4.0-alpha.1.
+Phases 1-7 complete. Current release: v0.5.0-alpha.1.
 
 Phase 1 (complete): PEG grammar, typed AST with spans, six-pass semantic analysis, Markdown/HTML renderers. CLI: `check`, `render`, `render-html`.
 
@@ -927,4 +938,8 @@ Phase 3 (complete): Audit trace maps, coverage summaries, spec-level diffs. CLI:
 
 Phase 4 (complete): Agent API (`--output json`, `query`), incremental verification (`verify --incremental`), multi-agent collaboration (`lock`, `unlock`, `status`).
 
-Phase 5 (in progress): Language polish -- `fmt` (auto-formatter), `init` (scaffolding), `completions` (shell completions), list literal expressions, type parameter rendering fix. Natural language generation -- `generate` (NL -> `.intent` via LLM, Layer 0).
+Phase 5 (complete): Language polish -- `fmt` (auto-formatter), `init` (scaffolding), `completions` (shell completions), list literal expressions. Natural language generation -- `generate` (NL -> `.intent` via LLM, Layer 0).
+
+Phase 6 (complete): Stateless runtime -- expression evaluator, contract evaluation, HTTP server. CLI: `serve`.
+
+Phase 7 (complete): Module imports -- `use` syntax, module resolver, cross-module type checking. Multi-file composition for real-world projects.

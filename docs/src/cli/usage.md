@@ -26,6 +26,8 @@ intent <command> <file>
 | `fmt <file>` | Format a spec file (`--write` to overwrite, `--check` to verify) |
 | `init` | Scaffold a new `.intent` file (`--name`, `-o`) |
 | `completions <shell>` | Generate shell completions (bash, zsh, fish, etc.) |
+| `generate "description"` | Generate a spec from natural language (Layer 0) |
+| `serve <file>` | Serve spec as a REST API (stateless runtime) |
 
 ## Global options
 
