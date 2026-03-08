@@ -180,6 +180,14 @@ enum Commands {
         #[arg(short = 'o', long = "out-dir")]
         out_dir: Option<PathBuf>,
     },
+    /// Generate an OpenAPI 3.0 spec from an intent specification
+    Openapi {
+        /// Path to the .intent file
+        file: PathBuf,
+        /// Output file (default: print to stdout)
+        #[arg(short = 'o', long = "out")]
+        out: Option<PathBuf>,
+    },
     /// Initialize a new .intent spec file
     Init {
         /// Module name (defaults to directory name)
@@ -993,6 +1001,45 @@ fn main() {
                 println!("Generated {}", out_path.display());
             } else {
                 print!("{}", code);
+            }
+        }
+        Commands::Openapi { file, out } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+
+            // Run semantic checks before generating
+            let check_errors = if ast.imports.is_empty() {
+                intent_check::check_file(&ast)
+            } else {
+                let graph = resolve_or_exit(&file);
+                let root_file = &graph.modules[&graph.root];
+                let imported = imported_files_for(root_file, &graph);
+                intent_check::check_file_with_imports(root_file, &imported)
+            };
+            if !check_errors.is_empty() {
+                let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
+                for err in &check_errors {
+                    let mut buf = String::new();
+                    let report = miette::Report::new(err.clone()).with_source_code(source.clone());
+                    handler.render_report(&mut buf, report.as_ref()).ok();
+                    eprint!("{buf}");
+                }
+                eprintln!(
+                    "{} error(s) in {} — fix before generating OpenAPI spec",
+                    check_errors.len(),
+                    file.display()
+                );
+                process::exit(1);
+            }
+
+            let spec = intent_codegen::openapi::generate(&ast);
+            let json = serde_json::to_string_pretty(&spec).expect("JSON serialization failed");
+
+            if let Some(out_path) = out {
+                write_or_exit(&out_path, &json);
+                println!("Generated OpenAPI spec: {}", out_path.display());
+            } else {
+                println!("{json}");
             }
         }
         Commands::Init { name, out } => {
