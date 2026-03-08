@@ -14,17 +14,21 @@ name = "intent"
 path = "src/main.rs"
 
 [dependencies]
-intent-parser = { path = "../intent-parser", version = "0.6.0-beta.1" }
-intent-check = { path = "../intent-check", version = "0.6.0-beta.1" }
-intent-render = { path = "../intent-render", version = "0.6.0-beta.1" }
-intent-ir = { path = "../intent-ir", version = "0.6.0-beta.1" }
-intent-gen = { path = "../intent-gen", version = "0.6.0-beta.1" }
-intent-runtime = { path = "../intent-runtime", version = "0.6.0-beta.1" }
-intent-codegen = { path = "../intent-codegen", version = "0.6.0-beta.1" }
-intent-implement = { path = "../intent-implement", version = "0.6.0-beta.1" }
+intent-parser = { path = "../intent-parser", version = "0.7.0-beta.1" }
+intent-check = { path = "../intent-check", version = "0.7.0-beta.1" }
+intent-render = { path = "../intent-render", version = "0.7.0-beta.1" }
+intent-ir = { path = "../intent-ir", version = "0.7.0-beta.1" }
+intent-gen = { path = "../intent-gen", version = "0.7.0-beta.1" }
+intent-runtime = { path = "../intent-runtime", version = "0.7.0-beta.1" }
+intent-codegen = { path = "../intent-codegen", version = "0.7.0-beta.1" }
+intent-implement = { path = "../intent-implement", version = "0.7.0-beta.1" }
 serde.workspace = true
 serde_json.workspace = true
 clap.workspace = true
 clap_complete = "4"
 miette = { workspace = true, features = ["fancy"] }
 similar = "2"
+
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"

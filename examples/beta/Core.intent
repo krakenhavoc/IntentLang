@@ -1,0 +1,21 @@
+module Core
+
+--- Shared domain types for the task tracker system.
+--- Core provides the foundational entities used across
+--- project management and time tracking modules.
+
+entity User {
+  id: UUID
+  email: Email
+  name: String
+  role: Admin | Manager | Member
+  status: Active | Suspended
+}
+
+entity AuditLog {
+  id: UUID
+  actor: User
+  action_name: String
+  target_id: UUID
+  timestamp: DateTime
+}

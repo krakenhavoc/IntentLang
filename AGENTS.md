@@ -81,9 +81,10 @@ cargo run -p intent-cli -- generate --confidence 2 "patient records system"
 cargo run -p intent-cli -- openapi examples/transfer.intent
 cargo run -p intent-cli -- openapi examples/transfer.intent -o transfer-api.json
 
-# Generate skeleton code (Rust, TypeScript, Python, Go)
+# Generate skeleton code (Rust, TypeScript, Python, Go, Java, C#, Swift)
 cargo run -p intent-cli -- codegen examples/transfer.intent --lang rust
 cargo run -p intent-cli -- codegen examples/transfer.intent --lang go --out-dir ./generated
+cargo run -p intent-cli -- codegen examples/transfer.intent --lang java
 
 # Generate a full implementation from a spec using AI
 AI_API_KEY=... cargo run -p intent-cli -- implement examples/transfer.intent --lang rust
@@ -107,7 +108,7 @@ intentlang/
     intent-gen/              -- Natural language -> .intent spec (Layer 0, LLM-powered)
     intent-runtime/          -- Stateless runtime & HTTP server
     intent-lsp/              -- Language Server Protocol server (diagnostics, hover, go-to-def, completion)
-    intent-codegen/          -- Skeleton code generator (Rust, TypeScript, Python, Go)
+    intent-codegen/          -- Skeleton code generator (Rust, TypeScript, Python, Go, Java, C#, Swift)
     intent-implement/        -- AI-powered implementation generator (LLM + spec -> full code)
     intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status, fmt, init, completions, generate, serve, codegen, openapi, implement
   editors/vscode/            -- VSCode extension (syntax highlighting, snippets, LSP client)
@@ -948,21 +949,22 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage (309 total)
+## Current Test Coverage (385 total)
 
 - 31 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files, 5 cross-module import tests)
 - 28 parser tests (12 unit + 7 insta snapshot + 7 module resolver + 2 example parsing)
 - 74 IR tests: 13 lowering + 11 verification + 6 coherence + 9 audit + 13 diff + 11 incremental + 11 lock
-- 49 runtime tests: 7 contract + 42 expression evaluator
-- 74 codegen tests (43 skeleton + 31 OpenAPI): naming helpers + Rust/TypeScript/Python/Go entity/action/type mapping + OpenAPI spec generation + full example files
-- 24 intent-implement tests: prompt building, output validation, LLM integration, retry with error feedback
+- 51 runtime tests: 8 contract + 42 expression evaluator + 1 test runner
+- 121 codegen tests: skeleton + OpenAPI for all 7 languages
+- 29 intent-implement tests: prompt building, output validation, LLM integration, retry with error feedback
 - 23 LSP tests: 8 document/line-index + 5 diagnostics + 4 hover + 3 navigation + 3 completion
 - 6 intent-gen tests: 3 strip_fences + 3 validate_spec
-- Fixtures: 4 valid, 9 invalid + 6 example files + 2 multi-module example files
+- 22 beta integration tests: full CLI pipeline against multi-module task tracker system
+- Fixtures: 4 valid, 9 invalid + 6 example files + 2 multi-module example files + 3 beta example files
 
 ## Current Phase & Status
 
-Phases 1-7 complete. Current release: v0.6.0-beta.1. VSCode extension and LSP server shipped (PR #41).
+Phases 1-8 complete. Current release: v0.7.0-beta.1 (Beta milestone). VSCode extension and LSP server shipped (PR #41).
 
 Phase 1 (complete): PEG grammar, typed AST with spans, six-pass semantic analysis, Markdown/HTML renderers. CLI: `check`, `render`, `render-html`.
 
@@ -978,4 +980,6 @@ Phase 6 (complete): Stateless runtime -- expression evaluator, contract evaluati
 
 Phase 7 (complete): Module imports -- `use` syntax, module resolver, cross-module type checking. Multi-file composition for real-world projects.
 
-Phase 8 (in progress): Code Generation -- skeleton codegen for Rust, TypeScript, Python, Go shipped. AI-powered `intent implement` shipped (LLM generates full implementations from spec contracts). CLI: `codegen`, `implement`. Planned: Java, C#, Swift targets.
+Phase 8 (complete): Code Generation -- skeleton codegen for Rust, TypeScript, Python, Go, Java, C#, Swift shipped. AI-powered `intent implement` shipped for all 7 languages. Contract test harness shipped. CLI: `codegen`, `implement`, `test-harness`.
+
+**Beta milestone**: Full-stack validation system (`examples/beta/`) — a multi-module task tracker exercising all CLI commands end-to-end. 22 integration tests cover check, render, compile, verify, audit, coverage, query, codegen (7 langs), openapi, test, test-harness, fmt, diff, lock/unlock/status. Runtime fix: direct field assignments in `ensures` blocks (e.g., `status == Archived`) now correctly applied as state mutations.

@@ -1,6 +1,6 @@
 [package]
 name = "intent-codegen"
-description = "Skeleton code generator for IntentLang specifications (Rust, TypeScript, Python)"
+description = "Skeleton code generator for IntentLang specifications (Rust, TypeScript, Python, Go, Java, C#, Swift)"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,5 +9,5 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-intent-parser = { path = "../intent-parser", version = "0.6.0-beta.1" }
+intent-parser = { path = "../intent-parser", version = "0.7.0-beta.1" }
 serde_json.workspace = true

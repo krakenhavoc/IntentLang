@@ -218,7 +218,10 @@ pub fn execute_action(
 
 /// Extract field assignments from an ensures expression and apply them.
 ///
-/// Recognizes the pattern: `param.field == rhs` where rhs may contain `old()`.
+/// Recognizes these patterns:
+/// - `param.field == expr_with_old` — compute new value from old state
+/// - `param.field == literal_or_var` — direct assignment (e.g., status transitions)
+///
 /// Evaluates rhs using old state and sets param.field to the result.
 /// For compound expressions (And), recurses into both sides.
 fn extract_and_apply_assignments(
@@ -235,7 +238,7 @@ fn extract_and_apply_assignments(
             right,
         } => {
             if let Some((var, field)) = extract_field_path(left)
-                && contains_old(right)
+                && is_assignable(right)
             {
                 let old_ctx = EvalContext {
                     bindings: old_params.clone(),
@@ -247,7 +250,7 @@ fn extract_and_apply_assignments(
             }
             // Also check reversed: rhs == a.field
             if let Some((var, field)) = extract_field_path(right)
-                && contains_old(left)
+                && is_assignable(left)
             {
                 let old_ctx = EvalContext {
                     bindings: old_params.clone(),
@@ -279,20 +282,29 @@ fn extract_field_path(expr: &IrExpr) -> Option<(String, String)> {
     None
 }
 
-/// Check if an expression tree contains any `old()` reference.
-fn contains_old(expr: &IrExpr) -> bool {
+/// Check if an expression is suitable as the RHS of a field assignment in ensures.
+///
+/// Returns true for:
+/// - Expressions containing `old()` (state transformations)
+/// - Literals and simple variables (direct assignments like `status == Archived`)
+/// - Arithmetic expressions (computed values)
+///
+/// Returns false for quantifiers and logical connectives, which are
+/// constraints rather than assignments.
+fn is_assignable(expr: &IrExpr) -> bool {
     match expr {
-        IrExpr::Old(_) => true,
-        IrExpr::Compare { left, right, .. }
-        | IrExpr::Arithmetic { left, right, .. }
-        | IrExpr::And(left, right)
-        | IrExpr::Or(left, right)
-        | IrExpr::Implies(left, right) => contains_old(left) || contains_old(right),
-        IrExpr::Not(inner) => contains_old(inner),
-        IrExpr::FieldAccess { root, .. } => contains_old(root),
-        IrExpr::Forall { body, .. } | IrExpr::Exists { body, .. } => contains_old(body),
-        IrExpr::Call { args, .. } | IrExpr::List(args) => args.iter().any(contains_old),
-        IrExpr::Var(_) | IrExpr::Literal(_) => false,
+        IrExpr::Literal(_) | IrExpr::Var(_) | IrExpr::Old(_) => true,
+        IrExpr::Arithmetic { .. } => true,
+        IrExpr::FieldAccess { root, .. } => is_assignable(root),
+        IrExpr::Call { .. } => true,
+        IrExpr::Compare { .. }
+        | IrExpr::And(_, _)
+        | IrExpr::Or(_, _)
+        | IrExpr::Implies(_, _)
+        | IrExpr::Not(_)
+        | IrExpr::Forall { .. }
+        | IrExpr::Exists { .. }
+        | IrExpr::List(_) => false,
     }
 }
 
@@ -757,7 +769,7 @@ mod tests {
         let result = execute_action(&module, &request).unwrap();
         assert!(result.ok);
 
-        // When guard is true, postcondition is checked — fails because status is Active.
+        // When guard is true, postcondition is applied — status changes to Frozen.
         let request2 = ActionRequest {
             action: "SetStatus".into(),
             params: HashMap::from([
@@ -767,10 +779,7 @@ mod tests {
             state: HashMap::new(),
         };
         let result2 = execute_action(&module, &request2).unwrap();
-        assert!(!result2.ok);
-        assert_eq!(
-            result2.violations[0].kind,
-            ViolationKind::PostconditionFailed
-        );
+        assert!(result2.ok, "violations: {:?}", result2.violations);
+        assert_eq!(result2.new_params["account"]["status"], json!("Frozen"));
     }
 }
