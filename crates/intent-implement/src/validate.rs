@@ -144,7 +144,10 @@ fn expected_names(file: &ast::File, lang: Language) -> Vec<String> {
                     Language::Rust | Language::Python | Language::Go => {
                         intent_codegen::to_snake_case(&a.name)
                     }
-                    Language::TypeScript => intent_codegen::to_camel_case(&a.name),
+                    Language::TypeScript | Language::Java | Language::Swift => {
+                        intent_codegen::to_camel_case(&a.name)
+                    }
+                    Language::CSharp => a.name.clone(), // PascalCase
                 };
                 names.push(fn_name);
             }
@@ -215,7 +218,12 @@ fn count_delimiters(code: &str, lang: Language) -> (i32, i32, i32) {
             // like `Formatter<'_>) -> Result {` where the trailing { is missed.
             // In Go, ' is for rune literals which are short and self-closing.
             // Only Python and TypeScript use ' as a string delimiter.
-            if ch == '\'' && matches!(lang, Language::Python | Language::TypeScript) {
+            if ch == '\''
+                && matches!(
+                    lang,
+                    Language::Python | Language::TypeScript | Language::Swift
+                )
+            {
                 in_string = !in_string;
                 continue;
             }
@@ -241,7 +249,12 @@ fn count_delimiters(code: &str, lang: Language) -> (i32, i32, i32) {
 /// Strip single-line comments from a line.
 fn strip_comment(line: &str, lang: Language) -> &str {
     match lang {
-        Language::Rust | Language::TypeScript | Language::Go => {
+        Language::Rust
+        | Language::TypeScript
+        | Language::Go
+        | Language::Java
+        | Language::CSharp
+        | Language::Swift => {
             // Find // outside of strings
             let mut in_string = false;
             let mut prev = '\0';
@@ -301,6 +314,21 @@ fn leftover_stubs(code: &str, lang: Language) -> Vec<String> {
         Language::Go => {
             if code.contains("panic(\"not implemented\")") || code.contains("panic(\"TODO\")") {
                 stubs.push("panic(\"not implemented\")".to_string());
+            }
+        }
+        Language::Java => {
+            if code.contains("throw new UnsupportedOperationException") {
+                stubs.push("throw new UnsupportedOperationException".to_string());
+            }
+        }
+        Language::CSharp => {
+            if code.contains("throw new NotImplementedException") {
+                stubs.push("throw new NotImplementedException".to_string());
+            }
+        }
+        Language::Swift => {
+            if code.contains("fatalError(\"TODO") {
+                stubs.push("fatalError(\"TODO: ...\")".to_string());
             }
         }
     }

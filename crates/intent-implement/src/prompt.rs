@@ -65,6 +65,9 @@ fn language_name(lang: Language) -> &'static str {
         Language::TypeScript => "TypeScript",
         Language::Python => "Python",
         Language::Go => "Go",
+        Language::Java => "Java",
+        Language::CSharp => "C#",
+        Language::Swift => "Swift",
     }
 }
 
@@ -74,6 +77,9 @@ fn language_tag(lang: Language) -> &'static str {
         Language::TypeScript => "typescript",
         Language::Python => "python",
         Language::Go => "go",
+        Language::Java => "java",
+        Language::CSharp => "csharp",
+        Language::Swift => "swift",
     }
 }
 
@@ -83,6 +89,9 @@ fn language_guidance(lang: Language) -> &'static str {
         Language::TypeScript => TYPESCRIPT_GUIDANCE,
         Language::Python => PYTHON_GUIDANCE,
         Language::Go => GO_GUIDANCE,
+        Language::Java => JAVA_GUIDANCE,
+        Language::CSharp => CSHARP_GUIDANCE,
+        Language::Swift => SWIFT_GUIDANCE,
     }
 }
 
@@ -139,6 +148,30 @@ const GO_GUIDANCE: &str = "\
 - UUID maps to `string`.
 - Use exported (PascalCase) names for public structs and functions.
 - Use JSON struct tags matching the field names.";
+
+const JAVA_GUIDANCE: &str = "\
+- Use `throw new IllegalArgumentException(...)` for precondition violations.
+- For `old(expr)`: copy the record value before mutation, then verify postconditions.
+- Decimal types map to `BigDecimal`.
+- UUID maps to `UUID` from `java.util.UUID`.
+- Use Java 16+ records for data classes.
+- Use camelCase for method names, PascalCase for class/record names.";
+
+const CSHARP_GUIDANCE: &str = "\
+- Use `throw new ArgumentException(...)` for precondition violations.
+- For `old(expr)`: copy the record value with `with {}` before mutation.
+- Decimal types map to `decimal`.
+- UUID maps to `Guid`.
+- Use C# 10+ records and file-scoped namespaces.
+- Use PascalCase for all public members.";
+
+const SWIFT_GUIDANCE: &str = "\
+- Use `throw` or `preconditionFailure(...)` for precondition violations.
+- For `old(expr)`: copy the struct value before mutation, then verify postconditions.
+- Decimal types map to `Decimal` from Foundation.
+- UUID maps to `UUID` from Foundation.
+- Use structs with Codable conformance for entities.
+- Use camelCase for functions/properties, PascalCase for types.";
 
 #[cfg(test)]
 mod tests {

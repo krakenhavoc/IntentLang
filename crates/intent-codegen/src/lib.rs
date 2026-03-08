@@ -1,13 +1,16 @@
 //! Skeleton code generator for IntentLang specifications.
 //!
-//! Generates typed stubs in Rust, TypeScript, Python, or Go from a parsed
-//! `.intent` AST. Entities become structs/classes/dataclasses, actions
-//! become function signatures with contract documentation.
+//! Generates typed stubs in Rust, TypeScript, Python, Go, Java, C#, or Swift
+//! from a parsed `.intent` AST. Entities become structs/classes/dataclasses/records,
+//! actions become function signatures with contract documentation.
 
+pub mod csharp;
 pub mod go;
+pub mod java;
 pub mod openapi;
 pub mod python;
 pub mod rust;
+pub mod swift;
 mod types;
 pub mod typescript;
 
@@ -27,6 +30,9 @@ pub enum Language {
     TypeScript,
     Python,
     Go,
+    Java,
+    CSharp,
+    Swift,
 }
 
 /// Generate skeleton code from a parsed intent file.
@@ -36,6 +42,9 @@ pub fn generate(file: &ast::File, lang: Language) -> String {
         Language::TypeScript => typescript::generate(file),
         Language::Python => python::generate(file),
         Language::Go => go::generate(file),
+        Language::Java => java::generate(file),
+        Language::CSharp => csharp::generate(file),
+        Language::Swift => swift::generate(file),
     }
 }
 
@@ -190,6 +199,9 @@ pub fn file_extension(lang: Language) -> &'static str {
         Language::TypeScript => "ts",
         Language::Python => "py",
         Language::Go => "go",
+        Language::Java => "java",
+        Language::CSharp => "cs",
+        Language::Swift => "swift",
     }
 }
 
@@ -201,6 +213,9 @@ pub fn output_filename(module_name: &str, lang: Language) -> String {
         }
         Language::TypeScript => {
             format!("{}.{}", to_camel_case(module_name), file_extension(lang))
+        }
+        Language::Java | Language::CSharp | Language::Swift => {
+            format!("{}.{}", module_name, file_extension(lang))
         }
     }
 }
