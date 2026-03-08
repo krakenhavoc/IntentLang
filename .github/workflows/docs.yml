@@ -16,19 +16,30 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+env:
+  MDBOOK_VERSION: "0.4.44"
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
+      - name: Cache mdBook binary
+        id: cache-mdbook
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/mdbook
+          key: mdbook-${{ env.MDBOOK_VERSION }}
+
       - name: Install mdBook
-        env:
-          MDBOOK_VERSION: "0.4.44"
+        if: steps.cache-mdbook.outputs.cache-hit != 'true'
         run: |
           mkdir -p $HOME/.local/bin
           curl -sSL "https://github.com/rust-lang/mdBook/releases/download/v${MDBOOK_VERSION}/mdbook-v${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -xz -C $HOME/.local/bin
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Add mdBook to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Build docs
         run: mdbook build docs
