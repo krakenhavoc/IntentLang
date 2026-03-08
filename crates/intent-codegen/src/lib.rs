@@ -8,6 +8,8 @@ pub mod go;
 pub mod openapi;
 pub mod python;
 pub mod rust;
+pub mod rust_tests;
+pub mod test_harness;
 mod types;
 pub mod typescript;
 
