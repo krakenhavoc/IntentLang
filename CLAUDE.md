@@ -195,46 +195,9 @@ edge_cases {
 - **Phase 2**: Agent IR — AST → IR lowering, structural verification, coherence analysis. CLI: `compile`, `verify`.
 - **Phase 3**: Audit Bridge — Trace maps, coverage summaries, spec-level diffs. CLI: `audit`, `coverage`, `diff`.
 - **Phase 4**: Agent Integration — JSON output, structured queries, incremental verification, multi-agent collaboration. CLI: `query`, `lock`, `unlock`, `status`.
-
-## Current Phase: Phase 5 — Language Polish & Natural Language Generation (in progress)
-
-### Language Polish
-- `intent fmt` — auto-formatter for canonical `.intent` source
-- `intent init` — scaffold new spec files
-- `intent completions` — shell completions (bash, zsh, fish)
-- List literal expressions, type parameter rendering fix
-
-### Natural Language Generation
-- New crate: `intent-gen` — translates natural language to `.intent` specs
-- CLI command: `intent generate "description"` (single-shot by default)
-- `--interactive` mode for conversational refinement
-- `--confidence 1-5` controls how much the agent asks vs. assumes
-- `--edit <file> "changes"` modifies existing specs from NL descriptions (`--diff` for patch view)
-- `--model <model>` selects the LLM model
-- `--out <file>` writes to file (stdout by default)
-- `--max-retries N` configures validation retry budget (default: 2)
-- Model-agnostic via OpenAI-compatible API (`AI_API_KEY`, `AI_API_BASE`, `AI_MODEL` env vars)
-- Generate-check-retry loop: auto-validates output via parser/checker, feeds errors back to LLM
-- Prompt preservation: original NL prompt stored in VCS alongside the generated `.intent` file
-
-## Planned Phases
-
-### Phase 6: Stateless Runtime
-IntentLang becomes executable in its own native language — not via WASM or LLVM, but through its own runtime.
-- New crate: `intent-runtime` — expression evaluator, state transformer, HTTP server
-- `intent serve <file>` — auto-generates REST endpoints from actions
-- **Stateless execution model**: caller sends entity state + action parameters in the request; runtime evaluates `requires`, computes new state from `ensures`, verifies `invariants`, returns result or constraint violations
-- Expression evaluator operates on concrete JSON values against the compiled IR
-- `old()` semantics via snapshot-and-compare
-- Quantifier evaluation (`forall`/`exists`) iterates entity instances provided in the request
-- CLI: `intent serve`
-
-### Phase 7: Module Imports
-Module imports unlock multi-file composition — required for beta.
-- `use OtherModule.Entity` syntax in grammar
-- Module resolver loads and parses imported modules
-- Cross-module type checking
-- `intent serve` loads multiple modules together
+- **Phase 5**: Language Polish & NL Generation — `fmt`, `init`, `completions`, list literals. `intent generate` for NL → `.intent` via LLM (Layer 0).
+- **Phase 6**: Stateless Runtime — expression evaluator, contract evaluation, HTTP server. CLI: `serve`.
+- **Phase 7**: Module Imports — `use` syntax, module resolver (DFS + cycle detection), cross-module type checking, multi-file composition.
 
 ### Long-Term: Self-Hosting
 IntentLang compiles itself — the compiler's spec is written in `.intent` files, agents generate the implementation, the audit bridge verifies conformance. Not a near-term priority, but a planned goal. See the Self-Hosting Roadmap section below for stages and invariants.
