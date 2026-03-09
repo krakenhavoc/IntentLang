@@ -11,6 +11,7 @@ use std::collections::HashMap;
 use intent_parser::ast::{self, Span, TopLevelItem};
 
 use crate::errors::CheckError;
+use crate::suggest::find_similar;
 
 /// Built-in primitive and domain types that don't need entity definitions.
 const BUILTIN_TYPES: &[&str] = &[
@@ -318,7 +319,12 @@ fn check_type_kind(
             // Inside a union, simple names are enum-like variant labels (Active, Frozen, etc.)
             // and don't need to resolve to a defined type.
             if !in_union && !is_known_type(name, env) {
-                errors.push(CheckError::undefined_type(name, span));
+                let suggestion = suggest_type_name(name, env);
+                errors.push(CheckError::undefined_type(
+                    name,
+                    span,
+                    suggestion.as_deref(),
+                ));
             }
         }
         ast::TypeKind::Union(variants) => {
@@ -336,10 +342,23 @@ fn check_type_kind(
         ast::TypeKind::Parameterized { name, .. } => {
             // The base type must be known (e.g. Decimal).
             if !is_known_type(name, env) {
-                errors.push(CheckError::undefined_type(name, span));
+                let suggestion = suggest_type_name(name, env);
+                errors.push(CheckError::undefined_type(
+                    name,
+                    span,
+                    suggestion.as_deref(),
+                ));
             }
         }
     }
+}
+
+/// Find a similar type name for "did you mean?" suggestions.
+fn suggest_type_name(name: &str, env: &TypeEnv) -> Option<String> {
+    let mut candidates: Vec<&str> = BUILTIN_TYPES.to_vec();
+    candidates.extend(env.entities.keys().map(|s| s.as_str()));
+    candidates.extend(env.state_machines.keys().map(|s| s.as_str()));
+    find_similar(name, &candidates, 2)
 }
 
 /// Check if a type name is a built-in, user-defined entity, or state machine.
@@ -459,10 +478,13 @@ fn walk_expr_field_access(
     {
         let known = entity_fields.iter().any(|(n, _)| n == first_field);
         if !known {
+            let field_names: Vec<&str> = entity_fields.iter().map(|(n, _)| n.as_str()).collect();
+            let suggestion = find_similar(first_field, &field_names, 2);
             errors.push(CheckError::unknown_field(
                 first_field,
                 entity_name,
                 expr.span,
+                suggestion.as_deref(),
             ));
         }
     }
