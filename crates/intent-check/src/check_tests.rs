@@ -589,3 +589,266 @@ action Withdraw {
             if field == "credit_limit" && entity == "Account"
     ));
 }
+
+// ── Enhanced diagnostics: fuzzy matching & suggestions ──────
+
+#[test]
+fn undefined_type_suggests_similar_name() {
+    // "Cusotmer" is edit distance 2 from "Customer" — should suggest.
+    let src = r#"module SuggestTest
+
+entity Customer {
+  id: UUID
+  name: String
+}
+
+entity Order {
+  id: UUID
+  buyer: Cusotmer
+}
+"#;
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    match &errs[0] {
+        CheckError::UndefinedType {
+            name, help_text, ..
+        } => {
+            assert_eq!(name, "Cusotmer");
+            assert!(
+                help_text.contains("did you mean"),
+                "expected 'did you mean' suggestion, got: {help_text}"
+            );
+            assert!(
+                help_text.contains("Customer"),
+                "expected 'Customer' in suggestion, got: {help_text}"
+            );
+        }
+        other => panic!("expected UndefinedType, got: {:?}", other),
+    }
+}
+
+#[test]
+fn undefined_type_no_suggestion_when_distant() {
+    // "Xyzabc" is far from any known type — should fall back to default help.
+    let src = r#"module NoSuggestTest
+
+entity Order {
+  id: UUID
+  buyer: Xyzabc
+}
+"#;
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    match &errs[0] {
+        CheckError::UndefinedType {
+            name, help_text, ..
+        } => {
+            assert_eq!(name, "Xyzabc");
+            assert!(
+                help_text.contains("define an entity"),
+                "expected default help text, got: {help_text}"
+            );
+        }
+        other => panic!("expected UndefinedType, got: {:?}", other),
+    }
+}
+
+#[test]
+fn unknown_field_suggests_similar_name() {
+    // "balence" is edit distance 1 from "balance" — should suggest.
+    let src = r#"module FieldSuggestTest
+
+entity Account {
+  id: UUID
+  balance: Int
+  status: Active | Frozen
+}
+
+action Transfer {
+  from: Account
+  amount: Int
+
+  requires {
+    from.balence >= amount
+  }
+}
+"#;
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    match &errs[0] {
+        CheckError::UnknownField {
+            field,
+            entity,
+            help_text,
+            ..
+        } => {
+            assert_eq!(field, "balence");
+            assert_eq!(entity, "Account");
+            assert!(
+                help_text.contains("did you mean"),
+                "expected 'did you mean' suggestion, got: {help_text}"
+            );
+            assert!(
+                help_text.contains("balance"),
+                "expected 'balance' in suggestion, got: {help_text}"
+            );
+        }
+        other => panic!("expected UnknownField, got: {:?}", other),
+    }
+}
+
+#[test]
+fn unknown_field_no_suggestion_when_distant() {
+    // "xyzabc" is far from any field — should fall back to default help.
+    let src = r#"module FieldNoSuggestTest
+
+entity Account {
+  id: UUID
+  balance: Int
+}
+
+action Transfer {
+  from: Account
+  amount: Int
+
+  requires {
+    from.xyzabc >= amount
+  }
+}
+"#;
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    match &errs[0] {
+        CheckError::UnknownField {
+            field, help_text, ..
+        } => {
+            assert_eq!(field, "xyzabc");
+            assert!(
+                help_text.contains("has no field named"),
+                "expected default help text, got: {help_text}"
+            );
+        }
+        other => panic!("expected UnknownField, got: {:?}", other),
+    }
+}
+
+#[test]
+fn tautological_comparison_suggests_old() {
+    // Tautological comparison on field access should suggest old() variant.
+    let src = r#"module TautSuggestTest
+
+entity Account {
+  id: UUID
+  balance: Int
+}
+
+action Transfer {
+  from: Account
+
+  requires {
+    from.balance == from.balance
+  }
+}
+"#;
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    match &errs[0] {
+        CheckError::TautologicalComparison {
+            expr, help_text, ..
+        } => {
+            assert_eq!(expr, "from.balance");
+            assert!(
+                help_text.contains("old(from.balance)"),
+                "expected old() suggestion, got: {help_text}"
+            );
+        }
+        other => panic!("expected TautologicalComparison, got: {:?}", other),
+    }
+}
+
+#[test]
+fn old_in_requires_has_enhanced_help() {
+    // OldInRequires should have enhanced help explaining pre-state semantics.
+    let src = r#"module OldHelpTest
+
+entity Account {
+  id: UUID
+  balance: Int
+}
+
+action Transfer {
+  from: Account
+
+  requires {
+    from.balance == old(from.balance)
+  }
+}
+"#;
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    assert!(matches!(&errs[0], CheckError::OldInRequires { .. }));
+    // Verify the error uses miette Diagnostic — the help text is part of the
+    // Diagnostic derive, so we verify it through the Display trait.
+    let msg = format!("{}", errs[0]);
+    assert!(msg.contains("old()"));
+}
+
+#[test]
+fn undefined_type_suggests_builtin() {
+    // "Sting" is edit distance 1 from "String" — should suggest the built-in type.
+    let src = r#"module BuiltinSuggestTest
+
+entity User {
+  name: Sting
+}
+"#;
+    let errs = check(src);
+    assert_eq!(errs.len(), 1);
+    match &errs[0] {
+        CheckError::UndefinedType {
+            name, help_text, ..
+        } => {
+            assert_eq!(name, "Sting");
+            assert!(
+                help_text.contains("did you mean"),
+                "expected 'did you mean' suggestion, got: {help_text}"
+            );
+            assert!(
+                help_text.contains("String"),
+                "expected 'String' in suggestion, got: {help_text}"
+            );
+        }
+        other => panic!("expected UndefinedType, got: {:?}", other),
+    }
+}
+
+#[test]
+fn correct_code_produces_no_suggestions() {
+    // Valid code should produce no errors at all.
+    let src = r#"module ValidTest
+
+entity Account {
+  id: UUID
+  balance: Int
+}
+
+action Deposit {
+  account: Account
+  amount: Int
+
+  requires {
+    amount > 0
+  }
+
+  ensures {
+    account.balance == old(account.balance) + amount
+  }
+}
+"#;
+    let errs = check(src);
+    assert!(
+        errs.is_empty(),
+        "expected no errors for valid code, got: {:?}",
+        errs
+    );
+}

@@ -66,14 +66,13 @@ pub enum CheckError {
     },
 
     #[error("undefined type `{name}`")]
-    #[diagnostic(
-        code(intent::check::undefined_type),
-        help("define an entity named `{name}`, or use a built-in type")
-    )]
+    #[diagnostic(code(intent::check::undefined_type), help("{help_text}"))]
     UndefinedType {
         name: String,
         #[label("used here")]
         span: SourceSpan,
+        /// Dynamic help text — includes "did you mean?" suggestion when available.
+        help_text: String,
     },
 
     #[error("undefined entity `{name}` in quantifier binding")]
@@ -99,15 +98,14 @@ pub enum CheckError {
     },
 
     #[error("unknown field `{field}` on entity `{entity}`")]
-    #[diagnostic(
-        code(intent::check::unknown_field),
-        help("`{entity}` has no field named `{field}`")
-    )]
+    #[diagnostic(code(intent::check::unknown_field), help("{help_text}"))]
     UnknownField {
         field: String,
         entity: String,
         #[label("accessed here")]
         span: SourceSpan,
+        /// Dynamic help text — includes "did you mean?" suggestion when available.
+        help_text: String,
     },
 
     #[error("unresolved import `{name}` — item not found in module `{module}`")]
@@ -125,7 +123,9 @@ pub enum CheckError {
     #[error("`old()` cannot be used in a `requires` block")]
     #[diagnostic(
         code(intent::check::old_in_requires),
-        help("`old()` references pre-state values and is only meaningful in `ensures` blocks")
+        help(
+            "in requires blocks, values are pre-state by default — `old()` is only needed in ensures blocks to reference pre-state values"
+        )
     )]
     OldInRequires {
         #[label("used here")]
@@ -133,17 +133,14 @@ pub enum CheckError {
     },
 
     #[error("comparing `{expr}` to itself is always {result}")]
-    #[diagnostic(
-        code(intent::check::tautological_comparison),
-        help(
-            "both sides of this comparison are identical — did you mean to compare different values?"
-        )
-    )]
+    #[diagnostic(code(intent::check::tautological_comparison), help("{help_text}"))]
     TautologicalComparison {
         expr: String,
         result: String,
         #[label("both sides are identical")]
         span: SourceSpan,
+        /// Dynamic help text with suggestions for alternative expressions.
+        help_text: String,
     },
 }
 
@@ -181,10 +178,15 @@ impl CheckError {
         }
     }
 
-    pub fn undefined_type(name: &str, span: Span) -> Self {
+    pub fn undefined_type(name: &str, span: Span, suggestion: Option<&str>) -> Self {
+        let help_text = match suggestion {
+            Some(s) => format!("did you mean `{s}`?"),
+            None => format!("define an entity named `{name}`, or use a built-in type"),
+        };
         Self::UndefinedType {
             name: name.to_string(),
             span: to_source_span(span),
+            help_text,
         }
     }
 
@@ -202,11 +204,16 @@ impl CheckError {
         }
     }
 
-    pub fn unknown_field(field: &str, entity: &str, span: Span) -> Self {
+    pub fn unknown_field(field: &str, entity: &str, span: Span, suggestion: Option<&str>) -> Self {
+        let help_text = match suggestion {
+            Some(s) => format!("did you mean `{s}`?"),
+            None => format!("`{entity}` has no field named `{field}`"),
+        };
         Self::UnknownField {
             field: field.to_string(),
             entity: entity.to_string(),
             span: to_source_span(span),
+            help_text,
         }
     }
 
@@ -225,10 +232,28 @@ impl CheckError {
     }
 
     pub fn tautological_comparison(expr: &str, result: &str, span: Span) -> Self {
+        let help_text = build_tautological_help(expr);
         Self::TautologicalComparison {
             expr: expr.to_string(),
             result: result.to_string(),
             span: to_source_span(span),
+            help_text,
         }
+    }
+}
+
+/// Build help text for a tautological comparison, suggesting alternatives.
+///
+/// For `a.balance`, suggests `old(a.balance)` and notes that both sides are identical.
+/// For `x`, suggests `old(x)`.
+fn build_tautological_help(expr: &str) -> String {
+    if expr.contains('.') {
+        // Field access: suggest old() variant
+        format!(
+            "both sides of this comparison are identical — did you mean `{expr} == old({expr})`?"
+        )
+    } else {
+        "both sides of this comparison are identical — did you mean to compare different values?"
+            .to_string()
     }
 }

@@ -19,11 +19,43 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::*;
 
+/// Compute Levenshtein distance between two strings for fuzzy matching.
+fn levenshtein_ir(a: &str, b: &str) -> usize {
+    let (a, b) = (a.as_bytes(), b.as_bytes());
+    let mut dp: Vec<usize> = (0..=b.len()).collect();
+    for i in 1..=a.len() {
+        let mut prev = dp[0];
+        dp[0] = i;
+        for j in 1..=b.len() {
+            let cost = if a[i - 1] == b[j - 1] { 0 } else { 1 };
+            let temp = dp[j];
+            dp[j] = (dp[j] + 1).min(dp[j - 1] + 1).min(prev + cost);
+            prev = temp;
+        }
+    }
+    dp[b.len()]
+}
+
+/// Find the most similar name from candidates within edit distance 2.
+fn find_similar_ir(name: &str, candidates: &[&str]) -> Option<String> {
+    let mut best: Option<(usize, &str)> = None;
+    for &candidate in candidates {
+        let dist = levenshtein_ir(name, candidate);
+        if dist > 0 && dist <= 2 && (best.is_none() || dist < best.unwrap().0) {
+            best = Some((dist, candidate));
+        }
+    }
+    best.map(|(_, s)| s.to_string())
+}
+
 /// A verification diagnostic.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VerifyError {
     pub kind: VerifyErrorKind,
     pub trace: SourceTrace,
+    /// Optional suggestion or note providing additional context.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -44,27 +76,31 @@ impl std::fmt::Display for VerifyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.kind {
             VerifyErrorKind::UnboundVariable { name } => {
-                write!(f, "unbound variable `{name}`")
+                write!(f, "unbound variable `{name}`")?;
             }
             VerifyErrorKind::OldOutsidePoscondition => {
-                write!(f, "`old()` used outside of postcondition")
+                write!(f, "`old()` used outside of postcondition")?;
             }
             VerifyErrorKind::PostconditionWithoutParams { function } => {
                 write!(
                     f,
                     "function `{function}` has postconditions but no parameters"
-                )
+                )?;
             }
             VerifyErrorKind::UnknownQuantifierType { ty } => {
-                write!(f, "quantifier references unknown type `{ty}`")
+                write!(f, "quantifier references unknown type `{ty}`")?;
             }
             VerifyErrorKind::DisconnectedPostcondition { function } => {
                 write!(
                     f,
                     "postcondition in `{function}` doesn't reference any parameter"
-                )
+                )?;
             }
         }
+        if let Some(note) = &self.note {
+            write!(f, " (note: {note})")?;
+        }
+        Ok(())
     }
 }
 
@@ -452,6 +488,7 @@ pub(crate) fn verify_function(
                 function: func.name.clone(),
             },
             trace: func.trace.clone(),
+            note: None,
         });
     }
 
@@ -496,11 +533,21 @@ pub(crate) fn verify_function(
         // Check postcondition references at least one parameter
         let vars = collect_vars(expr);
         if !vars.iter().any(|v| param_names.contains(v.as_str())) {
+            let param_list: Vec<&str> = param_names.iter().copied().collect();
+            let note = if param_list.is_empty() {
+                "a postcondition must reference at least one action parameter".to_string()
+            } else {
+                format!(
+                    "a postcondition must describe how action parameters change — available parameters: {}",
+                    param_list.join(", ")
+                )
+            };
             errors.push(VerifyError {
                 kind: VerifyErrorKind::DisconnectedPostcondition {
                     function: func.name.clone(),
                 },
                 trace: trace.clone(),
+                note: Some(note),
             });
         }
     }
@@ -564,6 +611,7 @@ fn check_no_old(expr: &IrExpr, trace: &SourceTrace, errors: &mut Vec<VerifyError
             errors.push(VerifyError {
                 kind: VerifyErrorKind::OldOutsidePoscondition,
                 trace: trace.clone(),
+                note: None,
             });
         }
         _ => {
@@ -592,9 +640,15 @@ fn check_bound_vars(
                 && !params.contains(name.as_str())
                 && !quantifier_bindings.contains(name.as_str())
             {
+                // Build suggestion from available bindings
+                let mut candidates: Vec<&str> = params.iter().copied().collect();
+                candidates.extend(quantifier_bindings.iter().copied());
+                let note =
+                    find_similar_ir(name, &candidates).map(|s| format!("did you mean `{s}`?"));
                 errors.push(VerifyError {
                     kind: VerifyErrorKind::UnboundVariable { name: name.clone() },
                     trace: trace.clone(),
+                    note,
                 });
             }
         }
@@ -628,9 +682,12 @@ fn check_quantifier_types(
     match expr {
         IrExpr::Forall { ty, body, .. } | IrExpr::Exists { ty, body, .. } => {
             if !known_types.contains(ty.as_str()) {
+                let candidates: Vec<&str> = known_types.iter().copied().collect();
+                let note = find_similar_ir(ty, &candidates).map(|s| format!("did you mean `{s}`?"));
                 errors.push(VerifyError {
                     kind: VerifyErrorKind::UnknownQuantifierType { ty: ty.clone() },
                     trace: trace.clone(),
+                    note,
                 });
             }
             check_quantifier_types(body, known_types, trace, errors);
