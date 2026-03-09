@@ -41,7 +41,7 @@ pub fn render(file: &ast::File) -> String {
             ast::TopLevelItem::Invariant(i) => render_invariant(&mut body, i),
             ast::TopLevelItem::EdgeCases(ec) => render_edge_cases(&mut body, ec),
             ast::TopLevelItem::StateMachine(sm) => render_state_machine(&mut body, sm),
-            ast::TopLevelItem::Test(_) => {} // Tests are not rendered
+            ast::TopLevelItem::Test(t) => render_test(&mut body, t),
         }
     }
 
@@ -158,6 +158,76 @@ fn render_edge_cases(out: &mut String, ec: &ast::EdgeCasesDecl) {
         ));
     }
     out.push_str("</ul>\n</section>\n");
+}
+
+fn render_test(out: &mut String, test: &ast::TestDecl) {
+    out.push_str(&format!(
+        "<section class=\"test\">\n<h2>Test: &ldquo;{}&rdquo;</h2>\n",
+        esc(&test.name)
+    ));
+
+    if !test.given.is_empty() {
+        out.push_str("<h3>Given</h3>\n<ul>\n");
+        for binding in &test.given {
+            out.push_str(&format!(
+                "<li><code>{}</code> = <code>{}</code></li>\n",
+                esc(&binding.name),
+                esc(&format_given_value(&binding.value))
+            ));
+        }
+        out.push_str("</ul>\n");
+    }
+
+    out.push_str(&format!(
+        "<h3>When</h3>\n<p><code>{}{}</code></p>\n",
+        esc(&test.when_action.action_name),
+        esc(&format_constructor_fields(&test.when_action.args))
+    ));
+
+    match &test.then {
+        ast::ThenClause::Asserts(exprs, _) => {
+            out.push_str("<h3>Then</h3>\n<ul class=\"constraints\">\n");
+            for expr in exprs {
+                out.push_str(&format!(
+                    "<li><code>{}</code></li>\n",
+                    esc(&format_expr(expr))
+                ));
+            }
+            out.push_str("</ul>\n");
+        }
+        ast::ThenClause::Fails(kind, _) => {
+            if let Some(kind) = kind {
+                out.push_str(&format!(
+                    "<h3>Then</h3>\n<p>fails <code>{}</code></p>\n",
+                    esc(kind)
+                ));
+            } else {
+                out.push_str("<h3>Then</h3>\n<p>fails</p>\n");
+            }
+        }
+    }
+
+    out.push_str("</section>\n");
+}
+
+fn format_given_value(value: &ast::GivenValue) -> String {
+    match value {
+        ast::GivenValue::EntityConstructor { type_name, fields } => {
+            format!("{}{}", type_name, format_constructor_fields(fields))
+        }
+        ast::GivenValue::Expr(e) => format_expr(e),
+    }
+}
+
+fn format_constructor_fields(fields: &[ast::ConstructorField]) -> String {
+    if fields.is_empty() {
+        return String::new();
+    }
+    let inner: Vec<_> = fields
+        .iter()
+        .map(|f| format!("{}: {}", f.name, format_expr(&f.value)))
+        .collect();
+    format!(" {{ {} }}", inner.join(", "))
 }
 
 fn render_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
@@ -323,4 +393,5 @@ section { margin-bottom: 1.5rem; }
 .action { border-left: 3px solid #d69e2e; padding-left: 1rem; }
 .invariant { border-left: 3px solid #38a169; padding-left: 1rem; }
 .edge-cases { border-left: 3px solid #e53e3e; padding-left: 1rem; }
-.state-machine { border-left: 3px solid #805ad5; padding-left: 1rem; }";
+.state-machine { border-left: 3px solid #805ad5; padding-left: 1rem; }
+.test { border-left: 3px solid #ed8936; padding-left: 1rem; }";

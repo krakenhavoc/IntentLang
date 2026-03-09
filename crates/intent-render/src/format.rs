@@ -35,7 +35,7 @@ pub fn format(file: &ast::File) -> String {
             ast::TopLevelItem::Invariant(i) => fmt_invariant(&mut out, i),
             ast::TopLevelItem::EdgeCases(ec) => fmt_edge_cases(&mut out, ec),
             ast::TopLevelItem::StateMachine(sm) => fmt_state_machine(&mut out, sm),
-            ast::TopLevelItem::Test(_) => {} // Tests are not formatted
+            ast::TopLevelItem::Test(t) => fmt_test(&mut out, t),
         }
     }
 
@@ -128,6 +128,73 @@ fn fmt_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
         out.push_str(&format!("  {}\n", chain.join(" -> ")));
     }
     out.push_str("}\n");
+}
+
+fn fmt_test(out: &mut String, test: &ast::TestDecl) {
+    out.push_str(&format!("test \"{}\" {{\n", test.name));
+
+    // given block
+    if !test.given.is_empty() {
+        out.push_str("  given {\n");
+        for binding in &test.given {
+            out.push_str(&format!(
+                "    {} = {}\n",
+                binding.name,
+                fmt_given_value(&binding.value)
+            ));
+        }
+        out.push_str("  }\n");
+    }
+
+    // when block
+    out.push_str(&format!("  when {} {{\n", test.when_action.action_name));
+    for (i, arg) in test.when_action.args.iter().enumerate() {
+        let comma = if i < test.when_action.args.len() - 1 {
+            ","
+        } else {
+            ""
+        };
+        out.push_str(&format!(
+            "    {}: {}{}\n",
+            arg.name,
+            fmt_expr(&arg.value),
+            comma
+        ));
+    }
+    out.push_str("  }\n");
+
+    // then block
+    match &test.then {
+        ast::ThenClause::Asserts(exprs, _) => {
+            out.push_str("  then {\n");
+            for expr in exprs {
+                out.push_str(&format!("    {}\n", fmt_expr(expr)));
+            }
+            out.push_str("  }\n");
+        }
+        ast::ThenClause::Fails(kind, _) => {
+            if let Some(kind) = kind {
+                out.push_str(&format!("  then fails {}\n", kind));
+            } else {
+                out.push_str("  then fails\n");
+            }
+        }
+    }
+
+    out.push_str("}\n");
+}
+
+fn fmt_given_value(value: &ast::GivenValue) -> String {
+    match value {
+        ast::GivenValue::EntityConstructor { type_name, fields } => {
+            let inner: Vec<_> = fields
+                .iter()
+                .map(|f| format!("{}: {}", f.name, fmt_expr(&f.value)))
+                .collect();
+            format!("{} {{ {} }}", type_name, inner.join(", "))
+        }
+        ast::GivenValue::Expr(e) => fmt_expr(e),
+    }
 }
 
 fn fmt_edge_cases(out: &mut String, ec: &ast::EdgeCasesDecl) {

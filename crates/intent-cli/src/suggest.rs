@@ -128,7 +128,7 @@ fn check_missing_numeric_invariants(
             });
 
             if !has_invariant {
-                let inv_name = format!("NonNegative{}{}", entity.name, capitalize(&field.name));
+                let inv_name = format!("NonNegative{}{}", entity.name, to_pascal_case(&field.name));
                 let var = entity
                     .name
                     .chars()
@@ -225,7 +225,7 @@ fn check_missing_ref_invariants(
                 .any(|inv| invariant_references_field(&inv.body, &entity.name, &field.name));
 
             if !has_ref_invariant {
-                let inv_name = format!("Valid{}{}Ref", entity.name, capitalize(&field.name));
+                let inv_name = format!("Valid{}{}Ref", entity.name, to_pascal_case(&field.name));
                 let var = entity
                     .name
                     .chars()
@@ -476,12 +476,19 @@ fn is_numeric_type(ty: &TypeKind) -> bool {
     }
 }
 
-fn capitalize(s: &str) -> String {
-    let mut chars = s.chars();
-    match chars.next() {
-        None => String::new(),
-        Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
-    }
+/// Convert a snake_case (or plain) string to PascalCase.
+/// e.g. "from_account" → "FromAccount", "balance" → "Balance", "id" → "Id"
+fn to_pascal_case(s: &str) -> String {
+    s.split('_')
+        .filter(|part| !part.is_empty())
+        .map(|part| {
+            let mut chars = part.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
+            }
+        })
+        .collect()
 }
 
 fn has_property(action: &ActionDecl, key: &str) -> bool {
@@ -1092,5 +1099,41 @@ mod tests {
         let ast = parse("module Empty\n");
         let result = analyze(&ast);
         assert_eq!(result.count, 0);
+    }
+
+    #[test]
+    fn to_pascal_case_converts_snake_case() {
+        assert_eq!(to_pascal_case("from_account"), "FromAccount");
+        assert_eq!(to_pascal_case("balance"), "Balance");
+        assert_eq!(to_pascal_case("id"), "Id");
+        assert_eq!(to_pascal_case("created_at"), "CreatedAt");
+        assert_eq!(to_pascal_case("from_account_id"), "FromAccountId");
+        assert_eq!(to_pascal_case(""), "");
+    }
+
+    #[test]
+    fn snake_case_field_names_produce_pascal_case_invariant_names() {
+        let ast = parse(
+            "module Test\n\
+             entity Transfer {\n  from_account: Account\n  amount: Decimal(precision: 2)\n}\n\
+             entity Account {\n  id: UUID\n}\n",
+        );
+        let result = analyze(&ast);
+        // Should produce "NonNegativeTransferAmount" and "ValidTransferFromAccountRef"
+        // NOT "ValidTransferFrom_accountRef"
+        let ref_suggestion = result.suggestions.iter().find(|s| s.title.contains("Ref"));
+        assert!(
+            ref_suggestion.is_some(),
+            "expected a ref invariant suggestion"
+        );
+        let title = &ref_suggestion.unwrap().title;
+        assert!(
+            title.contains("FromAccount"),
+            "expected PascalCase 'FromAccount' in title, got: {title}"
+        );
+        assert!(
+            !title.contains("From_account"),
+            "should not contain snake_case 'From_account' in title, got: {title}"
+        );
     }
 }
