@@ -688,3 +688,80 @@ fn add_invariant_idempotent_existing_properties() {
     assert!(content.contains("idempotent: true"));
     assert!(content.contains("atomic: true"));
 }
+
+// ── suggest ────────────────────────────────────────────────────
+
+#[test]
+fn suggest_produces_suggestions_for_transfer() {
+    intent_cmd()
+        .args(["suggest", example_file("transfer.intent").to_str().unwrap()])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Analyzing"))
+        .stdout(predicate::str::contains("suggestion(s) for TransferFunds"));
+}
+
+#[test]
+fn suggest_json_output() {
+    intent_cmd()
+        .args([
+            "--output",
+            "json",
+            "suggest",
+            example_file("transfer.intent").to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("\"suggestions\""))
+        .stdout(predicate::str::contains("\"count\""));
+}
+
+#[test]
+fn suggest_shopping_cart() {
+    intent_cmd()
+        .args([
+            "suggest",
+            example_file("shopping_cart.intent").to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("suggestion(s) for ShoppingCart"));
+}
+
+#[test]
+fn suggest_auth_spec() {
+    intent_cmd()
+        .args(["suggest", example_file("auth.intent").to_str().unwrap()])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("suggestion(s)"));
+}
+
+#[test]
+fn suggest_well_specified_has_fewer_warnings() {
+    // The transfer.intent example is well-specified; it should still produce some
+    // suggestions (e.g., uniqueness for TransferRecord) but not flag Transfer as
+    // missing atomic/audit_logged since those properties exist.
+    let output = intent_cmd()
+        .args([
+            "--output",
+            "json",
+            "suggest",
+            example_file("transfer.intent").to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let text = String::from_utf8(output).unwrap();
+    // Transfer already has atomic: true and audit_logged: true
+    assert!(
+        !text.contains("Transfer.atomic"),
+        "should not suggest atomic for Transfer (already has it)"
+    );
+    assert!(
+        !text.contains("Transfer.audit_logged"),
+        "should not suggest audit_logged for Transfer (already has it)"
+    );
+}
