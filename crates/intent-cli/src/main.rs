@@ -35,6 +35,18 @@ enum CodegenLang {
     Swift,
 }
 
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum InvariantPattern {
+    /// forall a, b: Entity => a != b => a.field != b.field
+    Unique,
+    /// forall e: Entity => e.field >= 0
+    NonNegative,
+    /// forall a: Entity => exists b: RefEntity => a.field == b.ref_field
+    NoDanglingRef,
+    /// Add idempotent: true to an action's properties block
+    Idempotent,
+}
+
 #[derive(Subcommand)]
 enum Commands {
     /// Parse and validate an intent specification file
@@ -230,6 +242,25 @@ enum Commands {
         /// Output file path (defaults to <name>.intent)
         #[arg(short = 'o', long = "out")]
         out: Option<PathBuf>,
+    },
+    /// Add an invariant from a built-in pattern to a spec file
+    AddInvariant {
+        /// Path to the .intent file
+        file: PathBuf,
+        /// Pattern to use: unique, non-negative, no-dangling-ref, idempotent
+        #[arg(long, value_enum)]
+        pattern: InvariantPattern,
+        /// Entity name (required for unique, non-negative, no-dangling-ref)
+        #[arg(long)]
+        entity: Option<String>,
+        /// Action name (required for idempotent)
+        #[arg(long)]
+        action: Option<String>,
+        /// Field arguments (pattern-dependent)
+        fields: Vec<String>,
+        /// Preview the generated invariant without modifying the file
+        #[arg(long)]
+        dry_run: bool,
     },
 }
 
@@ -1218,6 +1249,76 @@ fn main() {
             }
             println!("Created {} (module {})", file_path.display(), module_name);
         }
+        Commands::AddInvariant {
+            file,
+            pattern,
+            entity,
+            action,
+            fields,
+            dry_run,
+        } => {
+            let source = read_source(&file);
+            let ast = parse_or_exit(&source, &file);
+
+            // Validate the file first
+            let check_errors = if ast.imports.is_empty() {
+                intent_check::check_file(&ast)
+            } else {
+                let graph = resolve_or_exit(&file);
+                let root_file = &graph.modules[&graph.root];
+                let imported = imported_files_for(root_file, &graph);
+                intent_check::check_file_with_imports(root_file, &imported)
+            };
+            if !check_errors.is_empty() {
+                let handler = GraphicalReportHandler::new_themed(GraphicalTheme::unicode());
+                for err in &check_errors {
+                    let mut buf = String::new();
+                    let report = miette::Report::new(err.clone()).with_source_code(source.clone());
+                    handler.render_report(&mut buf, report.as_ref()).ok();
+                    eprint!("{buf}");
+                }
+                eprintln!(
+                    "{} error(s) in {} — fix before adding invariants",
+                    check_errors.len(),
+                    file.display()
+                );
+                process::exit(1);
+            }
+
+            match pattern {
+                InvariantPattern::Idempotent => {
+                    let action_name = match &action {
+                        Some(a) => a.clone(),
+                        None => {
+                            eprintln!("error: --action is required for the idempotent pattern");
+                            process::exit(1);
+                        }
+                    };
+                    handle_idempotent(&ast, &source, &file, &action_name, dry_run);
+                }
+                _ => {
+                    let entity_name = match &entity {
+                        Some(e) => e.clone(),
+                        None => {
+                            eprintln!(
+                                "error: --entity is required for the {} pattern",
+                                pattern_name(pattern)
+                            );
+                            process::exit(1);
+                        }
+                    };
+                    handle_entity_invariant(
+                        &ast,
+                        &source,
+                        &file,
+                        pattern,
+                        &entity_name,
+                        &fields,
+                        dry_run,
+                    );
+                }
+            }
+        }
     }
 }
 
@@ -1319,6 +1420,301 @@ fn capitalize(s: &str) -> String {
     match chars.next() {
         None => String::new(),
         Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
+    }
+}
+
+// ── Add-invariant helpers ─────────────────────────────────
+
+/// Convert a snake_case or lowercase identifier to PascalCase.
+/// e.g. "customer_id" -> "CustomerId", "balance" -> "Balance"
+fn to_pascal_case(s: &str) -> String {
+    s.split('_')
+        .filter(|part| !part.is_empty())
+        .map(capitalize)
+        .collect()
+}
+
+fn pattern_name(p: InvariantPattern) -> &'static str {
+    match p {
+        InvariantPattern::Unique => "unique",
+        InvariantPattern::NonNegative => "non-negative",
+        InvariantPattern::NoDanglingRef => "no-dangling-ref",
+        InvariantPattern::Idempotent => "idempotent",
+    }
+}
+
+/// Find an entity declaration by name in the AST.
+fn find_entity<'a>(
+    ast: &'a intent_parser::ast::File,
+    name: &str,
+) -> Option<&'a intent_parser::ast::EntityDecl> {
+    ast.items.iter().find_map(|item| {
+        if let intent_parser::ast::TopLevelItem::Entity(e) = item
+            && e.name == name
+        {
+            return Some(e);
+        }
+        None
+    })
+}
+
+/// Find an action declaration by name in the AST.
+fn find_action<'a>(
+    ast: &'a intent_parser::ast::File,
+    name: &str,
+) -> Option<&'a intent_parser::ast::ActionDecl> {
+    ast.items.iter().find_map(|item| {
+        if let intent_parser::ast::TopLevelItem::Action(a) = item
+            && a.name == name
+        {
+            return Some(a);
+        }
+        None
+    })
+}
+
+/// Check whether an invariant name already exists in the AST.
+fn invariant_exists(ast: &intent_parser::ast::File, name: &str) -> bool {
+    ast.items.iter().any(|item| {
+        if let intent_parser::ast::TopLevelItem::Invariant(inv) = item {
+            inv.name == name
+        } else {
+            false
+        }
+    })
+}
+
+/// Check whether an entity has a field with the given name.
+fn entity_has_field(entity: &intent_parser::ast::EntityDecl, field: &str) -> bool {
+    entity.fields.iter().any(|f| f.name == field)
+}
+
+/// Generate invariant text for entity-based patterns.
+fn generate_invariant_text(
+    pattern: InvariantPattern,
+    entity_name: &str,
+    fields: &[String],
+) -> Result<(String, String), String> {
+    match pattern {
+        InvariantPattern::Unique => {
+            if fields.len() != 1 {
+                return Err(format!(
+                    "unique pattern requires exactly 1 field argument, got {}",
+                    fields.len()
+                ));
+            }
+            let field = &fields[0];
+            let inv_name = format!("Unique{}{}", entity_name, to_pascal_case(field));
+            let text = format!(
+                "\ninvariant {} {{\n  forall a: {} => forall b: {} =>\n    a != b => a.{} != b.{}\n}}\n",
+                inv_name, entity_name, entity_name, field, field
+            );
+            Ok((inv_name, text))
+        }
+        InvariantPattern::NonNegative => {
+            if fields.len() != 1 {
+                return Err(format!(
+                    "non-negative pattern requires exactly 1 field argument, got {}",
+                    fields.len()
+                ));
+            }
+            let field = &fields[0];
+            let inv_name = format!("NonNegative{}{}", entity_name, to_pascal_case(field));
+            let text = format!(
+                "\ninvariant {} {{\n  forall a: {} => a.{} >= 0\n}}\n",
+                inv_name, entity_name, field
+            );
+            Ok((inv_name, text))
+        }
+        InvariantPattern::NoDanglingRef => {
+            if fields.len() != 3 {
+                return Err(format!(
+                    "no-dangling-ref pattern requires 3 field arguments (field RefEntity ref_field), got {}",
+                    fields.len()
+                ));
+            }
+            let field = &fields[0];
+            let ref_entity = &fields[1];
+            let ref_field = &fields[2];
+            let inv_name = format!("NoDangling{}{}", entity_name, to_pascal_case(field));
+            let text = format!(
+                "\ninvariant {} {{\n  forall a: {} => exists b: {} => a.{} == b.{}\n}}\n",
+                inv_name, entity_name, ref_entity, field, ref_field
+            );
+            Ok((inv_name, text))
+        }
+        InvariantPattern::Idempotent => {
+            // Handled separately
+            unreachable!()
+        }
+    }
+}
+
+/// Handle entity-based invariant patterns (unique, non-negative, no-dangling-ref).
+fn handle_entity_invariant(
+    ast: &intent_parser::ast::File,
+    source: &str,
+    file: &Path,
+    pattern: InvariantPattern,
+    entity_name: &str,
+    fields: &[String],
+    dry_run: bool,
+) {
+    // Validate entity exists
+    let entity = match find_entity(ast, entity_name) {
+        Some(e) => e,
+        None => {
+            eprintln!(
+                "error: entity '{}' not found in {}",
+                entity_name,
+                file.display()
+            );
+            process::exit(1);
+        }
+    };
+
+    // Validate field count first
+    let (inv_name, inv_text) = match generate_invariant_text(pattern, entity_name, fields) {
+        Ok(result) => result,
+        Err(e) => {
+            eprintln!("error: {e}");
+            process::exit(1);
+        }
+    };
+
+    // Validate fields exist on entity
+    if matches!(
+        pattern,
+        InvariantPattern::Unique | InvariantPattern::NonNegative | InvariantPattern::NoDanglingRef
+    ) && !entity_has_field(entity, &fields[0])
+    {
+        eprintln!(
+            "error: entity '{}' has no field '{}'",
+            entity_name, fields[0]
+        );
+        process::exit(1);
+    }
+    if matches!(pattern, InvariantPattern::NoDanglingRef) {
+        // Validate referenced entity and field
+        let ref_entity_name = &fields[1];
+        let ref_entity = match find_entity(ast, ref_entity_name) {
+            Some(e) => e,
+            None => {
+                eprintln!(
+                    "error: referenced entity '{}' not found in {}",
+                    ref_entity_name,
+                    file.display()
+                );
+                process::exit(1);
+            }
+        };
+        if !entity_has_field(ref_entity, &fields[2]) {
+            eprintln!(
+                "error: entity '{}' has no field '{}'",
+                ref_entity_name, fields[2]
+            );
+            process::exit(1);
+        }
+    }
+
+    // Check for duplicate invariant name
+    if invariant_exists(ast, &inv_name) {
+        eprintln!(
+            "error: invariant '{}' already exists in {}",
+            inv_name,
+            file.display()
+        );
+        process::exit(1);
+    }
+
+    if dry_run {
+        print!("{inv_text}");
+    } else {
+        // Append to file (strip trailing whitespace, then append)
+        let trimmed = source.trim_end();
+        let new_content = format!("{trimmed}{inv_text}");
+        write_or_exit(file, &new_content);
+        println!("Added invariant '{}' to {}", inv_name, file.display());
+    }
+}
+
+/// Handle the idempotent pattern (action property, not entity invariant).
+fn handle_idempotent(
+    ast: &intent_parser::ast::File,
+    source: &str,
+    file: &Path,
+    action_name: &str,
+    dry_run: bool,
+) {
+    // Validate action exists
+    let action = match find_action(ast, action_name) {
+        Some(a) => a,
+        None => {
+            eprintln!(
+                "error: action '{}' not found in {}",
+                action_name,
+                file.display()
+            );
+            process::exit(1);
+        }
+    };
+
+    // Check if action already has idempotent property
+    if let Some(props) = &action.properties
+        && props.entries.iter().any(|e| e.key == "idempotent")
+    {
+        eprintln!(
+            "error: action '{}' already has an 'idempotent' property",
+            action_name
+        );
+        process::exit(1);
+    }
+
+    let prop_line = "    idempotent: true";
+
+    if dry_run {
+        println!("properties {{");
+        println!("{prop_line}");
+        println!("}}");
+    } else {
+        // We need to modify the file to add the property.
+        // If the action already has a properties block, insert the property.
+        // If not, add a properties block before the action's closing brace.
+        let new_source = if let Some(props) = &action.properties {
+            // Insert after the opening `properties {` line.
+            // The properties block span starts at `properties` keyword.
+            // Find the `{` after `properties` in the source.
+            let props_start = props.span.start;
+            let after_props = &source[props_start..];
+            let brace_offset = after_props.find('{').unwrap() + 1;
+            let insert_pos = props_start + brace_offset;
+            format!(
+                "{}\n{}{}",
+                &source[..insert_pos],
+                prop_line,
+                &source[insert_pos..]
+            )
+        } else {
+            // Add a new properties block before the action's closing `}`.
+            // The action span ends at the closing `}`.
+            let action_end = action.span.end;
+            // Find the last `}` in the action span.
+            let before_end = &source[..action_end];
+            let last_brace = before_end.rfind('}').unwrap();
+            format!(
+                "{}\n  properties {{\n{}\n  }}\n{}",
+                &source[..last_brace],
+                prop_line,
+                &source[last_brace..]
+            )
+        };
+
+        write_or_exit(file, &new_source);
+        println!(
+            "Added idempotent property to action '{}' in {}",
+            action_name,
+            file.display()
+        );
     }
 }
 

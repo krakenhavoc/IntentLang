@@ -4,7 +4,7 @@
 //! multi-module task tracker system in `examples/beta/`. They validate that
 //! every command works end-to-end: parse, check, render, compile, verify,
 //! audit, coverage, query, codegen, openapi, test, test-harness, fmt, diff,
-//! lock/unlock/status.
+//! lock/unlock/status, add-invariant.
 
 use assert_cmd::Command;
 use predicates::prelude::*;
@@ -376,4 +376,315 @@ fn state_machine_fmt() {
         .success()
         .stdout(predicate::str::contains("state TaskStatus {"))
         .stdout(predicate::str::contains("Open -> InProgress -> Done"));
+}
+
+// ── add-invariant ────────────────────────────────────────────
+
+/// Helper to create a temporary .intent file with the given content.
+fn write_temp_intent(name: &str, content: &str) -> PathBuf {
+    let dir = std::env::temp_dir().join("intent-test-add-invariant");
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join(name);
+    std::fs::write(&path, content).unwrap();
+    path
+}
+
+const SAMPLE_SPEC: &str = r#"module TestSpec
+
+entity Account {
+  id: UUID
+  balance: Decimal(precision: 2)
+  owner_id: UUID
+  status: Active | Frozen
+}
+
+entity User {
+  id: UUID
+  name: String
+}
+
+action FreezeAccount {
+  account: Account
+  reason: String
+
+  requires {
+    account.status == Active
+  }
+
+  ensures {
+    account.status == Frozen
+  }
+}
+
+action Transfer {
+  from: Account
+  to: Account
+  amount: Decimal(precision: 2)
+
+  requires {
+    amount > 0
+  }
+
+  ensures {
+    from.balance == old(from.balance) - amount
+  }
+
+  properties {
+    atomic: true
+  }
+}
+"#;
+
+#[test]
+fn add_invariant_unique_dry_run() {
+    let path = write_temp_intent("unique_dry.intent", SAMPLE_SPEC);
+    intent_cmd()
+        .args([
+            "add-invariant",
+            path.to_str().unwrap(),
+            "--pattern",
+            "unique",
+            "--entity",
+            "Account",
+            "id",
+        ])
+        .arg("--dry-run")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("invariant UniqueAccountId"))
+        .stdout(predicate::str::contains(
+            "forall a: Account => forall b: Account",
+        ))
+        .stdout(predicate::str::contains("a != b => a.id != b.id"));
+    // Verify file was NOT modified
+    let content = std::fs::read_to_string(&path).unwrap();
+    assert_eq!(content, SAMPLE_SPEC);
+}
+
+#[test]
+fn add_invariant_non_negative_dry_run() {
+    let path = write_temp_intent("nonneg_dry.intent", SAMPLE_SPEC);
+    intent_cmd()
+        .args([
+            "add-invariant",
+            path.to_str().unwrap(),
+            "--pattern",
+            "non-negative",
+            "--entity",
+            "Account",
+            "balance",
+            "--dry-run",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "invariant NonNegativeAccountBalance",
+        ))
+        .stdout(predicate::str::contains(
+            "forall a: Account => a.balance >= 0",
+        ));
+}
+
+#[test]
+fn add_invariant_no_dangling_ref_dry_run() {
+    let path = write_temp_intent("noref_dry.intent", SAMPLE_SPEC);
+    intent_cmd()
+        .args([
+            "add-invariant",
+            path.to_str().unwrap(),
+            "--pattern",
+            "no-dangling-ref",
+            "--entity",
+            "Account",
+            "--dry-run",
+            "owner_id",
+            "User",
+            "id",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "invariant NoDanglingAccountOwnerId",
+        ))
+        .stdout(predicate::str::contains(
+            "forall a: Account => exists b: User => a.owner_id == b.id",
+        ));
+}
+
+#[test]
+fn add_invariant_idempotent_dry_run() {
+    let path = write_temp_intent("idemp_dry.intent", SAMPLE_SPEC);
+    intent_cmd()
+        .args([
+            "add-invariant",
+            path.to_str().unwrap(),
+            "--pattern",
+            "idempotent",
+            "--action",
+            "FreezeAccount",
+            "--dry-run",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("idempotent: true"));
+}
+
+#[test]
+fn add_invariant_unique_modifies_file() {
+    let path = write_temp_intent("unique_write.intent", SAMPLE_SPEC);
+    intent_cmd()
+        .args([
+            "add-invariant",
+            path.to_str().unwrap(),
+            "--pattern",
+            "unique",
+            "--entity",
+            "Account",
+            "id",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "Added invariant 'UniqueAccountId'",
+        ));
+    // Verify file was modified and the new invariant is present
+    let content = std::fs::read_to_string(&path).unwrap();
+    assert!(content.contains("invariant UniqueAccountId"));
+    // Verify the modified file still parses and checks OK
+    intent_cmd()
+        .args(["check", path.to_str().unwrap()])
+        .assert()
+        .success();
+}
+
+#[test]
+fn add_invariant_entity_not_found() {
+    let path = write_temp_intent("no_entity.intent", SAMPLE_SPEC);
+    intent_cmd()
+        .args([
+            "add-invariant",
+            path.to_str().unwrap(),
+            "--pattern",
+            "unique",
+            "--entity",
+            "NonExistent",
+            "id",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("entity 'NonExistent' not found"));
+}
+
+#[test]
+fn add_invariant_field_not_found() {
+    let path = write_temp_intent("no_field.intent", SAMPLE_SPEC);
+    intent_cmd()
+        .args([
+            "add-invariant",
+            path.to_str().unwrap(),
+            "--pattern",
+            "unique",
+            "--entity",
+            "Account",
+            "nonexistent_field",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("has no field 'nonexistent_field'"));
+}
+
+#[test]
+fn add_invariant_wrong_field_count() {
+    let path = write_temp_intent("wrong_count.intent", SAMPLE_SPEC);
+    // unique requires 1 field, give 2
+    intent_cmd()
+        .args([
+            "add-invariant",
+            path.to_str().unwrap(),
+            "--pattern",
+            "unique",
+            "--entity",
+            "Account",
+            "id",
+            "balance",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "requires exactly 1 field argument",
+        ));
+}
+
+#[test]
+fn add_invariant_missing_entity_flag() {
+    let path = write_temp_intent("no_flag.intent", SAMPLE_SPEC);
+    intent_cmd()
+        .args([
+            "add-invariant",
+            path.to_str().unwrap(),
+            "--pattern",
+            "unique",
+            "id",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("--entity is required"));
+}
+
+#[test]
+fn add_invariant_action_not_found() {
+    let path = write_temp_intent("no_action.intent", SAMPLE_SPEC);
+    intent_cmd()
+        .args([
+            "add-invariant",
+            path.to_str().unwrap(),
+            "--pattern",
+            "idempotent",
+            "--action",
+            "NonExistent",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("action 'NonExistent' not found"));
+}
+
+#[test]
+fn add_invariant_idempotent_writes_property() {
+    let path = write_temp_intent("idemp_write.intent", SAMPLE_SPEC);
+    intent_cmd()
+        .args([
+            "add-invariant",
+            path.to_str().unwrap(),
+            "--pattern",
+            "idempotent",
+            "--action",
+            "FreezeAccount",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Added idempotent property"));
+    // Verify file was modified
+    let content = std::fs::read_to_string(&path).unwrap();
+    assert!(content.contains("idempotent: true"));
+}
+
+#[test]
+fn add_invariant_idempotent_existing_properties() {
+    // Transfer already has properties { atomic: true }
+    let path = write_temp_intent("idemp_existing.intent", SAMPLE_SPEC);
+    intent_cmd()
+        .args([
+            "add-invariant",
+            path.to_str().unwrap(),
+            "--pattern",
+            "idempotent",
+            "--action",
+            "Transfer",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Added idempotent property"));
+    let content = std::fs::read_to_string(&path).unwrap();
+    assert!(content.contains("idempotent: true"));
+    assert!(content.contains("atomic: true"));
 }
