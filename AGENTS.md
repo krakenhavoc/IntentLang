@@ -91,6 +91,17 @@ AI_API_KEY=... cargo run -p intent-cli -- implement examples/transfer.intent --l
 cargo run -p intent-cli -- implement examples/transfer.intent --lang python -o ./generated
 cargo run -p intent-cli -- implement examples/transfer.intent --lang typescript --debug
 
+# Add invariant from built-in pattern
+cargo run -p intent-cli -- add-invariant examples/transfer.intent --pattern non-negative --entity Account --fields balance
+cargo run -p intent-cli -- add-invariant examples/transfer.intent --pattern unique --entity Account --fields id
+cargo run -p intent-cli -- add-invariant examples/transfer.intent --pattern idempotent --entity Transfer --action Transfer
+cargo run -p intent-cli -- add-invariant examples/transfer.intent --pattern no-dangling-ref --entity Order --fields cart --fields Cart
+cargo run -p intent-cli -- add-invariant examples/transfer.intent --pattern unique --entity Account --fields id --dry-run
+
+# Analyze a spec for potential improvements
+cargo run -p intent-cli -- suggest examples/transfer.intent
+cargo run -p intent-cli -- --output json suggest examples/transfer.intent
+
 # JSON output (for agent consumption)
 cargo run -p intent-cli -- --output json check examples/transfer.intent
 ```
@@ -110,7 +121,7 @@ intentlang/
     intent-lsp/              -- Language Server Protocol server (diagnostics, hover, go-to-def, completion)
     intent-codegen/          -- Skeleton code generator (Rust, TypeScript, Python, Go, Java, C#, Swift)
     intent-implement/        -- AI-powered implementation generator (LLM + spec -> full code)
-    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status, fmt, init, completions, generate, serve, codegen, openapi, implement
+    intent-cli/              -- CLI binary: check, render, compile, verify, audit, coverage, diff, query, lock, unlock, status, fmt, init, completions, generate, serve, codegen, openapi, implement, add-invariant, suggest
   editors/vscode/            -- VSCode extension (syntax highlighting, snippets, LSP client)
   examples/                  -- Example .intent files
   tests/valid/               -- Specs that must parse and pass checks
@@ -945,7 +956,7 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 
 **Implement (intent-implement)**: AI-powered full implementation generation from specs. Builds prompt context (spec source, skeleton code, contracts summary), sends to LLM via intent-gen client, validates output (expected names, balanced delimiters, no leftover stubs), retries with error feedback. Supports all 7 target languages (Rust, TypeScript, Python, Go, Java, C#, Swift). CLI: `implement`.
 
-**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`, `generate`, `serve`, `codegen`, `openapi`, `implement`. Global `--output json` flag for agent consumption. Commands that operate on specs (`check`, `compile`, `verify`, `serve`) automatically resolve module imports when `use` declarations are present.
+**CLI (intent-cli)**: `clap` derive-based. Subcommands: `check`, `render`, `render-html`, `compile`, `verify` (`--incremental`), `audit`, `coverage`, `diff`, `query`, `lock`, `unlock`, `status`, `fmt`, `init`, `completions`, `generate`, `serve`, `codegen`, `openapi`, `implement`, `add-invariant`, `suggest`. Global `--output json` flag for agent consumption. Commands that operate on specs (`check`, `compile`, `verify`, `serve`) automatically resolve module imports when `use` declarations are present.
 
 ## Key Dependencies
 
@@ -971,22 +982,23 @@ Both parse and check errors use `miette` diagnostics with source spans, labels, 
 - **Grammar rules get comments**: Link to the relevant SPEC.md section.
 - Run `cargo test --workspace` before committing. All tests must pass.
 
-## Current Test Coverage (385 total)
+## Current Test Coverage (458 total)
 
-- 31 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files, 5 cross-module import tests)
-- 28 parser tests (12 unit + 7 insta snapshot + 7 module resolver + 2 example parsing)
+- 52 semantic checker tests (duplicates, type resolution, quantifiers, edge actions, field access, constraints, valid files, cross-module imports, fuzzy matching suggestions)
+- 32 parser tests (12 unit + 7 insta snapshot + 7 module resolver + 2 example parsing + state machines)
 - 74 IR tests: 13 lowering + 11 verification + 6 coherence + 9 audit + 13 diff + 11 incremental + 11 lock
 - 51 runtime tests: 8 contract + 42 expression evaluator + 1 test runner
 - 121 codegen tests: skeleton + OpenAPI for all 7 languages
 - 41 intent-implement tests: prompt building, output validation (all 7 languages), expected names, leftover stub detection, LLM integration, retry with error feedback
 - 23 LSP tests: 8 document/line-index + 5 diagnostics + 4 hover + 3 navigation + 3 completion
 - 6 intent-gen tests: 3 strip_fences + 3 validate_spec
-- 27 beta integration tests: full CLI pipeline against multi-module task tracker system + state machines
+- 14 suggest tests: static analysis engine (missing invariants, properties, contracts, edge cases, unused entities)
+- 44 integration tests: full CLI pipeline against multi-module task tracker + state machines + add-invariant + suggest
 - Fixtures: 4 valid, 9 invalid + 6 example files + 2 multi-module example files + 3 beta example files
 
 ## Current Phase & Status
 
-Phases 1-8 complete. Phase 9 in progress. Current release: v0.7.0-beta.1 (Beta milestone). VSCode extension and LSP server shipped (PR #41).
+Phases 1-9 complete. Current release: v0.7.0-beta.1 (Beta milestone). VSCode extension and LSP server shipped (PR #41).
 
 Phase 1 (complete): PEG grammar, typed AST with spans, six-pass semantic analysis, Markdown/HTML renderers. CLI: `check`, `render`, `render-html`.
 
@@ -1004,6 +1016,6 @@ Phase 7 (complete): Module imports -- `use` syntax, module resolver, cross-modul
 
 Phase 8 (complete): Code Generation -- skeleton codegen for Rust, TypeScript, Python, Go, Java, C#, Swift shipped. AI-powered `intent implement` shipped for all 7 languages. Contract test harness shipped. CLI: `codegen`, `implement`, `test-harness`.
 
-Phase 9 (in progress): Language Ergonomics -- state machine sugar shipped (`state Name { A -> B -> C }`), auto-generates enum types with transition validation in all 7 codegen targets.
+Phase 9 (complete): Language Ergonomics -- state machine sugar (`state Name { A -> B -> C }`), invariant templates (`add-invariant` with 4 built-in patterns), static spec analysis (`suggest` with 7 analysis passes), fuzzy matching error diagnostics ("did you mean?" suggestions via Levenshtein distance).
 
 **Beta milestone**: Full-stack validation system (`examples/beta/`) — a multi-module task tracker exercising all CLI commands end-to-end. 27 integration tests cover check, render, compile, verify, audit, coverage, query, codegen (7 langs), openapi, test, test-harness, fmt, diff, lock/unlock/status, state machines. Runtime fix: direct field assignments in `ensures` blocks (e.g., `status == Archived`) now correctly applied as state mutations.

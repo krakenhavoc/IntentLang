@@ -224,6 +224,7 @@ edge_cases {
 - **Phase 6**: Stateless Runtime — expression evaluator, contract evaluation, HTTP server. CLI: `serve`.
 - **Phase 7**: Module Imports — `use` syntax, module resolver (DFS + cycle detection), cross-module type checking, multi-file composition.
 - **Phase 8**: Code Generation & Beta Milestone — skeleton codegen (7 languages), AI-powered `intent implement` (7 languages), contract test harness, beta validation system.
+- **Phase 9**: Language Ergonomics — state machine sugar, invariant templates (`add-invariant`), static spec analysis (`suggest`), fuzzy matching error diagnostics. CLI: `add-invariant`, `suggest`.
 
 ### Codegen Roadmap
 
@@ -242,12 +243,12 @@ edge_cases {
 
 **AI-powered codegen** (`intent implement`) — uses LLM to generate full implementations from specs, with contracts as constraints. Same generate-check loop as `intent-gen` but in reverse (spec → code instead of NL → spec). Supports all 7 target languages.
 
-### Phase 9: Language Ergonomics (in progress)
+### Phase 9: Language Ergonomics (complete)
 
 1. **State machine sugar** (shipped) — `state TaskStatus { Open -> InProgress -> Done }` auto-generates union type + transition constraints. Full pipeline: grammar, parser, checker, formatter, renderers, codegen (all 7 languages with `is_valid_transition`), LSP, VSCode.
-2. **Invariant/property templates** — CLI: `intent add-invariant --pattern <pattern> --entity <Entity> [fields...]`. Built-in patterns: `unique`, `non-negative`, `no-dangling-ref`, `idempotent`.
-3. **`intent suggest`** — Analyze spec, summarize problems, propose candidate `.intent` patches. Builds on Layer 0 NL infrastructure.
-4. **Better error diagnostics** — Counterexample states on test/verify failures.
+2. **Invariant/property templates** (shipped) — CLI: `intent add-invariant --pattern <pattern> --entity <Entity> [fields...]`. Built-in patterns: `unique`, `non-negative`, `no-dangling-ref`, `idempotent`. Validates entities/fields/actions exist. Supports `--dry-run`.
+3. **`intent suggest`** (shipped) — Static spec analysis (7 passes): missing numeric/uniqueness/ref invariants, missing action properties, unused entities, missing contracts, missing edge cases. JSON output mode. No LLM required.
+4. **Better error diagnostics** (shipped) — Levenshtein distance fuzzy matching for "did you mean?" suggestions on undefined types, unknown fields, unbound variables. Dynamic `help_text` in `UndefinedType`, `UnknownField`, `TautologicalComparison` errors.
 
 ### Long-Term: Self-Hosting
 IntentLang compiles itself — the compiler's spec is written in `.intent` files, agents generate the implementation, the audit bridge verifies conformance. Not a near-term priority, but a planned goal. See the Self-Hosting Roadmap section below for stages and invariants.
