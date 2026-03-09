@@ -140,6 +140,8 @@ intent openapi <file>                  Generate OpenAPI 3.0 spec from a spec fil
 intent openapi <file> -o api.json      Write OpenAPI spec to file
 intent implement <file> --lang <lang>  Generate full implementation from spec using AI
 intent implement <file> -l python -o ./out  Write implementation to output directory
+intent add-invariant <file> --pattern <pat> --entity <E> [--fields F]  Generate invariant from template
+intent suggest <file>                  Analyze spec and suggest improvements
 ```
 
 ### Editor Support
@@ -277,7 +279,7 @@ intent render-html examples/transfer.intent > transfer.html
 | Phase 6 | Complete | Stateless runtime — `intent serve`, expression evaluator, REST API from specs |
 | Phase 7 | Complete | Module imports (`use`), multi-file composition, cross-module type checking |
 | Phase 8 | Complete | Skeleton codegen and AI-powered `intent implement` for all 7 targets. Contract test harness. Beta milestone. |
-| Phase 9 | In progress | Language ergonomics: state machine sugar shipped |
+| Phase 9 | Complete | Language ergonomics: state machines, invariant templates, `suggest`, fuzzy error diagnostics |
 
 ### Codegen Targets
 
@@ -300,7 +302,7 @@ intent render-html examples/transfer.intent > transfer.html
 - **Stable (v1.0)** — production-ready runtime, stable API
 - **Long-term** — self-hosting: IntentLang compiles itself (compiler spec in `.intent`, agents generate implementation)
 
-410 tests across parser, checker, IR, runtime, gen, codegen, LSP, implement, and integration modules.
+458 tests across parser, checker, IR, runtime, gen, codegen, LSP, implement, suggest, and integration modules.
 
 Long-term: IntentLang compiles itself. The compiler's spec is written in `.intent` files, agents generate the implementation, and the audit bridge verifies conformance. See the [self-hosting roadmap](CLAUDE.md) for details.
 
