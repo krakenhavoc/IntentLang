@@ -39,7 +39,7 @@ pub fn render(file: &ast::File) -> String {
             ast::TopLevelItem::Invariant(i) => render_invariant(&mut out, i),
             ast::TopLevelItem::EdgeCases(ec) => render_edge_cases(&mut out, ec),
             ast::TopLevelItem::StateMachine(sm) => render_state_machine(&mut out, sm),
-            ast::TopLevelItem::Test(_) => {} // Tests are not rendered
+            ast::TopLevelItem::Test(t) => render_test(&mut out, t),
         }
     }
 
@@ -115,6 +115,128 @@ fn render_state_machine(out: &mut String, sm: &ast::StateMachineDecl) {
     }
 }
 
+fn render_test(out: &mut String, test: &ast::TestDecl) {
+    out.push_str(&format!("## Test: \"{}\"\n\n", test.name));
+
+    if !test.given.is_empty() {
+        out.push_str("**Given:**\n\n");
+        for binding in &test.given {
+            out.push_str(&format!(
+                "- `{}` = `{}`\n",
+                binding.name,
+                format_given_value(&binding.value)
+            ));
+        }
+        out.push('\n');
+    }
+
+    out.push_str(&format!(
+        "**When:** `{}{}`\n\n",
+        test.when_action.action_name,
+        format_constructor_fields(&test.when_action.args)
+    ));
+
+    match &test.then {
+        ast::ThenClause::Asserts(exprs, _) => {
+            out.push_str("**Then:**\n\n");
+            for expr in exprs {
+                out.push_str(&format!("- `{}`\n", format_expr(expr)));
+            }
+            out.push('\n');
+        }
+        ast::ThenClause::Fails(kind, _) => {
+            if let Some(kind) = kind {
+                out.push_str(&format!("**Then:** fails `{}`\n\n", kind));
+            } else {
+                out.push_str("**Then:** fails\n\n");
+            }
+        }
+    }
+}
+
 fn render_edge_cases(out: &mut String, _ec: &ast::EdgeCasesDecl) {
     out.push_str("## Edge Cases\n\n");
+}
+
+// ── Expression formatting ───────────────────────────────────
+
+fn format_expr(expr: &ast::Expr) -> String {
+    match &expr.kind {
+        ast::ExprKind::Implies(l, r) => format!("{} => {}", format_expr(l), format_expr(r)),
+        ast::ExprKind::Or(l, r) => format!("{} || {}", format_expr(l), format_expr(r)),
+        ast::ExprKind::And(l, r) => format!("{} && {}", format_expr(l), format_expr(r)),
+        ast::ExprKind::Not(e) => format!("!{}", format_expr(e)),
+        ast::ExprKind::Compare { left, op, right } => {
+            let op_str = match op {
+                ast::CmpOp::Eq => "==",
+                ast::CmpOp::Ne => "!=",
+                ast::CmpOp::Lt => "<",
+                ast::CmpOp::Gt => ">",
+                ast::CmpOp::Le => "<=",
+                ast::CmpOp::Ge => ">=",
+            };
+            format!("{} {} {}", format_expr(left), op_str, format_expr(right))
+        }
+        ast::ExprKind::Arithmetic { left, op, right } => {
+            let op_str = match op {
+                ast::ArithOp::Add => "+",
+                ast::ArithOp::Sub => "-",
+            };
+            format!("{} {} {}", format_expr(left), op_str, format_expr(right))
+        }
+        ast::ExprKind::Old(e) => format!("old({})", format_expr(e)),
+        ast::ExprKind::Quantifier {
+            kind,
+            binding,
+            ty,
+            body,
+        } => {
+            let kw = match kind {
+                ast::QuantifierKind::Forall => "forall",
+                ast::QuantifierKind::Exists => "exists",
+            };
+            format!("{} {}: {} => {}", kw, binding, ty, format_expr(body))
+        }
+        ast::ExprKind::Call { name, args } => {
+            let args_str: Vec<_> = args
+                .iter()
+                .map(|a| match a {
+                    ast::CallArg::Named { key, value, .. } => {
+                        format!("{}: {}", key, format_expr(value))
+                    }
+                    ast::CallArg::Positional(e) => format_expr(e),
+                })
+                .collect();
+            format!("{}({})", name, args_str.join(", "))
+        }
+        ast::ExprKind::FieldAccess { root, fields } => {
+            format!("{}.{}", format_expr(root), fields.join("."))
+        }
+        ast::ExprKind::List(items) => {
+            let inner: Vec<_> = items.iter().map(format_expr).collect();
+            format!("[{}]", inner.join(", "))
+        }
+        ast::ExprKind::Ident(name) => name.clone(),
+        ast::ExprKind::Literal(lit) => crate::format_literal(lit),
+    }
+}
+
+fn format_given_value(value: &ast::GivenValue) -> String {
+    match value {
+        ast::GivenValue::EntityConstructor { type_name, fields } => {
+            format!("{}{}", type_name, format_constructor_fields(fields))
+        }
+        ast::GivenValue::Expr(e) => format_expr(e),
+    }
+}
+
+fn format_constructor_fields(fields: &[ast::ConstructorField]) -> String {
+    if fields.is_empty() {
+        return String::new();
+    }
+    let inner: Vec<_> = fields
+        .iter()
+        .map(|f| format!("{}: {}", f.name, format_expr(&f.value)))
+        .collect();
+    format!(" {{ {} }}", inner.join(", "))
 }
